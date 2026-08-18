@@ -1,0 +1,117 @@
+<div class="space-y-6">
+  <!-- Metric Summary Cards -->
+  <app-cards [cards]="summaryCards"></app-cards>
+
+  <!-- Filter Panel -->
+  <app-filters 
+    [activeFilters]="metadata.filters || []" 
+    [currentFilters]="filters"
+    [showImportButton]="true"
+    (filterChange)="onFilterChange($event)"
+    (generateReport)="onGenerateReport()"
+    (reset)="onResetFilters()"
+    (export)="onExport($event)"
+    (excelImport)="onExcelImport($event)"
+  ></app-filters>
+
+  <!-- Grid with Optional History Timeline Panel -->
+  <div class="grid grid-cols-1" [ngClass]="{'lg:grid-cols-3 gap-6': reportId === 'history'}">
+    
+    <!-- Table Grid Renders Here -->
+    <div [ngClass]="{'lg:col-span-2': reportId === 'history'}">
+      <app-tables
+        [title]="(metadata.title && metadata.title.endsWith('Details')) ? metadata.title : ((metadata.title || 'Increment Report') + ' Details')"
+        [headers]="metadata.headers || []"
+        [data]="reportData"
+        [total]="total"
+        [page]="page"
+        [pageSize]="pageSize"
+        [sortKey]="sortKey"
+        [sortDir]="sortDir"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+        (search)="onSearch($event)"
+        (sort)="onSort($event)"
+        (rowSelect)="onRowSelect($event)"
+      ></app-tables>
+    </div>
+
+    <!-- Timeline Sidebar Panel (Shown only on History report) -->
+    <div 
+      *ngIf="reportId === 'history'"
+      class="bg-white border border-[#E5E7EB] rounded-[16px] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.015),0_1px_2px_rgba(0,0,0,0.02)] flex flex-col h-full self-start"
+    >
+      <h3 class="text-sm font-bold text-slate-900 border-b border-[#E5E7EB] pb-3 mb-5 flex items-center gap-2">
+        <i class="fa-solid fa-clock-rotate-left text-slate-450 text-xs"></i>
+        <span>Compensation History Timeline</span>
+      </h3>
+
+      <!-- Employee Sub-Details -->
+      <div class="mb-5 bg-slate-50/60 p-3 rounded-xl border border-slate-100 flex items-center gap-3">
+        <div class="w-9 h-9 bg-enterprise-navy text-white text-xs font-black rounded-full flex items-center justify-center shadow-xs border border-white/40 flex-shrink-0">
+          {{ selectedEmployeeId }}
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-800 leading-tight">{{ selectedEmployeeName }}</h4>
+          <p class="text-[9px] text-slate-450 font-bold uppercase mt-0.5 tracking-wider">{{ selectedEmployeeDept }} Department</p>
+        </div>
+      </div>
+      
+      <div class="flex-1 space-y-6 relative before:absolute before:left-[18px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+        <!-- Timeline Revision Nodes -->
+        <div *ngFor="let node of employeeHistory" class="relative pl-9 text-xs">
+          <!-- Timeline blue dot -->
+          <div class="absolute left-[12px] top-0.5 w-3.5 h-3.5 rounded-full border-2 border-enterprise-blue bg-white z-10 flex items-center justify-center shadow-xs">
+            <span class="w-1.5 h-1.5 rounded-full bg-enterprise-blue"></span>
+          </div>
+          
+          <div class="space-y-1">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block leading-none">{{ node.date }}</span>
+            <div class="flex items-center gap-2 mt-1 flex-wrap">
+              <p class="font-bold text-slate-900 leading-tight">Salary Revision Released</p>
+              <span class="bg-blue-50 text-enterprise-blue border border-blue-200/50 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider">Salary Revision</span>
+            </div>
+            
+            <!-- Details Box -->
+            <div class="bg-slate-50/40 border border-slate-100 p-3 rounded-xl text-[11px] text-slate-650 leading-relaxed font-semibold space-y-1.5">
+              <div class="flex justify-between">
+                <span class="text-slate-400">Previous:</span>
+                <span>₹{{ node.prevSalary?.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</span>
+              </div>
+              <div class="flex justify-between text-enterprise-blue font-bold">
+                <span>Revised:</span>
+                <span>₹{{ node.revSalary?.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</span>
+              </div>
+              <div class="flex justify-between text-emerald-700">
+                <span>Increment:</span>
+                <span>+₹{{ node.incAmount?.toLocaleString('en-IN', {minimumFractionDigits: 2}) }} ({{ node.incPercent }}%)</span>
+              </div>
+            </div>
+            
+            <p class="text-[10px] text-slate-400 font-semibold mt-1">Authorized by: <span class="text-slate-600 font-bold">{{ node.approvedBy }}</span></p>
+          </div>
+        </div>
+
+        <div *ngIf="employeeHistory.length === 0" class="text-center text-slate-400 py-6 font-medium">
+          No revision history found for this employee.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================== -->
+  <!-- TOAST NOTIFICATION POPUP -->
+  <!-- ============================================== -->
+  <div 
+    [class.opacity-100]="showToast" 
+    [class.translate-y-0]="showToast" 
+    [class.opacity-0]="!showToast" 
+    [class.translate-y-3]="!showToast"
+    [class.pointer-events-none]="!showToast"
+    class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs py-3 px-5 rounded-lg shadow-xl transition-all duration-300 z-50 flex items-center gap-2"
+  >
+    <i class="fa-solid text-green-400" [ngClass]="toastIcon"></i>
+    <span class="font-medium">{{ toastMessage }}</span>
+  </div>
+</div>

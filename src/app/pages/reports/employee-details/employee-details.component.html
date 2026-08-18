@@ -1,0 +1,258 @@
+<div class="space-y-6">
+
+  <!-- ============================================== -->
+  <!-- CASE A: STANDARD OR CUSTOMIZED DIRECTORIES -->
+  <!-- ============================================== -->
+  <div *ngIf="reportId !== 'dossiers'" class="space-y-6">
+    <!-- Metric Summary Cards -->
+    <app-cards [cards]="summaryCards"></app-cards>
+
+    <!-- Column Customizer Panel (Customized Report only) -->
+    <div *ngIf="reportId === 'customized'" class="bg-white rounded-xl border border-slate-200 p-5 space-y-4 shadow-sm">
+      <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+        <i class="fa-solid fa-list-check text-slate-400"></i>
+        <span>Select Roster Columns to Include in Customized Report:</span>
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
+        <div *ngFor="let grp of ['Employee', 'Department', 'Personal', 'Identity', 'Salary']" class="space-y-2">
+          <h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1.5">{{ grp }}</h4>
+          <div class="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar">
+            <label 
+              *ngFor="let col of getColumnsByGroup(grp)" 
+              class="flex items-center gap-2 text-[11px] text-slate-600 font-semibold cursor-pointer hover:text-enterprise-blue select-none"
+            >
+              <input 
+                type="checkbox" 
+                [checked]="selectedColumns.includes(col)" 
+                (change)="toggleColumn(col)" 
+                class="rounded text-enterprise-blue focus:ring-enterprise-blue border-slate-300 w-3.5 h-3.5"
+              >
+              <span>{{ allColumns[col].label.split(' (')[0] }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Criteria Panel -->
+    <app-filters 
+      [activeFilters]="metadata.filters || []" 
+      [currentFilters]="filters"
+      [showImportButton]="true"
+      (filterChange)="onFilterChange($event)"
+      (generateReport)="onGenerateReport()"
+      (reset)="onResetFilters()"
+      (export)="onExport($event)"
+      (excelImport)="onExcelImport($event)"
+    ></app-filters>
+
+    <!-- Grid Layout with Optional Timeline -->
+    <div class="grid grid-cols-1" [ngClass]="{'lg:grid-cols-3 gap-6': reportId === 'history'}">
+      
+      <!-- Table View -->
+      <div [ngClass]="{'lg:col-span-2': reportId === 'history'}">
+        <app-tables
+          [title]="(metadata.title && metadata.title.endsWith('Details')) ? metadata.title : ((metadata.title || 'Employee Directory') + ' Details')"
+          [headers]="metadata.headers || []"
+          [data]="reportData"
+          [total]="total"
+          [page]="page"
+          [pageSize]="pageSize"
+          [sortKey]="sortKey"
+          [sortDir]="sortDir"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)"
+          (search)="onSearch($event)"
+          (sort)="onSort($event)"
+          (rowSelect)="onRowSelect($event)"
+        ></app-tables>
+      </div>
+
+      <!-- Timeline Sidebar Panel (Shown only on History report) -->
+      <div 
+        *ngIf="reportId === 'history'"
+        class="bg-white border border-[#E5E7EB] rounded-[16px] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.015),0_1px_2px_rgba(0,0,0,0.02)] flex flex-col h-full self-start"
+      >
+        <h3 class="text-sm font-bold text-slate-900 border-b border-[#E5E7EB] pb-3 mb-5 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-slate-450 text-xs"></i>
+          <span>Employee Career Timeline</span>
+        </h3>
+
+        <!-- Selected Employee Info -->
+        <div class="mb-5 bg-slate-50/60 p-3 rounded-xl border border-slate-100 flex items-center gap-3">
+          <div class="w-9 h-9 bg-enterprise-navy text-white text-xs font-black rounded-full flex items-center justify-center shadow-xs border border-white/40 flex-shrink-0">
+            {{ selectedEmpId.substring(0, 3) }}
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-slate-800 leading-tight">{{ selectedEmpName }}</h4>
+            <p class="text-[9px] text-slate-450 font-bold uppercase mt-0.5 tracking-wider">{{ selectedEmpDept }} Department</p>
+          </div>
+        </div>
+        
+        <!-- Timeline Nodes -->
+        <div class="flex-1 space-y-6 relative before:absolute before:left-[18px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+          <div *ngFor="let node of employeeHistory" class="relative pl-9 text-xs">
+            <!-- Timeline point dot -->
+            <div 
+              [ngClass]="{
+                'border-emerald-500 text-emerald-500 bg-white': node.event === 'Joined',
+                'border-purple-500 text-purple-500 bg-white': node.event === 'Promotion',
+                'border-blue-500 text-blue-500 bg-white': node.event === 'Salary Revision',
+                'border-amber-500 text-amber-500 bg-white': node.event === 'Shift Change'
+              }"
+              class="absolute left-[12px] top-0.5 w-3.5 h-3.5 rounded-full border-2 z-10 flex items-center justify-center shadow-xs"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+            </div>
+            
+            <div>
+              <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block leading-none">{{ node.date }}</span>
+              <!-- Event Badge -->
+              <span 
+                [class.bg-emerald-50]="node.event === 'Joined'"
+                [class.text-emerald-700]="node.event === 'Joined'"
+                [class.border-emerald-200]="node.event === 'Joined'"
+                [class.bg-purple-50]="node.event === 'Promotion'"
+                [class.text-purple-700]="node.event === 'Promotion'"
+                [class.border-purple-200]="node.event === 'Promotion'"
+                [class.bg-blue-50]="node.event === 'Salary Revision'"
+                [class.text-enterprise-blue]="node.event === 'Salary Revision'"
+                [class.border-blue-200]="node.event === 'Salary Revision'"
+                [class.bg-amber-50]="node.event === 'Shift Change'"
+                [class.text-amber-700]="node.event === 'Shift Change'"
+                [class.border-amber-200]="node.event === 'Shift Change'"
+                class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase mt-1 inline-block border tracking-wider"
+              >
+                {{ node.event }}
+              </span>
+              <p class="text-slate-650 font-semibold mt-1.5 leading-relaxed text-[11px]">{{ node.detail }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="employeeHistory.length === 0" class="text-center text-slate-400 py-6 font-medium">
+            No career milestones logged for this employee.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- CASE B: CARD-BASED STAFF DOSSIERS DIRECTORY -->
+  <!-- ============================================== -->
+  <div *ngIf="reportId === 'dossiers'" class="space-y-6">
+    
+    <!-- Summary Cards -->
+    <app-cards [cards]="summaryCards"></app-cards>
+
+    <!-- Action Buttons for Dossiers -->
+    <app-filters 
+      [activeFilters]="[]" 
+      [currentFilters]="filters"
+      [showImportButton]="true"
+      [reportTitle]="'Staff Profile Dossiers'"
+      (filterChange)="onFilterChange($event)"
+      (generateReport)="onGenerateReport()"
+      (reset)="onResetFilters()"
+      (export)="onExport($event)"
+      (excelImport)="onExcelImport($event)"
+    ></app-filters>
+
+    <!-- Dossiers Search & Control Header -->
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h3 class="text-sm font-bold text-slate-800">Staff Profile Dossiers</h3>
+        <p class="text-[10px] text-slate-400 mt-0.5">Explore detailed card directory sheets for corporate staff profiles</p>
+      </div>
+      <div class="relative w-full sm:w-80">
+        <input 
+          [(ngModel)]="dossierSearch" 
+          (ngModelChange)="onDossierSearchChange()" 
+          class="w-full reports-input icon-left" 
+          placeholder="Search dossiers by name, ID, or title..." 
+          type="text"
+        >
+        <i class="fa-solid fa-magnifying-glass absolute inset-y-0 left-4 flex items-center text-slate-400 text-xs"></i>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div 
+        *ngFor="let emp of dossierList" 
+        class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-enterprise-blue/40 transition-all space-y-4"
+      >
+        <!-- Header Info -->
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-enterprise-blue text-white text-sm font-bold rounded-full flex items-center justify-center border border-enterprise-blue/20 flex-shrink-0 shadow-xs">
+            {{ emp.photo || emp.empName.charAt(0) }}
+          </div>
+          <div class="space-y-0.5 min-w-0">
+            <h4 class="text-xs font-bold text-slate-900 leading-tight overflow-hidden text-ellipsis whitespace-nowrap">{{ emp.empName }}</h4>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{{ emp.designation }}</p>
+            <p class="text-[9px] text-slate-500 font-semibold">{{ emp.department }} Dept • {{ emp.location }}</p>
+          </div>
+        </div>
+
+        <!-- Detail Table Inside Card -->
+        <div class="border-t border-slate-100 pt-3 space-y-1.5 text-[11px] font-semibold text-slate-600">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Employee ID:</span>
+            <span class="font-mono text-slate-800">{{ emp.empId }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Date of Joining:</span>
+            <span class="text-slate-800">{{ emp.joinDate }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Basic Salary:</span>
+            <span class="text-slate-800">₹{{ emp.basicSalary.toLocaleString('en-IN') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Qualification:</span>
+            <span class="text-slate-800">{{ emp.qualification }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Email Address:</span>
+            <span class="text-slate-800 overflow-hidden text-ellipsis whitespace-nowrap max-w-[140px]">{{ emp.email }}</span>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="pt-3 border-t border-slate-100 flex gap-2">
+          <button 
+            [routerLink]="['/reports/employee-details/experience-history']"
+            [queryParams]="{ empId: emp.empId }"
+            class="w-full text-center bg-blue-50 hover:bg-blue-100 text-enterprise-blue text-[10px] font-bold py-1.5 rounded transition-colors flex items-center justify-center gap-1.5"
+          >
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>View Career Timeline</span>
+          </button>
+        </div>
+      </div>
+
+      <div *ngFor="let item of (dossierList.length === 0 ? [1] : [])" class="col-span-full bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-400 text-xs">
+        <i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>
+        No profiles found matching the search query.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================== -->
+  <!-- TOAST NOTIFICATION POPUP -->
+  <!-- ============================================== -->
+  <div 
+    [class.opacity-100]="showToast" 
+    [class.translate-y-0]="showToast" 
+    [class.opacity-0]="!showToast" 
+    [class.translate-y-3]="!showToast"
+    [class.pointer-events-none]="!showToast"
+    class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs py-3 px-5 rounded-lg shadow-xl transition-all duration-300 z-50 flex items-center gap-2"
+  >
+    <i class="fa-solid text-green-400" [ngClass]="toastIcon"></i>
+    <span class="font-medium">{{ toastMessage }}</span>
+  </div>
+
+</div>

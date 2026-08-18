@@ -1,0 +1,219 @@
+<div class="bg-white rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.015),0_1px_2px_rgba(0,0,0,0.02)] border border-[#E5E7EB] overflow-hidden" data-purpose="report-card">
+  <!-- Table Header Bar -->
+  <div class="px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E7EB] bg-transparent">
+    <div>
+      <h3 class="text-sm font-bold text-slate-900">{{ title }}</h3>
+      <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Total Records: {{ total }}</p>
+    </div>
+    
+    <!-- Table Search Box -->
+    <div class="relative max-w-sm w-full md:w-80" *ngIf="showSearch">
+      <input 
+        [(ngModel)]="searchText" 
+        (ngModelChange)="onSearchChange()" 
+        class="w-full reports-input icon-left" 
+        [placeholder]="searchPlaceholder" 
+        type="text"
+      >
+      <i class="fa-solid fa-magnifying-glass absolute inset-y-0 left-4 flex items-center text-slate-400 text-xs"></i>
+    </div>
+  </div>
+
+  <!-- Table Body Wrapper -->
+  <div class="overflow-x-auto table-scrollbar">
+    <table class="w-full text-left text-[12px] whitespace-nowrap min-w-max border-collapse">
+      <thead *ngIf="reportId === 'leaveavail'" class="bg-enterprise-navy text-white font-bold uppercase tracking-wider text-[9px]">
+        <tr class="divide-x divide-white/10">
+          <th rowspan="2" class="px-5 py-3.5 text-left align-middle cursor-pointer hover:bg-white/5 transition-colors rounded-tl-2xl" (click)="onSort('id')">
+            <span>EMP ID</span>
+          </th>
+          <th rowspan="2" class="px-5 py-3.5 text-left align-middle cursor-pointer hover:bg-white/5 transition-colors" (click)="onSort('name')">
+            <span>EMPLOYEE NAME</span>
+          </th>
+          <th rowspan="2" class="px-5 py-3.5 text-left align-middle cursor-pointer hover:bg-white/5 transition-colors" (click)="onSort('dept')">
+            <span>DEPARTMENT</span>
+          </th>
+          <th rowspan="2" class="px-5 py-3.5 text-left align-middle cursor-pointer hover:bg-white/5 transition-colors" (click)="onSort('desg')">
+            <span>DESIGNATION</span>
+          </th>
+          <th rowspan="2" class="px-5 py-3.5 text-left align-middle cursor-pointer hover:bg-white/5 transition-colors" (click)="onSort('leaveType')">
+            <span>LEAVE TYPE</span>
+          </th>
+          <th colspan="2" class="px-5 py-2 text-center bg-white/10 border-b border-white/10">
+            THIS MONTH (May 2026)
+          </th>
+          <th colspan="2" class="px-5 py-2 text-center bg-white/10 border-b border-white/10">
+            THIS YEAR (2026 YTD)
+          </th>
+          <th rowspan="2" class="px-5 py-3.5 text-left align-middle cursor-pointer hover:bg-white/5 transition-colors" (click)="onSort('status')">
+            <span>STATUS</span>
+          </th>
+          <th rowspan="2" class="px-5 py-3.5 text-left align-middle cursor-pointer hover:bg-white/5 transition-colors rounded-tr-2xl" (click)="onSort('manager')">
+            <span>REPORTING MANAGER</span>
+          </th>
+        </tr>
+        <tr class="divide-x divide-white/10">
+          <th class="px-5 py-2 border-b border-white/10 text-center cursor-pointer text-[8px] hover:bg-white/5 transition-colors" (click)="onSort('monthlyDays')">
+            <span>DAYS AVAILED</span>
+          </th>
+          <th class="px-5 py-2 border-b border-white/10 text-center cursor-pointer text-[8px] hover:bg-white/5 transition-colors" (click)="onSort('monthlyBalance')">
+            <span>MONTHLY BALANCE ({{ monthlyLimit }} DAYS)</span>
+          </th>
+          <th class="px-5 py-2 border-b border-white/10 text-center cursor-pointer text-[8px] hover:bg-white/5 transition-colors" (click)="onSort('yearlyDays')">
+            <span>DAYS AVAILED</span>
+          </th>
+          <th class="px-5 py-2 border-b border-white/10 text-center cursor-pointer text-[8px] hover:bg-white/5 transition-colors" (click)="onSort('yearlyBalance')">
+            <span>YEARLY BALANCE ({{ monthlyLimit * 12 }} DAYS)</span>
+          </th>
+        </tr>
+      </thead>
+
+      <thead *ngIf="reportId !== 'leaveavail'" class="bg-enterprise-navy text-white uppercase tracking-wider text-[11px] font-bold">
+        <tr>
+          <th 
+            *ngFor="let header of headers; let first = first; let last = last" 
+            (click)="onSort(header.field)" 
+            class="px-5 py-3.5 cursor-pointer select-none hover:bg-white/5 transition-colors"
+            [class.rounded-tl-2xl]="first"
+            [class.rounded-tr-2xl]="last"
+          >
+            <span>{{ header.label }}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 text-slate-700">
+        <tr 
+          *ngFor="let row of data; let i = index" 
+          (click)="onRowClick(row)" 
+          [ngClass]="{
+            'bg-blue-50/20 border-l-4 border-l-[#2563EB]': isRowSelected(row),
+            'bg-red-50/20 hover:bg-red-50/40': isRowExceeded(row) && !isRowSelected(row),
+            'bg-slate-50/60': !isRowSelected(row) && !isRowExceeded(row) && i % 2 === 1
+          }"
+          class="hover:bg-slate-100/70 transition-colors cursor-pointer"
+        >
+          <td *ngFor="let header of headers" class="px-5 py-3.5 text-[12px] font-medium"
+              [class.text-center]="reportId === 'leaveavail' && ['monthlyDays', 'monthlyBalance', 'yearlyDays', 'yearlyBalance'].includes(header.field)"
+              [class.text-red-650]="isCellExceeded(row, header.field)"
+              [class.font-bold]="isCellExceeded(row, header.field)"
+          >
+            <!-- Render status badge if the field is status -->
+            <span 
+              *ngIf="header.field === 'status' || header.field === 'eligible' || header.field === 'approvalStatus'"
+              [ngClass]="getStatusClass(row[header.field], header.field)" 
+              class="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border border-current/10"
+            >
+              {{ formatValue(row[header.field], header.field) }}
+            </span>
+            <!-- Render barcode icon for ID if desired (or just plain text) -->
+            <span *ngIf="header.field !== 'status' && header.field !== 'eligible' && header.field !== 'approvalStatus'">
+              <!-- Check if it is the employee ID -->
+              <span *ngIf="header.field === 'id' || header.field === 'empId'" class="font-mono text-slate-500 font-semibold flex items-center gap-1.5">
+                <i *ngIf="reportId !== 'leaveavail'" class="fa-solid fa-barcode text-[10px] text-slate-400"></i>
+                {{ formatValue(row[header.field], header.field) }}
+              </span>
+              <!-- Check if it is department -->
+              <span *ngIf="header.field === 'department' || header.field === 'dept'" class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-50 text-slate-650 text-[10px] font-bold border border-slate-200/50 uppercase tracking-wide">
+                {{ formatValue(row[header.field], header.field) }}
+              </span>
+              <!-- Check if it is count -->
+              <span *ngIf="header.field === 'count' || header.field === 'staffCount' || header.field === 'employeeCount'" class="font-bold text-slate-900">
+                {{ formatValue(row[header.field], header.field) }}
+              </span>
+              
+              <!-- Plain columns fallback -->
+              <span *ngIf="header.field !== 'id' && header.field !== 'empId' && header.field !== 'department' && header.field !== 'dept' && header.field !== 'count' && header.field !== 'staffCount' && header.field !== 'employeeCount'">
+                {{ formatValue(row[header.field], header.field) }}
+              </span>
+            </span>
+          </td>
+        </tr>
+        <tr *ngIf="data.length === 0">
+          <td [attr.colspan]="headers.length" class="px-5 py-8 text-center text-slate-400 text-xs">
+            <i class="fa-solid fa-folder-open text-xl mb-2 block"></i>
+            No records found matching the criteria.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Bar -->
+  <div class="px-5 py-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
+    <div class="flex items-center gap-2">
+      <span>Show</span>
+      <span class="relative inline-flex items-center">
+        <select
+          [ngModel]="pageSize"
+          (change)="onPageSizeSelect($event)"
+          class="appearance-none border border-slate-200 rounded-lg py-1 pl-2.5 pr-8 text-xs w-14 h-8 bg-white leading-none focus:ring-[#2563EB] focus:border-[#2563EB] font-bold text-slate-800 shadow-xs"
+          aria-label="Rows per page"
+        >
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+          <option [value]="50">50</option>
+        </select>
+      </span>
+      <span>entries</span>
+      <span class="mx-2 text-slate-250">|</span>
+      <span>Showing <span class="font-bold text-slate-800">{{ showingStart }}</span> to <span class="font-bold text-slate-800">{{ showingEnd }}</span> of <span class="font-bold text-slate-800">{{ total }}</span> entries</span>
+    </div>
+    
+    <div class="flex items-center gap-1.5" *ngIf="totalPages > 1">
+      <!-- Prev Button -->
+      <button 
+        [disabled]="page === 1" 
+        (click)="onPageSelect(page - 1)" 
+        class="border border-slate-250 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white text-slate-600 w-8 h-8 rounded-lg transition-colors flex items-center justify-center shadow-xs"
+      >
+        <i class="fa-solid fa-angle-left"></i>
+      </button>
+      
+      <!-- Page Number Buttons -->
+      <button 
+        *ngFor="let p of pageNumbers" 
+        (click)="onPageSelect(p)" 
+        [class.bg-[#2563EB]]="page === p" 
+        [class.text-white]="page === p" 
+        [class.border-[#2563EB]]="page === p" 
+        [class.border-slate-200]="page !== p" 
+        [class.bg-white]="page !== p" 
+        [class.hover:bg-slate-55]="page !== p" 
+        class="border w-8 h-8 rounded-lg transition-colors font-bold text-xs flex items-center justify-center shadow-xs"
+      >
+        {{ p }}
+      </button>
+      
+      <!-- Next Button -->
+      <button 
+        [disabled]="page === totalPages" 
+        (click)="onPageSelect(page + 1)" 
+        class="border border-slate-250 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white text-slate-600 w-8 h-8 rounded-lg transition-colors flex items-center justify-center shadow-xs"
+      >
+        <i class="fa-solid fa-angle-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Footer Legend -->
+  <div *ngIf="reportId === 'leaveavail'" class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] text-slate-500 font-medium">
+    <span class="font-bold text-slate-700">Note:</span>
+    <span class="flex items-center gap-1.5">
+      <span class="w-2.5 h-2.5 bg-green-50 border border-green-200 rounded-xs"></span>
+      <span>Within Limit: Up to {{ monthlyLimit }} days per month and up to {{ monthlyLimit * 12 }} days per year.</span>
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="w-2.5 h-2.5 bg-amber-50 border border-amber-200 rounded-xs"></span>
+      <span>Monthly Limit Reached: {{ monthlyLimit }} days availed in the month.</span>
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="w-2.5 h-2.5 bg-red-50 border border-red-200 rounded-xs"></span>
+      <span>Yearly Limit Reached: {{ monthlyLimit * 12 }} days availed in the year.</span>
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="w-2.5 h-2.5 bg-red-100 border border-red-300 rounded-xs"></span>
+      <span>Exceeded Limit: More than allowed limit.</span>
+    </span>
+  </div>
+</div>

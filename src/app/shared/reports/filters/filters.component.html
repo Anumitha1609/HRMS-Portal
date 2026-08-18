@@ -1,0 +1,389 @@
+<div class="bg-white rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.015),0_1px_2px_rgba(0,0,0,0.02)] border border-[#E5E7EB] overflow-visible" data-purpose="filter-card">
+  <!-- Title bar -->
+  <div *ngIf="activeFilters.length > 0" class="px-5 py-3 border-b border-[#E5E7EB] flex items-center justify-between">
+    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+      <i class="fa-solid fa-filter text-slate-450 text-xs"></i>
+      <span>Filter Criteria</span>
+    </h3>
+    <span class="text-[9px] bg-slate-100 text-slate-700 border border-slate-200/50 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Configure options below</span>
+  </div>
+  
+  <!-- Dynamic Fields Grid -->
+  <div *ngIf="activeFilters.length > 0" class="p-3.5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+    <ng-container *ngFor="let filter of activeFilters">
+      
+      <!-- From Date / Date Range -->
+      <div class="space-y-1" *ngIf="filter === 'fromDate'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">From Date <span class="text-red-500">*</span></label>
+        <div class="relative">
+          <input #fromDateInput type="date" [value]="toDateInputValue(currentFilters.fromDate)" (change)="onDateFilterChange('fromDate', $any($event.target).value)" class="w-full reports-input icon-right date-input" aria-label="From Date">
+          <i (click)="openDatePicker(fromDateInput)" class="fa-regular fa-calendar absolute inset-y-0 right-4 flex items-center text-slate-400 text-xs cursor-pointer calendar-icon" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <!-- To Date -->
+      <div class="space-y-1" *ngIf="filter === 'toDate'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">To Date <span class="text-red-500">*</span></label>
+        <div class="relative">
+          <input #toDateInput type="date" [value]="toDateInputValue(currentFilters.toDate)" (change)="onDateFilterChange('toDate', $any($event.target).value)" class="w-full reports-input icon-right date-input" aria-label="To Date">
+          <i (click)="openDatePicker(toDateInput)" class="fa-regular fa-calendar absolute inset-y-0 right-4 flex items-center text-slate-400 text-xs cursor-pointer calendar-icon" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <!-- Month Picker -->
+      <div class="space-y-1" *ngIf="filter === 'month'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Month</label>
+        <div class="relative">
+          <select [(ngModel)]="currentFilters.month" (ngModelChange)="onFilterChange()" class="w-full reports-input" aria-label="Month">
+            <option value="">All Months</option>
+            <option *ngFor="let m of monthOptions" [value]="m.value">{{ m.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Year Picker -->
+      <div class="space-y-1" *ngIf="filter === 'year'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Year</label>
+        <select [(ngModel)]="currentFilters.year" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+        </select>
+      </div>
+
+      <!-- As On Date -->
+      <div class="space-y-1" *ngIf="filter === 'asOnDate'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">As On Date <span class="text-red-500">*</span></label>
+        <div class="relative">
+          <input #asOnDateInput type="date" [value]="toDateInputValue(currentFilters.asOnDate)" (change)="onDateFilterChange('asOnDate', $any($event.target).value)" class="w-full reports-input icon-right date-input" aria-label="As On Date">
+          <i (click)="openDatePicker(asOnDateInput)" class="fa-regular fa-calendar absolute inset-y-0 right-4 flex items-center text-slate-400 text-xs cursor-pointer calendar-icon" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <!-- Claim Date -->
+      <div class="space-y-1" *ngIf="filter === 'claimDate'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Claim Date</label>
+        <div class="relative">
+          <input #claimDateInput type="date" [value]="toDateInputValue(currentFilters.claimDate)" (change)="onDateFilterChange('claimDate', $any($event.target).value)" class="w-full reports-input icon-right date-input" aria-label="Claim Date">
+          <i (click)="openDatePicker(claimDateInput)" class="fa-regular fa-calendar absolute inset-y-0 right-4 flex items-center text-slate-400 text-xs cursor-pointer calendar-icon" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <!-- Department Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'department'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Department</label>
+        <select [(ngModel)]="currentFilters.department" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Departments</option>
+          <option *ngFor="let d of filterOptions.departments" [value]="d">{{d}}</option>
+        </select>
+      </div>
+
+      <!-- Designation Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'designation'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Designation</label>
+        <select [(ngModel)]="currentFilters.designation" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Designations</option>
+          <option *ngFor="let d of filterOptions.designations" [value]="d">{{d}}</option>
+        </select>
+      </div>
+
+      <!-- Employee Name Search -->
+      <div class="space-y-1" *ngIf="filter === 'employee'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Employee Name</label>
+        <div class="relative">
+          <input list="employeeNames"
+                 [value]="employeeSearchValue"
+                 (input)="onEmployeeSearchChange($any($event.target).value)"
+                 class="w-full reports-input icon-right"
+                 placeholder="Search employee name"
+                 aria-label="Employee Name">
+          <i class="fa-solid fa-magnifying-glass absolute inset-y-0 right-4 flex items-center text-slate-400 text-[10px] pointer-events-none"></i>
+          <datalist id="employeeNames">
+            <option *ngFor="let emp of filterOptions.employees" [value]="emp.name"></option>
+          </datalist>
+        </div>
+      </div>
+
+      <!-- Location Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'location'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Location</label>
+        <select [(ngModel)]="currentFilters.location" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Locations</option>
+          <option *ngFor="let loc of filterOptions.locations" [value]="loc">{{loc}}</option>
+        </select>
+      </div>
+
+      <!-- Functional Unit Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'unit'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Functional Unit</label>
+        <select [(ngModel)]="currentFilters.unit" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Units</option>
+          <option *ngFor="let u of filterOptions.units" [value]="u">{{u}}</option>
+        </select>
+      </div>
+
+      <!-- Employee Category Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'category'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Employee Category</label>
+        <select [(ngModel)]="currentFilters.category" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Categories</option>
+          <option *ngFor="let cat of filterOptions.categories" [value]="cat">{{cat}}</option>
+        </select>
+      </div>
+
+      <!-- Employee Status Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'empStatus' || filter === 'empstatus'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Employee Status</label>
+        <select [(ngModel)]="currentFilters.empStatus" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Statuses</option>
+          <option *ngFor="let stat of filterOptions.statuses" [value]="stat">{{stat}}</option>
+        </select>
+      </div>
+
+      <!-- Shift Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'shift'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Shift</label>
+        <select [(ngModel)]="currentFilters.shift" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Shifts</option>
+          <option *ngFor="let sh of filterOptions.shifts" [value]="sh">{{sh}}</option>
+        </select>
+      </div>
+
+      <!-- Blood Group Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'bloodgroup'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Blood Group</label>
+        <select [(ngModel)]="currentFilters.bloodgroup" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Groups</option>
+          <option *ngFor="let bg of filterOptions.bloodgroups" [value]="bg">{{bg}}</option>
+        </select>
+      </div>
+
+      <!-- Generic Status Filter (for Overtime, Leave, etc.) -->
+      <div class="space-y-1" *ngIf="filter === 'status'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status</label>
+        <select [(ngModel)]="currentFilters.status" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Statuses</option>
+          <option *ngFor="let stat of statusOptions" [value]="stat">{{stat}}</option>
+        </select>
+      </div>
+   
+      <!-- Leave Type Filter -->
+      <div class="space-y-1" *ngIf="filter === 'leaveType'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Leave Type</label>
+        <select [(ngModel)]="currentFilters.leaveType" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Leave Types</option>
+          <option *ngFor="let type of filterOptions.leaveTypes" [value]="type">{{type}}</option>
+        </select>
+      </div>
+
+      <!-- Monthly Leave Limit -->
+      <div class="space-y-1" *ngIf="filter === 'monthlyLimit'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Monthly Leave Limit</label>
+        <input type="number" min="1" max="31" [(ngModel)]="currentFilters.monthlyLimit" (ngModelChange)="onFilterChange()" class="w-full reports-input" aria-label="Monthly Leave Limit">
+      </div>
+
+      <!-- Experience Category Filter -->
+      <div class="space-y-1" *ngIf="filter === 'expCategory'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Experience Category</label>
+        <select [(ngModel)]="currentFilters.expCategory" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Categories</option>
+          <option *ngFor="let cat of filterOptions.expCategory" [value]="cat">{{cat}}</option>
+        </select>
+      </div>
+
+      <!-- Increment Type Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'incrementType'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Increment Type</label>
+        <select [(ngModel)]="currentFilters.incrementType" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Types</option>
+          <option *ngFor="let type of filterOptions.incrementTypes" [value]="type">{{type}}</option>
+        </select>
+      </div>
+
+      <!-- Approval Status Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'approvalStatus'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Approval Status</label>
+        <select [(ngModel)]="currentFilters.approvalStatus" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Statuses</option>
+          <option *ngFor="let stat of filterOptions.approvalStatuses" [value]="stat">{{stat}}</option>
+        </select>
+      </div>
+
+      <!-- Claim Status Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'claimStatus'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Claim Status</label>
+        <select [(ngModel)]="currentFilters.claimStatus" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Claims</option>
+          <option *ngFor="let stat of filterOptions.claimStatuses" [value]="stat">{{stat}}</option>
+        </select>
+      </div>
+
+      <!-- Payroll Status Dropdown -->
+      <div class="space-y-1" *ngIf="filter === 'payrollstatus'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Payroll Status</label>
+        <select [(ngModel)]="currentFilters.payrollstatus" (ngModelChange)="onFilterChange()" class="w-full reports-input">
+          <option value="All">All Statuses</option>
+          <option *ngFor="let stat of filterOptions.payrollStatuses" [value]="stat">{{stat}}</option>
+        </select>
+      </div>
+
+      <!-- Date From Picker (Specific to Revisions) -->
+      <div class="space-y-1" *ngIf="filter === 'revisionFromDate'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">From Date <span class="text-red-500">*</span></label>
+        <div class="relative">
+          <input #revisionFromDateInput type="date" [value]="toDateInputValue(currentFilters.fromDate)" (change)="onDateFilterChange('fromDate', $any($event.target).value)" class="w-full reports-input icon-right date-input" aria-label="Revision From Date">
+          <i (click)="openDatePicker(revisionFromDateInput)" class="fa-regular fa-calendar absolute inset-y-0 right-4 flex items-center text-slate-400 text-xs cursor-pointer calendar-icon" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <!-- Date To Picker (Specific to Revisions) -->
+      <div class="space-y-1" *ngIf="filter === 'revisionToDate'">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">To Date <span class="text-red-500">*</span></label>
+        <div class="relative">
+          <input #revisionToDateInput type="date" [value]="toDateInputValue(currentFilters.toDate)" (change)="onDateFilterChange('toDate', $any($event.target).value)" class="w-full reports-input icon-right date-input" aria-label="Revision To Date">
+          <i (click)="openDatePicker(revisionToDateInput)" class="fa-regular fa-calendar absolute inset-y-0 right-4 flex items-center text-slate-400 text-xs cursor-pointer calendar-icon" aria-hidden="true"></i>
+        </div>
+      </div>
+
+    </ng-container>
+  </div>
+
+  <!-- Action Buttons Footer -->
+  <div class="px-5 py-4 bg-slate-50/50 border-t border-[#E5E7EB] flex flex-wrap items-center justify-between gap-4 print:hidden rounded-b-[16px]">
+    <!-- Left Aligned Export/Import Group -->
+    <div class="flex flex-wrap items-center gap-3">
+      
+      <!-- Unified Export Dropdown Button -->
+      <div class="relative">
+        <button (click)="toggleExportDropdown(); $event.stopPropagation()" class="border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 shadow-xs cursor-pointer select-none">
+          <i class="fa-solid fa-file-export text-slate-450"></i>
+          <span>Export</span>
+          <i class="fa-solid fa-chevron-down text-[8px] text-slate-400 ml-0.5"></i>
+        </button>
+        <!-- Dropdown Menu -->
+        <div *ngIf="exportDropdownOpen" class="absolute left-0 mt-2 w-44 bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-30 animate-in fade-in slide-in-from-top-1 duration-150">
+          <button (click)="triggerExport('pdf'); $event.stopPropagation()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-2.5 cursor-pointer">
+            <i class="fa-regular fa-file-pdf text-red-500 text-sm"></i>
+            <span>Export PDF</span>
+          </button>
+          <button (click)="triggerExport('excel'); $event.stopPropagation()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-2.5 cursor-pointer">
+            <i class="fa-regular fa-file-excel text-emerald-550 text-sm"></i>
+            <span>Export Excel</span>
+          </button>
+          <button (click)="triggerExport('csv'); $event.stopPropagation()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-2.5 cursor-pointer">
+            <i class="fa-solid fa-file-csv text-blue-500 text-sm"></i>
+            <span>Export CSV</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Unified Import Dropdown Button -->
+      <div class="relative" *ngIf="showImportButton">
+        <input type="file" #fileInput class="hidden" (change)="onFileSelected($event)">
+        <button (click)="toggleImportDropdown(); $event.stopPropagation()" [disabled]="importing" class="border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-700 disabled:bg-slate-50 disabled:text-slate-400 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 shadow-xs cursor-pointer select-none">
+          <i class="fa-solid text-slate-450" [class.fa-file-import]="!importing" [class.fa-spinner]="importing" [class.animate-spin]="importing"></i>
+          <span>{{ importing ? 'Importing...' : 'Import' }}</span>
+          <i class="fa-solid fa-chevron-down text-[8px] text-slate-400 ml-0.5"></i>
+        </button>
+        <!-- Dropdown Menu -->
+        <div *ngIf="importDropdownOpen" class="absolute left-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-30 animate-in fade-in slide-in-from-top-1 duration-150">
+          <button (click)="triggerImport('excel'); $event.stopPropagation()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-2.5 cursor-pointer">
+            <i class="fa-regular fa-file-excel text-emerald-550 text-sm"></i>
+            <span>Excel File (.xlsx, .xls)</span>
+          </button>
+          <button (click)="triggerImport('csv'); $event.stopPropagation()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-2.5 cursor-pointer">
+            <i class="fa-solid fa-file-csv text-blue-500 text-sm"></i>
+            <span>CSV File (.csv)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Print Button -->
+      <button (click)="triggerExport('print')" class="border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 shadow-xs cursor-pointer select-none">
+        <i class="fa-solid fa-print text-slate-450"></i>
+        <span>Print</span>
+      </button>
+
+      <!-- Email Button -->
+      <button (click)="openEmailModal(); $event.stopPropagation()" class="border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 shadow-xs cursor-pointer select-none">
+        <i class="fa-regular fa-envelope text-slate-450"></i>
+        <span>Email</span>
+      </button>
+
+    </div>
+    
+    <!-- Right Aligned Search Group -->
+    <div class="flex items-center gap-3" *ngIf="activeFilters.length > 0">
+      <button (click)="onReset()" class="border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer select-none">
+        <i class="fa-solid fa-arrows-rotate text-slate-450"></i>
+        <span>Reset</span>
+      </button>
+      <button (click)="onGenerate()" class="bg-enterprise-blue hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 shadow-sm shadow-enterprise-blue/10 cursor-pointer select-none">
+        <i class="fa-solid fa-circle-play text-[10px]"></i>
+        <span>Generate Report</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================== -->
+<!-- EMAIL DIALOG MODAL -->
+<!-- ============================================== -->
+<div *ngIf="isEmailModalOpen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 animate-in fade-in duration-200" (click)="closeEmailModal()">
+  <!-- Modal Card -->
+  <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md p-6 space-y-4 m-4 animate-in zoom-in-95 duration-150" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+        <i class="fa-regular fa-envelope text-enterprise-blue text-sm"></i>
+        <span>Email HR Report Details</span>
+      </h3>
+      <button (click)="closeEmailModal()" class="text-slate-400 hover:text-slate-650 transition-colors cursor-pointer">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+    
+    <!-- Fields -->
+    <div class="space-y-3.5 text-xs">
+      <div class="space-y-1">
+        <label class="font-bold text-slate-500 uppercase tracking-wider">Recipient Email <span class="text-red-500">*</span></label>
+        <input type="email" [(ngModel)]="emailTo" class="w-full reports-input" placeholder="manager@company.com">
+      </div>
+      
+      <div class="space-y-1">
+        <label class="font-bold text-slate-500 uppercase tracking-wider">Subject</label>
+        <input type="text" [(ngModel)]="emailSubject" class="w-full reports-input">
+      </div>
+      
+      <div class="space-y-1">
+        <label class="font-bold text-slate-500 uppercase tracking-wider">Message Body</label>
+        <textarea [(ngModel)]="emailBody" rows="5" class="w-full reports-input"></textarea>
+      </div>
+    </div>
+    
+    <!-- Footer Actions -->
+    <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-3">
+      <button (click)="closeEmailModal()" class="border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer select-none">
+        Cancel
+      </button>
+      <button (click)="sendEmail()" [disabled]="sendingEmail" class="bg-enterprise-blue hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 shadow-xs disabled:opacity-50 cursor-pointer select-none">
+        <i class="fa-solid" [class.fa-paper-plane]="!sendingEmail" [class.fa-spinner]="sendingEmail" [class.animate-spin]="sendingEmail"></i>
+        <span>{{ sendingEmail ? 'Sending...' : 'Send Email' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================== -->
+<!-- TOAST NOTIFICATION POPUP (SELF-CONTAINED) -->
+<!-- ============================================== -->
+<div 
+  [class.opacity-100]="showToast" 
+  [class.translate-y-0]="showToast" 
+  [class.opacity-0]="!showToast" 
+  [class.translate-y-3]="!showToast"
+  [class.pointer-events-none]="!showToast"
+  class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs py-3 px-5 rounded-lg shadow-xl transition-all duration-300 z-50 flex items-center gap-2"
+>
+  <i class="fa-solid text-green-400" [ngClass]="toastIcon"></i>
+  <span class="font-medium">{{ toastMessage }}</span>
+</div>

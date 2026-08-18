@@ -1,0 +1,381 @@
+<!-- Toast Container -->
+<div class="toast-container" aria-live="polite">
+  @for (toast of toasts(); track toast.id) {
+  <div class="toast-item" [ngClass]="toast.type">
+    <span class="material-icons toast-icon">
+      @if (toast.type === 'success') { check_circle }
+      @else if (toast.type === 'error') { error }
+      @else if (toast.type === 'warning') { warning }
+      @else { info }
+    </span>
+    <span class="toast-message">{{ toast.message }}</span>
+    <button class="toast-close" (click)="removeToast(toast.id)" aria-label="Close Notification">
+      <span class="material-icons">close</span>
+    </button>
+  </div>
+  }
+</div>
+
+@if (authService.isAuthenticated()) {
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed()">
+    <div class="brand">
+      <div class="brand-logo-info">
+        <span class="material-icons brand-icon">bubble_chart</span>
+        <div class="brand-text">
+          <h2>Work&#64;Eaze</h2>
+          <span class="brand-sub">HRMS Portal</span>
+        </div>
+      </div>
+      <button type="button" class="collapse-btn" (click)="toggleSidebar()"
+        [title]="sidebarCollapsed() ? 'Expand Sidebar' : 'Collapse Sidebar'">
+        <span class="material-icons">menu</span>
+      </button>
+    </div>
+
+    <nav class="nav-menu">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">
+        <span class="material-icons">dashboard</span>
+        <span>Home</span>
+      </a>
+
+      <!-- Masters Dropdown -->
+      <div class="nav-group">
+        <button type="button" class="nav-item group-toggle" [class.active]="isGroupActive('masters')" (click)="toggleGroup('masters')">
+          <span class="material-icons">apartment</span>
+          <span>Masters</span>
+          <span class="material-icons chevron" [class.open]="expandedGroup() === 'masters'">expand_more</span>
+        </button>
+
+        @if (expandedGroup() === 'masters') {
+          <div class="submenu">
+            <a routerLink="/employee" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">badge</span>
+              <span>Employee Master</span>
+            </a>
+
+            <a routerLink="/location" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">place</span>
+              <span>Location Master</span>
+            </a>
+
+            <a routerLink="/sub-location" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">location_city</span>
+              <span>Sub Location Master</span>
+            </a>
+
+            <a routerLink="/department" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">lan</span>
+              <span>Department Master</span>
+            </a>
+
+            <a routerLink="/functional-unit" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">schema</span>
+              <span>Functional Unit Master</span>
+            </a>
+
+            <a routerLink="/division" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">corporate_fare</span>
+              <span>Division Master</span>
+            </a>
+
+            <a routerLink="/category" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">category</span>
+              <span>Category Master</span>
+            </a>
+
+            <a routerLink="/ctc-master" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">payments</span>
+              <span>CTC Master</span>
+            </a>
+
+            <a routerLink="/company-profile" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">domain</span>
+              <span>Company Profile</span>
+            </a>
+
+            <a routerLink="/salary-heads" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">badge</span>
+              <span>Salary Heads</span>
+            </a>
+
+            <a routerLink="/holiday-entry" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">event</span>
+              <span>Holiday Entry</span>
+            </a>
+
+            <a routerLink="/blood-group-master" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">bloodtype</span>
+              <span>Blood Group Master</span>
+            </a>
+
+            <a routerLink="/designation-master" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">work</span>
+              <span>Designation Master</span>
+            </a>
+
+            <a routerLink="/email-config" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">mail</span>
+              <span>Email Configuration</span>
+            </a>
+
+            <a routerLink="/shifts" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">schedule</span>
+              <span>Shift Entry / Shift Group</span>
+            </a>
+
+            <a routerLink="/payroll-configuration" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">settings</span>
+              <span>Payroll Configuration</span>
+            </a>
+
+            <a routerLink="/payroll" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">payments</span>
+              <span>Earning and Deduction</span>
+            </a>
+          </div>
+        }
+      </div>
+
+      <!-- Transaction Dropdown -->
+      <div class="nav-group">
+        <button type="button" class="nav-item group-toggle" [class.active]="isGroupActive('transaction')" (click)="toggleGroup('transaction')">
+          <span class="material-icons">sync_alt</span>
+          <span>Transaction</span>
+          <span class="material-icons chevron" [class.open]="expandedGroup() === 'transaction'">expand_more</span>
+        </button>
+
+        @if (expandedGroup() === 'transaction') {
+          <div class="submenu">
+            <a routerLink="/attendance-view" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">schedule</span>
+              <span>Attendance View</span>
+            </a>
+
+            <a routerLink="/attendance-import" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">upload</span>
+              <span>Attendance Import</span>
+            </a>
+
+            <a routerLink="/attendance-adjustment" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">tune</span>
+              <span>Attendance Adjustment</span>
+            </a>
+
+            <a routerLink="/forgot-card" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">credit_card_off</span>
+              <span>Forgot Card</span>
+            </a>
+
+            <a routerLink="/leave-request" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">event_available</span>
+              <span>Leave Request</span>
+            </a>
+
+            <a routerLink="/compensation-request" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">account_balance_wallet</span>
+              <span>Compensation Request</span>
+            </a>
+
+          <a routerLink="/employee-history" routerLinkActive="active" class="nav-item">
+            <span class="material-icons">history</span>
+            <span>Employee History</span>
+          </a>
+
+          <a routerLink="/leave-compensation" routerLinkActive="active" class="nav-item">
+            <span class="material-icons">event_available</span>
+            <span>Leave / Compensation</span> 
+          </a>
+
+
+            <a routerLink="/earnings" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">trending_up</span>
+              <span>Earnings</span>
+            </a>
+
+            <a routerLink="/deduction" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">trending_down</span>
+              <span>Deduction</span>
+            </a>
+
+          <a routerLink="/increment-entry" routerLinkActive="active" class="nav-item">
+            <span class="material-icons">trending_up</span>
+            <span>Increment Entry</span>
+          </a>
+
+          <a routerLink="/increment-modification" routerLinkActive="active" class="nav-item">
+            <span class="material-icons">edit_note</span>
+            <span>Increment Modification</span>
+          </a>
+
+          <a routerLink="/shift-generation" routerLinkActive="active" class="nav-item">
+            <span class="material-icons">schedule</span>
+            <span>Shift Generation / Change</span>
+          </a>
+
+          <a routerLink="/salary-generation" routerLinkActive="active" class="nav-item">
+            <span class="material-icons">payments</span>
+            <span>Salary Generation</span>
+          </a>
+          <a routerLink="/advance" routerLinkActive="active" class="nav-item">
+              <span class="material-icons">account_balance_wallet</span>
+              <span>Advance</span>
+            </a>
+          <a routerLink="/salary-removal" routerLinkActive="active" class="nav-item">
+            <span class="material-icons">remove_circle_outline</span>
+            <span>Salary Removal</span>
+          </a>
+        </div>
+        }
+      </div>
+
+      <!-- Reports Dropdown -->
+      <div class="nav-group">
+        <button type="button" class="nav-item group-toggle" [class.active]="isGroupActive('reports')" (click)="toggleGroup('reports')">
+          <span class="material-icons">summarize</span>
+          <span>Reports</span>
+          <span class="material-icons chevron" [class.open]="expandedGroup() === 'reports'">expand_more</span>
+        </button>
+
+        @if (expandedGroup() === 'reports') {
+          <div class="submenu reports-submenu">
+            @for (mod of reportModules; track mod.id) {
+              <div class="report-module">
+                <button type="button" class="nav-item module-toggle" [class.active]="isGroupActive('reports') && expandedReportModule() === mod.id" (click)="toggleReportModule(mod.id)">
+                  <span class="material-icons">{{ mod.icon }}</span>
+                  <span>{{ mod.label }}</span>
+                  <span class="material-icons chevron" [class.open]="expandedReportModule() === mod.id">expand_more</span>
+                </button>
+
+                @if (expandedReportModule() === mod.id) {
+                  <div class="submenu report-items">
+                    @for (item of mod.items; track item.route) {
+                      <a [routerLink]="[item.route]" routerLinkActive="active" class="nav-item">
+                        <span>{{ item.label }}</span>
+                      </a>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </nav>
+
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-wrapper">
+    <!-- Top Navigation -->
+    <header class="top-nav">
+      <div class="nav-left">
+        <span class="material-icons menu-toggle">menu</span>
+        <div class="breadcrumbs">
+          <a routerLink="/" class="crumb parent">Home</a>
+          @if (getActiveRouteName() !== 'Dashboard') {
+          <span class="material-icons divisor">chevron_right</span>
+          <a [routerLink]="getActiveRoutePath()" class="crumb active linkable">{{ getActiveRouteName() }}</a>
+          }
+        </div>
+      </div>
+
+      <div class="nav-right">
+
+        <!-- Notifications Container -->
+        <div class="notifications-container">
+          <button class="icon-nav-btn" aria-label="Notifications"
+            (click)="toggleNotifications(); $event.stopPropagation()">
+            <span class="material-icons">notifications</span>
+            <span class="badge" *ngIf="unreadCount() > 0">{{ unreadCount() }}</span>
+          </button>
+
+          <!-- Notifications Dropdown Panel -->
+          <div class="notifications-dropdown card" *ngIf="showNotificationsDropdown()">
+            <div class="dropdown-header">
+              <h3>Notifications</h3>
+              <button class="btn-clear" (click)="clearAllNotifications(); $event.stopPropagation()">Clear All</button>
+            </div>
+            <div class="dropdown-list">
+              @if (notifications().length === 0) {
+              <div class="empty-notifications">
+                <span class="material-icons">notifications_off</span>
+                <p>No new notifications</p>
+              </div>
+              } @else {
+              @for (notif of notifications(); track notif.id) {
+              <div class="notification-item" [class.unread]="!notif.read"
+                (click)="markAsRead(notif.id); $event.stopPropagation()">
+                <div class="notif-bullet"></div>
+                <div class="notif-content">
+                  <p class="notif-text">{{ notif.text }}</p>
+                  <span class="notif-time">{{ notif.time }}</span>
+                </div>
+              </div>
+              }
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Vertical Divider -->
+        <div class="nav-divider"></div>
+
+        <!-- User Profile Container -->
+        <div class="user-profile-container">
+          <button class="user-profile-btn" (click)="toggleUserDropdown(); $event.stopPropagation()" aria-haspopup="true"
+            [attr.aria-expanded]="showUserDropdown()" aria-label="User Menu">
+            <div class="user-avatar">
+              {{ getInitials(authService.currentUser()?.name) }}
+            </div>
+            <div class="user-meta">
+              <span class="user-name">{{ authService.currentUser()?.name }}</span>
+              <span class="user-role">{{ authService.currentUser()?.role | titlecase }}</span>
+            </div>
+            <span class="material-icons arrow-icon">expand_more</span>
+          </button>
+
+          <!-- User Dropdown Menu -->
+          <div class="user-dropdown-menu card" *ngIf="showUserDropdown()">
+            <div class="dropdown-user-header">
+              <div class="header-name">{{ authService.currentUser()?.name }}</div>
+              <div class="header-email">{{ authService.currentUser()?.email || 'admin@workeaze.com' }}</div>
+            </div>
+
+            <button class="dropdown-item" (click)="closeUserDropdown()">
+              <span class="material-icons">person</span>
+              <span>My Profile</span>
+            </button>
+
+            <button class="dropdown-item" (click)="closeUserDropdown()">
+              <span class="material-icons">settings</span>
+              <span>Account Settings</span>
+            </button>
+
+            <button class="dropdown-item" (click)="closeUserDropdown()">
+              <span class="material-icons">lock</span>
+              <span>Change Password</span>
+            </button>
+
+            <div class="dropdown-divider"></div>
+
+            <button class="dropdown-item logout-option" (click)="logout(); closeUserDropdown()">
+              <span class="material-icons">logout</span>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="content-area animated-fade-in">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+} @else {
+<router-outlet></router-outlet>
+}

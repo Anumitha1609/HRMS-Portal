@@ -1,0 +1,149 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+.comp-request-page { padding: 1.5rem; }
+
+.card { @include card; margin-bottom: 1.5rem; }
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  h3 { font-size: 0.875rem; font-weight: 600; color: #111827; }
+
+  .btn-primary {
+    background: #2563eb;
+    &:hover:not([disabled]) { background: #1d4ed8; }
+  }
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-bottom: none;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+
+  .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 35px;
+    padding: 8px 16px 10px;
+    margin: 0;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+
+    .tab-count { color: #9ca3af; }
+
+    &:hover { color: #111827; border-color: #d1d5db; }
+    &.active {
+      color: #2563eb;
+      border-color: #2563eb;
+      font-weight: 600;
+
+      .tab-count { color: #60a5fa; }
+    }
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+
+  table {
+    .empty { text-align: center; color: #9ca3af; padding: 2rem; }
+  }
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &::before { content: ''; width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+  &.status-pending  { background: $warning-bg;  color: $warning; &::before { background: $warning; } }
+  &.status-approved { background: $success-bg; color: $success; &::before { background: $success; } }
+  &.status-rejected { background: $danger-bg;  color: $danger;  &::before { background: $danger;  } }
+  &.status-earned   { background: $primary-bg; color: $primary; &::before { background: $primary; } }
+}
+
+/* Modal reuse */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; padding: 1rem;
+}
+.modal-box {
+  background: white; border-radius: 14px;
+  width: 100%; max-width: 520px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  animation: modalIn 0.2s ease;
+  @keyframes modalIn { from { opacity:0; transform: scale(0.96) translateY(-8px);} to { opacity:1; transform: scale(1) translateY(0);} }
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 1.5rem; border-bottom: 1px solid $border;
+  h3 { font-size: 1rem; font-weight: 700; color: #111827; margin: 0; }
+  .modal-close { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1rem; padding: 0.25rem; border-radius: 4px; &:hover { color: #374151; background: #f3f4f6; } }
+}
+.modal-body { padding: 1.5rem; }
+.alert.error { background: $danger-bg; color: $danger; border: 1px solid $danger; padding: 0.75rem; border-radius: $border-radius; margin-bottom: 1rem; }
+.form-group {
+  margin-bottom: 1rem;
+  label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.375rem; }
+  .form-control {
+    @include input-base;
+    border: 1px solid $background;
+    border-radius: 10px;
+    padding: 0.625rem 0.875rem;
+    background: $background;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+    &::placeholder { color: $text-muted; }
+
+    &:focus {
+      background: $surface;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.12);
+    }
+  }
+}
+.error-text { color: $danger; font-size: 0.8125rem; margin-top: 0.25rem; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; button { @include button-base; } }
+.btn-primary  { @include button-base; background: $primary; color: white; &:hover:not([disabled]) { background: $primary-hover; } &[disabled] { opacity:0.6; cursor:not-allowed; } }
+.btn-outline  { @include button-base; background: transparent; border: 1px solid $border; &:hover { background: $background; } }
+
+/* Success toast for submit flow */
+.toast.success {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 200;
+  background: $success-bg;
+  color: $success;
+  border: 1px solid $success;
+  padding: 0.75rem 1.25rem;
+  border-radius: $border-radius;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  animation: toastIn 0.2s ease;
+  @keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+}

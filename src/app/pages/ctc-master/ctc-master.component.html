@@ -1,0 +1,354 @@
+<div class="employee-layout-v2">
+  <!-- Consolidated Header & Advanced Search Card -->
+  <div class="card advanced-search-card compact-card animated-fade-in">
+    <div class="card-header-row">
+      <div class="header-left-compact">
+        <span class="material-icons text-primary">payments</span>
+        <h2>CTC Master</h2>
+      </div>
+      <div class="header-right-compact" *ngIf="authService.isExecutive()">
+        <button class="btn btn-primary btn-sm" (click)="onNew()">
+          <span class="material-icons">add</span> New CTC
+        </button>
+      </div>
+    </div>
+
+    <!-- Search / Filter Grid -->
+    <div class="search-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+      <div class="form-group">
+        <label>Package Name</label>
+        <input 
+          type="text" 
+          placeholder="e.g. Fresher Package" 
+          [(ngModel)]="filterName" 
+          (ngModelChange)="onSearch()" 
+          class="input-control"
+        />
+      </div>
+      <div class="form-group">
+        <label>Annual CTC (From Amount)</label>
+        <input 
+          type="number" 
+          placeholder="From amount" 
+          [(ngModel)]="filterMinAmount" 
+          (ngModelChange)="onSearch()" 
+          class="input-control"
+        />
+      </div>
+      <div class="form-group">
+        <label>Annual CTC (To Amount)</label>
+        <input 
+          type="number" 
+          placeholder="To amount" 
+          [(ngModel)]="filterMaxAmount" 
+          (ngModelChange)="onSearch()" 
+          class="input-control"
+        />
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select [(ngModel)]="filterStatus" (ngModelChange)="onSearch()" class="input-control">
+          <option value="All">All</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card table-card animated-fade-in" style="margin-top: 12px;">
+    <table class="master-table">
+      <thead>
+        <tr>
+          <th style="cursor: pointer; user-select: none;" (click)="toggleSort('ctcName')">
+            <div style="display: flex; align-items: center; gap: 4px;">
+              PACKAGE NAME
+              <span class="material-icons" style="font-size: 14px; color: #94a3b8;">
+                {{ sortBy === 'ctcName' ? (sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'swap_vert' }}
+              </span>
+            </div>
+          </th>
+          <th style="cursor: pointer; user-select: none;" (click)="toggleSort('packageCode')">
+            <div style="display: flex; align-items: center; gap: 4px;">
+              PACKAGE CODE
+              <span class="material-icons" style="font-size: 14px; color: #94a3b8;">
+                {{ sortBy === 'packageCode' ? (sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'swap_vert' }}
+              </span>
+            </div>
+          </th>
+          <th style="cursor: pointer; user-select: none;" (click)="toggleSort('annualCTC')">
+            <div style="display: flex; align-items: center; gap: 4px;">
+              ANNUAL CTC (₹)
+              <span class="material-icons" style="font-size: 14px; color: #94a3b8;">
+                {{ sortBy === 'annualCTC' ? (sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'swap_vert' }}
+              </span>
+            </div>
+          </th>
+          <th>DESCRIPTION</th>
+          <th style="width: 120px;">STATUS</th>
+          <th style="width: 120px;">ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="isLoading()">
+          <td colspan="6" class="skeleton-row" style="text-align: center; padding: 24px; color: #64748b;">
+            <span class="material-icons rotating" style="font-size: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px;">sync</span>
+            Loading CTC packages...
+          </td>
+        </tr>
+        <tr *ngIf="!isLoading() && records().length === 0">
+          <td colspan="6" class="empty-table-msg" style="text-align: center; padding: 32px 16px; color: #64748b;">
+            <span class="material-icons" style="font-size: 32px; color: #94a3b8; margin-bottom: 8px; display: block;">info_outline</span>
+            No CTC packages found. Configure a new CTC record to begin.
+          </td>
+        </tr>
+        <tr *ngFor="let rec of records(); trackBy: trackById" (click)="onView(rec)">
+          <td>
+            <div class="profile-cell">
+              <div class="profile-avatar"><span class="material-icons" style="font-size: 16px;">payments</span></div>
+              <strong class="profile-name">{{ rec.ctcName }}</strong>
+            </div>
+          </td>
+          <td><strong class="font-mono text-secondary" style="font-size: 13px;">{{ rec.packageCode || '—' }}</strong></td>
+          <td><strong>{{ rec.annualCTC | currency:'INR':'symbol':'1.2-2' }}</strong></td>
+          <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="rec.description || ''">
+            {{ rec.description || '—' }}
+          </td>
+          <td>
+            <span class="badge" [ngClass]="rec.status === 'ACTIVE' ? 'badge-success' : 'badge-gray'">
+              {{ rec.status === 'ACTIVE' ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="btn-action btn-view" (click)="onView(rec)" title="View Details">
+                <span class="material-icons">visibility</span>
+              </button>
+              <button class="btn-action btn-edit" *ngIf="authService.isExecutive()" (click)="onEdit(rec)" title="Edit">
+                <span class="material-icons">edit</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination Footer -->
+    <div class="table-pagination">
+      <div class="pagination-left">
+        <span class="pagination-text">{{ getShowingText() }}</span>
+      </div>
+      <div class="pagination-center">
+        <div class="page-size-selector">
+          <span class="page-size-label">Rows per page:</span>
+          <select class="page-size-select" [value]="pageSize()" (change)="onPageSizeChange($event)">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="15">15</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+      </div>
+      <div class="pagination-actions">
+        <button class="btn btn-ghost btn-icon" title="Previous Page" [disabled]="currentPage() === 1" (click)="prevPage()">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <button class="btn btn-ghost btn-icon" title="Next Page" [disabled]="currentPage() === (totalPages())" (click)="nextPage()">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================================
+     CREATE / EDIT / VIEW SLIDING DRAWER
+     ============================================== -->
+<div class="stepper-drawer-overlay" *ngIf="isDrawerOpen()" (click)="closeDrawer()">
+  <div class="stepper-drawer card glass-panel" (click)="$event.stopPropagation()" style="max-width: 800px; width: 100%;">
+    <div class="drawer-header" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px;">
+      <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;">
+        {{ isEditMode() ? (selectedRecord() ? 'Edit CTC Package' : 'New CTC Package') : 'View CTC Package' }}
+      </h4>
+      <button type="button" class="btn-close-drawer" (click)="closeDrawer()" style="background: none; border: none; cursor: pointer;">
+        <span class="material-icons" style="color: #64748b;">close</span>
+      </button>
+    </div>
+
+    <form [formGroup]="ctcForm" (ngSubmit)="onSave()" class="drawer-body">
+      <!-- PACKAGE NAME -->
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label>Package Name *</label>
+        <input 
+          type="text" 
+          formControlName="ctcName" 
+          class="input-control" 
+          placeholder="e.g. Fresher Package" 
+          [readonly]="!isEditMode()"
+        />
+        <span class="error-msg" *ngIf="showValidationError('ctcName')">
+          Package Name is required.
+        </span>
+      </div>
+
+      <!-- PACKAGE CODE -->
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label>Package Code</label>
+        <input 
+          type="text" 
+          formControlName="packageCode" 
+          class="input-control" 
+          placeholder="e.g. F-PKG-01" 
+          [readonly]="!isEditMode()"
+        />
+        <span class="error-msg" *ngIf="showValidationError('packageCode')">
+          Package Code must be alphanumeric.
+        </span>
+      </div>
+
+      <!-- ANNUAL CTC -->
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label>Annual CTC (₹) *</label>
+        <input 
+          type="number" 
+          formControlName="annualCTC" 
+          class="input-control" 
+          placeholder="e.g. 360000" 
+          [readonly]="!isEditMode()"
+        />
+        <span class="error-msg" *ngIf="showValidationError('annualCTC')">
+          Annual CTC is required, must be greater than zero, and has a max of 2 decimals.
+        </span>
+      </div>
+
+      <!-- DESCRIPTION -->
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label>Description</label>
+        <textarea 
+          formControlName="description" 
+          class="input-control" 
+          rows="4" 
+          placeholder="Enter package details..."
+          [readonly]="!isEditMode()"
+          style="resize: vertical; min-height: 80px;"
+        ></textarea>
+        <span class="error-msg" *ngIf="showValidationError('description')">
+          Description cannot exceed 500 characters.
+        </span>
+      </div>
+
+      <!-- SALARY COMPONENTS BREAKUP -->
+      <div style="margin-bottom: 24px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b;">Salary Components Breakup</h4>
+          <button type="button" class="btn btn-primary btn-sm" *ngIf="isEditMode()" (click)="addComponent()">
+            <span class="material-icons" style="font-size: 16px; margin-right: 4px;">add</span> Add Component
+          </button>
+        </div>
+
+        <table class="master-table compact-table" style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px;">
+          <thead>
+            <tr style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left;">
+              <th style="padding: 8px;">Salary Head *</th>
+              <th style="padding: 8px;">Calculation Type *</th>
+              <th style="padding: 8px; width: 100px;">Value *</th>
+              <th style="padding: 8px; width: 120px;">Monthly (₹)</th>
+              <th style="padding: 8px; width: 120px;">Annual (₹)</th>
+              <th style="padding: 8px; width: 50px;" *ngIf="isEditMode()"></th>
+            </tr>
+          </thead>
+          <tbody formArrayName="components">
+            <tr *ngIf="components.length === 0">
+              <td colspan="6" style="padding: 12px; text-align: center; color: #64748b;">
+                No components defined. Click "Add Component" to configure breakup.
+              </td>
+            </tr>
+            <tr *ngFor="let comp of components.controls; let idx = index" [formGroupName]="idx" style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 6px;">
+                <input type="text" formControlName="salaryHead" class="input-control" style="padding: 4px 8px; font-size: 12px;" [readonly]="!isEditMode()" placeholder="e.g. Basic" />
+              </td>
+              <td style="padding: 6px;">
+                <select formControlName="calculationType" class="input-control" style="padding: 4px 8px; font-size: 12px;" [disabled]="!isEditMode()">
+                  <option value="Percentage of CTC">Percentage of CTC</option>
+                  <option value="Percentage of Basic">Percentage of Basic</option>
+                  <option value="Fixed Amount">Fixed Amount</option>
+                  <option value="Remaining Balance">Remaining Balance</option>
+                </select>
+              </td>
+              <td style="padding: 6px;">
+                <input type="number" formControlName="value" class="input-control" style="padding: 4px 8px; font-size: 12px; text-align: right;" [readonly]="!isEditMode() || comp.get('calculationType')?.value === 'Remaining Balance'" placeholder="0" />
+              </td>
+              <td style="padding: 6px; text-align: right; font-weight: 500; color: #334155;">
+                {{ comp.get('monthlyAmount')?.value | number:'1.2-2' }}
+              </td>
+              <td style="padding: 6px; text-align: right; font-weight: 500; color: #334155;">
+                {{ comp.get('annualAmount')?.value | number:'1.2-2' }}
+              </td>
+              <td style="padding: 6px; text-align: center;" *ngIf="isEditMode()">
+                <button type="button" class="btn btn-ghost btn-icon error" (click)="removeComponent(idx)" style="padding: 2px;">
+                  <span class="material-icons" style="font-size: 16px;">delete</span>
+                </button>
+              </td>
+            </tr>
+            <!-- Totals row -->
+            <tr style="background-color: #f8fafc; font-weight: 700; border-top: 1px solid #cbd5e1;">
+              <td colspan="3" style="padding: 8px; text-align: right; color: #1e293b;">Total Calculated CTC:</td>
+              <td style="padding: 8px; text-align: right; color: #1e293b;">₹{{ totalMonthlyCTC() | number:'1.2-2' }}</td>
+              <td style="padding: 8px; text-align: right; color: #0f766e;">₹{{ totalAnnualCTC() | number:'1.2-2' }}</td>
+              <td *ngIf="isEditMode()"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- STATUS -->
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label>Status</label>
+        <select formControlName="status" class="input-control" *ngIf="isEditMode(); else viewStatusText">
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
+        <ng-template #viewStatusText>
+          <div style="padding-top: 4px;">
+            <span class="badge" [ngClass]="ctcForm.get('status')?.value === 'ACTIVE' ? 'badge-success' : 'badge-gray'">
+              {{ ctcForm.get('status')?.value === 'ACTIVE' ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- System Metadata (Only for View Mode / Edit Mode on existing record) -->
+      <div class="metadata-section" *ngIf="selectedRecord() as rec" style="border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: 16px; font-size: 12px; color: #64748b; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between;">
+          <span>Employees Mapped:</span>
+          <span style="font-weight: 600; color: #1e293b;">{{ rec.employeeCount || 0 }} employee(s)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Created At:</span>
+          <span>{{ rec.createdAt | date:'medium' }}</span>
+        </div>
+      </div>
+
+      <!-- DRAWER ACTIONS -->
+      <div class="drawer-actions" style="margin-top: 24px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+        <!-- If in Edit Mode -->
+        <ng-container *ngIf="isEditMode(); else viewModeActions">
+          <button type="button" class="btn btn-secondary" (click)="closeDrawer()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="ctcForm.invalid">
+            <span class="material-icons" style="font-size: 18px;">save</span> Save
+          </button>
+        </ng-container>
+        
+        <!-- If in View Mode -->
+        <ng-template #viewModeActions>
+          <button type="button" class="btn btn-secondary" (click)="closeDrawer()">Close</button>
+          <button type="button" class="btn btn-primary" *ngIf="authService.isExecutive()" (click)="onEdit(selectedRecord()!)">
+            <span class="material-icons" style="font-size: 18px;">edit</span> Edit
+          </button>
+        </ng-template>
+      </div>
+    </form>
+  </div>
+</div>

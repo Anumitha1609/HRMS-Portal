@@ -1,0 +1,418 @@
+@if (employee(); as emp) {
+  <div class="print-container">
+    <!-- Print Header -->
+    <div class="print-header">
+      <div class="brand">
+        <span class="material-icons brand-icon">bubble_chart</span>
+        <span class="brand-text">Work&#64;Eaze</span>
+      </div>
+      <div class="doc-info">
+        <h1>Official Employee Profile Document</h1>
+        <p class="print-date">Generated on: {{ generatedAt | date:'medium' }}</p>
+      </div>
+    </div>
+
+    <!-- Section 1: Employee Summary -->
+    <div class="print-section">
+      <div class="section-title">1. Employee Summary</div>
+      <table class="summary-table">
+        <tbody>
+          <tr>
+            <td class="summary-label">Employee Code</td>
+            <td class="summary-value font-mono font-bold">{{ emp.employeeCode }}</td>
+            <td class="summary-label">Employee Name</td>
+            <td class="summary-value font-bold">{{ emp.employeeName }}</td>
+          </tr>
+          <tr>
+            <td class="summary-label">Employee Status</td>
+            <td class="summary-value">{{ emp.status }}</td>
+            <td class="summary-label">Date of Joining</td>
+            <td class="summary-value">{{ emp.joiningDate | date:'mediumDate' }}</td>
+          </tr>
+          <tr>
+            <td class="summary-label">Department</td>
+            <td class="summary-value">{{ emp.department?.name || 'N/A' }}</td>
+            <td class="summary-label">Designation</td>
+            <td class="summary-value">{{ emp.designation || 'N/A' }}</td>
+          </tr>
+          <tr>
+            <td class="summary-label">Category</td>
+            <td class="summary-value">{{ emp.category?.name || 'N/A' }}</td>
+            <td class="summary-label">Sub Category</td>
+            <td class="summary-value">{{ emp.subCategory?.name || 'N/A' }}</td>
+          </tr>
+          <tr>
+            <td class="summary-label">Location</td>
+            <td class="summary-value">{{ emp.location?.name || 'N/A' }}</td>
+            <td class="summary-label">Reporting Manager</td>
+            <td class="summary-value">{{ emp.reportingManager?.employeeName || 'N/A' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 2: Personal Information -->
+    <div class="print-section">
+      <div class="section-title">2. Personal Information</div>
+      <div class="info-grid">
+        <div class="info-group">
+          <span class="info-label">Gender</span>
+          <span class="info-value">{{ emp.gender | titlecase }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Date of Birth</span>
+          <span class="info-value">{{ emp.dob | date:'mediumDate' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Age</span>
+          <span class="info-value">{{ calculateAge(emp.dob) }} Years</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Marital Status</span>
+          <span class="info-value">{{ emp.maritalStatus | titlecase }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Mobile Number</span>
+          <span class="info-value">{{ emp.mobileNumber }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Official Email</span>
+          <span class="info-value">{{ emp.officialEmail }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Personal Email</span>
+          <span class="info-value">{{ emp.personalEmail }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Date of Joining</span>
+          <span class="info-value">{{ emp.joiningDate | date:'mediumDate' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Date of Relieving</span>
+          <span class="info-value">{{ emp.dateOfRelieving ? (emp.dateOfRelieving | date:'mediumDate') : 'Active Service' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Service Years</span>
+          <span class="info-value">{{ calculateServiceYears(emp.joiningDate, emp.dateOfRelieving) }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">PAN Number</span>
+          <span class="info-value font-mono">{{ emp.pan }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Aadhaar Number</span>
+          <span class="info-value font-mono">{{ emp.aadhaar }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">PF Number</span>
+          <span class="info-value font-mono">{{ emp.pfNumber || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">UAN Number</span>
+          <span class="info-value font-mono">{{ emp.uanNumber || 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Classification & Organization -->
+    <div class="print-section">
+      <div class="section-title">3. Classification & Organization</div>
+      <div class="info-grid">
+        <div class="info-group">
+          <span class="info-label">Functional Unit</span>
+          <span class="info-value">{{ emp.functionalUnit?.name || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Division</span>
+          <span class="info-value">{{ emp.division?.name || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Department</span>
+          <span class="info-value">{{ emp.department?.name || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Location</span>
+          <span class="info-value">{{ emp.location?.name || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Sub Location</span>
+          <span class="info-value">{{ emp.subLocation?.name || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Category</span>
+          <span class="info-value">{{ emp.category?.name || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Sub Category</span>
+          <span class="info-value">{{ emp.subCategory?.name || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Designation</span>
+          <span class="info-value">{{ emp.designation || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Access Card Number</span>
+          <span class="info-value font-mono">{{ emp.accessCardNumber || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Reporting Manager</span>
+          <span class="info-value">{{ emp.reportingManager?.employeeName || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Functional Manager</span>
+          <span class="info-value">{{ emp.functionalManager?.employeeName || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Skip-Level Manager</span>
+          <span class="info-value">{{ emp.skipLevelManager?.employeeName || 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Family Details -->
+    <div class="print-section">
+      <div class="section-title">4. Family Details</div>
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th>Relationship</th>
+            <th>Family Member Name</th>
+            <th>Date of Birth</th>
+            <th>Occupation</th>
+            <th>Contact Number</th>
+            <th>Employee in Org</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (!emp.familyDetails || emp.familyDetails.length === 0) {
+            <tr>
+              <td colspan="6" class="empty-row">No family members registered.</td>
+            </tr>
+          } @else {
+            @for (member of emp.familyDetails; track member.memberName) {
+              <tr>
+                <td><strong>{{ member.relationship | titlecase }}</strong></td>
+                <td>{{ member.memberName }}</td>
+                <td>{{ member.dob ? (member.dob | date:'mediumDate') : 'N/A' }}</td>
+                <td>{{ member.occupation || 'N/A' }}</td>
+                <td>{{ member.contactNumber || 'N/A' }}</td>
+                <td>{{ member.isEmployeeOfOrg ? 'Yes' : 'No' }}</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 5: Nominee Details -->
+    <div class="print-section">
+      <div class="section-title">5. Nominee Details</div>
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th>Nominee Name</th>
+            <th>Relationship</th>
+            <th>Gender</th>
+            <th>Date of Birth</th>
+            <th>Age</th>
+            <th>Contact</th>
+            <th class="numeric">Share %</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (!emp.nomineeDetails || emp.nomineeDetails.length === 0) {
+            <tr>
+              <td colspan="7" class="empty-row">No nominee details registered.</td>
+            </tr>
+          } @else {
+            @for (nominee of emp.nomineeDetails; track nominee.nomineeName) {
+              <tr>
+                <td><strong>{{ nominee.nomineeName }}</strong></td>
+                <td>{{ nominee.relationship | titlecase }}</td>
+                <td>{{ nominee.gender | titlecase }}</td>
+                <td>{{ nominee.dob ? (nominee.dob | date:'mediumDate') : 'N/A' }}</td>
+                <td>{{ nominee.age ? nominee.age + ' Years' : 'N/A' }}</td>
+                <td>{{ nominee.contactNumber || 'N/A' }}</td>
+                <td class="numeric">{{ nominee.sharePercentage }}%</td>
+              </tr>
+            }
+            <tr class="total-row">
+              <td colspan="6" class="label">Total Share Percentage</td>
+              <td class="value numeric">{{ getNomineeTotalShare() }}%</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 6: Scale & Scale Details -->
+    <div class="print-section">
+      <div class="section-title">6. Scale & Scale Details</div>
+      <div class="info-grid" style="margin-bottom: 12px;">
+        <div class="info-group">
+          <span class="info-label">Salary Assignment Mode</span>
+          <span class="info-value">{{ emp.assignmentMode || 'PACKAGE' }}</span>
+        </div>
+        <div class="info-group" *ngIf="emp.assignmentMode !== 'CUSTOM'">
+          <span class="info-label">CTC Package</span>
+          <span class="info-value">{{ emp.ctc?.ctcName || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Effective From</span>
+          <span class="info-value">{{ emp.effectiveFrom | date:'mediumDate' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Revision Reason</span>
+          <span class="info-value">{{ emp.revisionReason || 'N/A' }}</span>
+        </div>
+      </div>
+
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th>Salary Head</th>
+            <th>Calculation Type</th>
+            <th>Value</th>
+            <th class="numeric">Monthly Amount (INR)</th>
+            <th class="numeric">Annual Amount (INR)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (getPrintComponents().length === 0) {
+            <tr>
+              <td colspan="5" class="empty-row">No salary components registered.</td>
+            </tr>
+          } @else {
+            @for (comp of getPrintComponents(); track comp.salaryHead) {
+              <tr>
+                <td><strong>{{ comp.salaryHead }}</strong></td>
+                <td>{{ comp.calculationType }}</td>
+                <td>{{ comp.value || 0 }}</td>
+                <td class="numeric">&#x20b9;{{ comp.monthlyAmount | number:'1.2-2' }}</td>
+                <td class="numeric">&#x20b9;{{ comp.annualAmount | number:'1.2-2' }}</td>
+              </tr>
+            }
+            <tr class="total-row">
+              <td colspan="3" class="label">Monthly Cost to Company (CTC)</td>
+              <td colspan="2" class="value numeric">&#x20b9;{{ (getSalaryCTC() / 12) | number:'1.2-2' }}</td>
+            </tr>
+            <tr class="total-row ctc-annual">
+              <td colspan="3" class="label">Annual Cost to Company (CTC)</td>
+              <td colspan="2" class="value numeric">&#x20b9;{{ getSalaryCTC() | number:'1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 7: Address Information -->
+    <div class="print-section">
+      <div class="section-title">7. Address Information</div>
+      <div class="address-text-container">
+        <div class="address-col">
+          <span class="address-type-label">Current Address</span>
+          <p class="address-text">
+            {{ emp.currentAddress1 }}<br/>
+            @if (emp.currentAddress2) { {{ emp.currentAddress2 }}<br/> }
+            {{ emp.currentCity }}, {{ emp.currentState }}<br/>
+            {{ emp.currentCountry }} - {{ emp.currentPinCode }}
+          </p>
+        </div>
+        <div class="address-col">
+          <span class="address-type-label">Permanent Address</span>
+          <p class="address-text">
+            {{ emp.permanentAddress1 }}<br/>
+            @if (emp.permanentAddress2) { {{ emp.permanentAddress2 }}<br/> }
+            {{ emp.permanentCity }}, {{ emp.permanentState }}<br/>
+            {{ emp.permanentCountry }} - {{ emp.permanentPinCode }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 8: Attendance & Shift -->
+    <div class="print-section">
+      <div class="section-title">8. Attendance & Shift</div>
+      <div class="info-grid">
+        <div class="info-group">
+          <span class="info-label">Shift Group</span>
+          <span class="info-value">{{ emp.shiftGroup }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Shift Name</span>
+          <span class="info-value">{{ emp.shiftName }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">From Time</span>
+          <span class="info-value">{{ emp.shiftFrom }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">To Time</span>
+          <span class="info-value">{{ emp.shiftTo }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Late In Margin</span>
+          <span class="info-value">{{ emp.shiftLateIn }} Mins</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Early Out Margin</span>
+          <span class="info-value">{{ emp.shiftEarlyOut }} Mins</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 9: Education -->
+    <div class="print-section">
+      <div class="section-title">9. Education</div>
+      <div class="info-grid">
+        <div class="info-group">
+          <span class="info-label">Highest Qualification</span>
+          <span class="info-value">{{ emp.highestQualification || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Field of Study</span>
+          <span class="info-value">{{ emp.fieldOfStudy || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">University / College</span>
+          <span class="info-value">{{ emp.university || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Year of Passing</span>
+          <span class="info-value">{{ emp.yearOfPassing || 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 10: Skills & Certifications -->
+    <div class="print-section">
+      <div class="section-title">10. Skills & Certifications</div>
+      <div class="info-full">
+        <span class="info-label">Skills & Certifications</span>
+        <span class="info-value">{{ emp.skills || 'N/A' }}</span>
+      </div>
+    </div>
+
+    <!-- Section 11: Previous Employment -->
+    <div class="print-section">
+      <div class="section-title">11. Previous Employment</div>
+      <div class="info-grid">
+        <div class="info-group">
+          <span class="info-label">Previous Employer</span>
+          <span class="info-value">{{ emp.prevEmployer || 'N/A' }}</span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">Previous Designation</span>
+          <span class="info-value">{{ emp.prevDesignation || 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (isLoading()) {
+  <div class="loading-container">
+    <span class="material-icons spinner">sync</span>
+    <p>Preparing dedicated profile print layout...</p>
+  </div>
+}

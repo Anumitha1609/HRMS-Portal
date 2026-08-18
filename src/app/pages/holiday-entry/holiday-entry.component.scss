@@ -1,0 +1,344 @@
+/* ============================================================
+   Holiday Entry page design system.
+   Scoped to this component (via :host) so it doesn't affect the
+   rest of the app, which uses its own local copy of these same
+   tokens (see e.g. salary-heads.component.scss).
+   ============================================================ */
+
+:host {
+  --navy:        #1a2b4a;
+  --navy-dark:   #0f1c32;
+  --navy-hover:  #243860;
+  --white:       #ffffff;
+  --bg:          #f4f6f9;
+  --surface:     #ffffff;
+  --border:      #dde2ea;
+  --text-main:   #1a2b4a;
+  --text-muted:  #6b7a99;
+  --blue:        #1d6ae5;
+  --blue-hover:  #1558c0;
+  --green:       #22a06b;
+  --green-hover: #1a8057;
+  --red:         #e53e3e;
+  --red-hover:   #c53030;
+  --label-blue:  #1d6ae5;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+  display: block;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+* { box-sizing: border-box; }
+
+input, textarea, select, button { font-family: inherit; font-size: 14px; }
+
+/* -- Main area -- */
+.main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* -- Breadcrumb (shared across every page) -- */
+.breadcrumb {
+  padding: 10px 24px 0;
+  font-size: 12.5px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.breadcrumb span { cursor: pointer; }
+.breadcrumb span:hover { color: var(--blue); }
+.breadcrumb .sep { color: var(--border); }
+
+/* -- Page content -- */
+.page-content { flex: 1; overflow-y: auto; padding: 16px 24px 24px; }
+
+/* -- Card -- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 14px; font-weight: 700;
+  color: var(--label-blue); margin-bottom: 16px;
+}
+
+/* -- Form grid -- */
+.form-row {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+.form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-row.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
+.form-label .req, .req { color: var(--red); margin-left: 2px; }
+
+.form-control {
+  border: 1px solid var(--bg); border-radius: var(--radius-md);
+  padding: 10px 14px; color: var(--text-main);
+  background: var(--bg); outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.form-control::placeholder { color: var(--text-muted); }
+.form-control:focus { background: #fff; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(29,106,229,0.1); }
+.form-control.readonly { background: #f8f9fc; color: var(--text-muted); cursor: default; }
+
+/* -- Status pill (compact, read-only, for grid cells) -- */
+.badge-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; border-radius: 6px;
+  padding: 4px 10px; white-space: nowrap; line-height: 1.4;
+}
+.badge-pill.active   { color: #15803d; background: #dcfce7; }
+.badge-pill.inactive { color: #b91c1c; background: #fee2e2; }
+
+/* -- Grid toolbar (search / filter / export above a data-grid) -- */
+.grid-search {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--bg); border-radius: var(--radius-md);
+  padding: 9px 14px; background: var(--bg); width: 220px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.grid-search:focus-within { background: #fff; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(29,106,229,0.1); }
+.grid-search input { border: none; outline: none; font-size: 13px; width: 100%; color: var(--text-main); background: transparent; }
+.icon-btn.ghost { background: #fff; border: 1px solid var(--border); color: var(--text-muted); }
+.icon-btn.ghost:hover { border-color: var(--blue); color: var(--blue); opacity: 1; }
+
+/* -- Pagination -- */
+.grid-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px; font-size: 12.5px; color: var(--text-muted);
+}
+.table-card .grid-footer {
+  margin-top: 0;
+  border-top: 1px solid var(--border);
+  background: #fafbfc;
+}
+
+// Column headings darker/black for this page's table (Angular's normal view
+// encapsulation scopes this to just this component's own template)
+.master-table thead th {
+  color: #ffffff;
+}
+.pagination { display: flex; align-items: center; gap: 6px; }
+.page-btn {
+  min-width: 30px; height: 30px; padding: 0 6px;
+  border: 1px solid var(--border); background: #fff; color: var(--text-main);
+  border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.page-btn:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+.page-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+.page-btn:disabled { opacity: 0.4; cursor: default; }
+.page-dots { color: var(--text-muted); padding: 0 2px; }
+
+.checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 500; }
+.checkbox-label input[type="checkbox"] { accent-color: var(--blue); width: 16px; height: 16px; cursor: pointer; }
+
+/* -- Action buttons -- */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px; border-radius: var(--radius-sm);
+  font-size: 13.5px; font-weight: 600; cursor: pointer;
+  border: 1.5px solid transparent; transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-outline { border-color: var(--border); background: #fff; color: var(--text-main); }
+.btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+.btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-primary:hover { background: var(--blue-hover); border-color: var(--blue-hover); }
+.btn-success { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-success:hover { background: var(--green-hover); border-color: var(--green-hover); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
+/* -- Data Grid -- */
+.data-grid { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.data-grid th {
+  background: var(--bg); border: 1px solid var(--border);
+  padding: 9px 12px; font-size: 12.5px; font-weight: 600;
+  color: var(--text-muted); text-align: left;
+}
+.data-grid td {
+  border: 1px solid var(--border);
+  padding: 9px 12px; font-size: 13px;
+}
+.data-grid tr:hover td { background: #f8faff; }
+.icon-btn {
+  width: 30px; height: 30px; border-radius: 6px;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.15s;
+}
+.icon-btn:hover { opacity: 0.8; }
+.icon-btn.edit, .icon-btn.del {
+  width: 36px; height: 36px; padding: 0; margin: 0; border-radius: 8px;
+  border: 1px solid transparent; transition: all 0.2s;
+}
+.icon-btn.edit .material-icons, .icon-btn.del .material-icons { font-size: 18px; }
+.icon-btn.edit:hover, .icon-btn.del:hover { opacity: 1; }
+.icon-btn.edit {
+  background: #eff6ff; color: #2563eb; border-color: #dbeafe;
+}
+.icon-btn.edit:hover { background: #dbeafe; color: #1d4ed8; }
+.icon-btn.del {
+  background: #fef2f2; color: #ef4444; border-color: #fecaca;
+}
+.icon-btn.del:hover { background: #fee2e2; color: #dc2626; }
+
+/* -- Modal -- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+
+/* ============================================================
+   Add for a Year — bulk holiday entry modal
+   ============================================================ */
+.btn-sm { padding: 6px 12px; font-size: 12.5px; }
+
+.bulk-modal {
+  width: 1180px; max-width: 96vw; max-height: 90vh;
+  overflow-y: auto; margin: 0; position: relative;
+  display: flex; flex-direction: column;
+}
+.bulk-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.bulk-modal-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 17px; font-weight: 700; color: var(--text-main);
+}
+
+.bulk-tabs {
+  display: flex; gap: 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+.bulk-tab {
+  padding: 10px 2px 12px; font-size: 14px; font-weight: 600;
+  color: var(--text-muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.bulk-tab:hover { color: var(--blue); }
+.bulk-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+.bulk-tab-panel { flex: 1; }
+
+/* -- Calendar Wise Entry layout -- */
+.bulk-cal-layout { display: flex; gap: 20px; }
+.bulk-cal-sidebar {
+  width: 200px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.bulk-cal-main { flex: 1; min-width: 0; }
+
+.bulk-legend {
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 14px; background: var(--bg);
+}
+.bulk-legend-title { font-size: 12.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; }
+.bulk-legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 4px 0; color: var(--text-main); }
+
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-bank { background: #22a06b; }
+.dot-portal { background: #1d6ae5; }
+.dot-our { background: #7c3aed; }
+.dot-national { background: #f97316; }
+
+.bulk-info-box {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: #eef4ff; border: 1px solid #cfe0fb; border-radius: var(--radius-sm);
+  padding: 10px 12px; font-size: 12.5px; color: var(--blue-hover); line-height: 1.4;
+}
+
+.bulk-cal-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; gap: 10px; flex-wrap: wrap;
+}
+.bulk-cal-nav { display: flex; align-items: center; gap: 6px; }
+.bulk-cal-label { font-size: 16px; font-weight: 700; color: var(--text-main); }
+.bulk-cal-viewtoggle { display: flex; gap: 6px; }
+
+.bulk-calendar { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.bulk-calendar th {
+  background: var(--bg); border: 1px solid var(--border);
+  padding: 8px; font-size: 12px; font-weight: 600; color: var(--text-muted);
+}
+.bulk-cal-cell {
+  border: 1px solid var(--border); vertical-align: top;
+  height: 74px; padding: 6px; cursor: pointer;
+  transition: background 0.15s;
+}
+.bulk-cal-cell:hover { background: #f8faff; }
+.bulk-cal-cell.out-month { background: #fafbfc; color: var(--text-muted); }
+.bulk-cal-cell.out-month .bulk-cal-daynum { color: #c3ccd9; }
+.bulk-cal-cell.is-today .bulk-cal-daynum {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--blue); color: #fff;
+}
+.bulk-cal-daynum { font-size: 12.5px; font-weight: 600; margin-bottom: 4px; }
+.bulk-cal-chip {
+  font-size: 11px; font-weight: 600; border-radius: 5px;
+  padding: 3px 6px; background: #eef1f6;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.bulk-cal-chip-text {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--text-main);
+}
+.bulk-cal-chip-dots { display: flex; align-items: center; gap: 4px; }
+.bulk-cal-chip-dots .dot { width: 6px; height: 6px; }
+
+.bulk-cal-chip-inline {
+  flex-direction: row; align-items: center; gap: 8px;
+  padding: 4px 10px;
+}
+.bulk-cal-chip-inline .bulk-cal-chip-text { overflow: visible; white-space: normal; }
+
+/* -- Calendar list view -- */
+.bulk-cal-list { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+.bulk-cal-list-row {
+  display: flex; align-items: center; gap: 14px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 10px 14px; cursor: pointer; transition: background 0.15s;
+}
+.bulk-cal-list-row:hover { background: #f8faff; }
+.bulk-cal-list-date { font-weight: 600; width: 90px; flex-shrink: 0; }
+.bulk-cal-list-day { color: var(--text-muted); width: 90px; flex-shrink: 0; }
+.bulk-cal-list-empty { color: var(--text-muted); text-align: center; padding: 30px 0; font-size: 13px; }
+
+/* -- Row Wise Entry -- */
+.bulk-row-grid input.form-control { padding: 6px 8px; font-size: 12.5px; }
+.bulk-row-grid td { vertical-align: middle; }
+.bulk-new-row td { background: #fbfcfe; }
+.bulk-row-grid th .dot { margin-right: 5px; }
+
+.bulk-total-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #eef4ff; color: var(--blue-hover);
+  font-size: 13px; font-weight: 600;
+  border-radius: var(--radius-sm); padding: 8px 14px; margin-top: 14px;
+}
+
+.bulk-modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+
+/* -- Quick date-entry popup -- */
+.bulk-popup-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center; z-index: 200;
+}
+.bulk-popup { width: 420px; max-width: 92vw; margin: 0; }

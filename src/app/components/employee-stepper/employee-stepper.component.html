@@ -1,0 +1,1119 @@
+<div class="stepper-wizard-container animated-fade-in">
+  <!-- Progress Stepper Header -->
+  <app-step-header [isEditMode]="isEditMode" (stepSelected)="onStepSelected($event)"></app-step-header>
+
+  <!-- Top Navigation Actions -->
+  <app-step-navigation 
+    [isCurrentStepValid]="isStepValid(progressService.currentStep())"
+    (back)="onBack()"
+    (next)="onNext()"
+    (saveDraft)="onSaveDraft()"
+    (cancel)="onCancel()"
+    (saveEmployee)="onSaveEmployee()"
+  ></app-step-navigation>
+
+  <!-- Step Content Wrapper -->
+  <form [formGroup]="form" class="stepper-form-body">
+    
+    <!-- STEP 1: Primary Details -->
+    <div *ngIf="progressService.currentStep() === 1" class="step-card card">
+      <div class="step-card-header">
+        <span class="material-icons text-primary">person</span>
+        <h4>Primary Details</h4>
+      </div>
+      
+      <div class="step-card-body">
+        <div class="photo-section">
+          <div class="photo-uploader editable" (click)="photoInput.click()">
+            <img [src]="form.get('photoUrl')?.value || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'" alt="Employee Photo" />
+            <div class="photo-overlay">
+              <span class="material-icons">photo_camera</span>
+              <span>Change Photo</span>
+            </div>
+            <button type="button" class="btn-delete-photo" *ngIf="form.get('photoUrl')?.value" (click)="onDeletePhoto($event)">
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+          <input type="file" #photoInput accept="image/*" (change)="onPhotoSelected($event)" style="display: none;" />
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label>Employee Code</label>
+            <input type="text" formControlName="employeeCode" class="input-control" placeholder="[Auto Generated]" />
+          </div>
+          <div class="form-group">
+            <label>Employee Name *</label>
+            <input type="text" formControlName="employeeName" class="input-control" placeholder="Rohan Sharma" />
+            <span class="error-msg" *ngIf="showValidationError('employeeName')">Name is required</span>
+          </div>
+          <div class="form-group">
+            <label>Gender *</label>
+            <select formControlName="gender" class="input-control">
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date of Birth *</label>
+            <input type="date" formControlName="dob" class="input-control" />
+            <span class="error-msg" *ngIf="showValidationError('dob')">Date of Birth is required</span>
+          </div>
+          <div class="form-group">
+            <label>Age (Calculated)</label>
+            <input type="text" formControlName="age" class="input-control" readonly />
+          </div>
+          <div class="form-group">
+            <label>Marital Status *</label>
+            <select formControlName="maritalStatus" class="input-control">
+              <option value="SINGLE">Single</option>
+              <option value="MARRIED">Married</option>
+              <option value="DIVORCED">Divorced</option>
+              <option value="WIDOWED">Widowed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Blood Group</label>
+            <select formControlName="bloodGroup" class="input-control">
+              <option value="">Select Blood Group</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Mobile Number *</label>
+            <div class="phone-input-group" style="display: flex; gap: 8px;">
+              <select formControlName="mobileCountryCode" class="input-control" style="width: 100px; flex-shrink: 0;">
+                <option *ngFor="let c of countryCodes" [value]="c.code">{{ c.code }}</option>
+              </select>
+              <input 
+                type="text" 
+                formControlName="mobileNumber" 
+                class="input-control" 
+                [placeholder]="getMobilePlaceholder()" 
+                style="flex-grow: 1;"
+              />
+            </div>
+            <span class="error-msg" *ngIf="showValidationError('mobileNumber')">Enter a valid mobile number</span>
+          </div>
+          <div class="form-group">
+            <label>Official Email *</label>
+            <input type="email" formControlName="officialEmail" class="input-control" placeholder="name@workeaze.com" />
+            <span class="error-msg" *ngIf="showValidationError('officialEmail')">Enter valid official email</span>
+          </div>
+          <div class="form-group">
+            <label>Personal Email *</label>
+            <input type="email" formControlName="personalEmail" class="input-control" placeholder="name@gmail.com" />
+            <span class="error-msg" *ngIf="showValidationError('personalEmail')">Enter valid personal email</span>
+          </div>
+          <div class="form-group">
+            <label>Date of Joining *</label>
+            <input type="date" formControlName="joiningDate" class="input-control" />
+            <span class="error-msg" *ngIf="showValidationError('joiningDate')">Joining Date is required</span>
+          </div>
+          <div class="form-group">
+            <label>Employee Status *</label>
+            <select formControlName="status" class="input-control">
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+              <option value="RESIGNED">Resigned</option>
+              <option value="TERMINATED">Terminated</option>
+              <option value="RELIEVED">Relieved</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>PAN *</label>
+            <input type="text" formControlName="pan" class="input-control" placeholder="ABCDE1234F" style="text-transform: uppercase;" />
+            <span class="error-msg" *ngIf="showValidationError('pan')">Enter valid PAN (e.g. ABCDE1234F)</span>
+          </div>
+          <div class="form-group">
+            <label>Aadhaar *</label>
+            <input type="text" formControlName="aadhaar" class="input-control" placeholder="12-digit Aadhaar" />
+            <span class="error-msg" *ngIf="showValidationError('aadhaar')">Enter valid 12-digit Aadhaar</span>
+          </div>
+          <div class="form-group">
+            <label>PF Number</label>
+            <input type="text" formControlName="pfNumber" class="input-control" placeholder="PF Number" />
+          </div>
+          <div class="form-group">
+            <label>UAN Number</label>
+            <input type="text" formControlName="uanNumber" class="input-control" placeholder="12-digit UAN" />
+            <span class="error-msg" *ngIf="showValidationError('uanNumber')">Enter valid 12-digit UAN</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Classification -->
+    <div *ngIf="progressService.currentStep() === 2" class="step-card card">
+      <div class="step-card-header">
+        <span class="material-icons text-primary">corporate_fare</span>
+        <h4>Classification</h4>
+      </div>
+      <div class="step-card-body">
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label>Functional Unit *</label>
+            <select formControlName="functionalUnitId" class="input-control">
+              <option value="">Select Functional Unit</option>
+              <option *ngFor="let fu of functionalUnits" [value]="fu.id">{{ fu.name }}</option>
+            </select>
+            <span class="error-msg" *ngIf="showValidationError('functionalUnitId')">Functional Unit is required</span>
+          </div>
+          <div class="form-group">
+            <label>Division *</label>
+            <select formControlName="divisionId" class="input-control">
+              <option value="">Select Division</option>
+              <option *ngFor="let div of divisions" [value]="div.id">{{ div.name }}</option>
+            </select>
+            <span class="error-msg" *ngIf="showValidationError('divisionId')">Division is required</span>
+          </div>
+          <div class="form-group">
+            <label>Department *</label>
+            <div class="dropdown-with-action">
+              <select formControlName="departmentId" class="input-control">
+                <option value="">Select Department</option>
+                <option *ngFor="let dept of departments" [value]="dept.id">{{ dept.name }}</option>
+              </select>
+              <button type="button" class="add-inline-btn" (click)="openAddDepartmentModal()" title="Add New Department">
+                <span class="material-icons">add</span>
+              </button>
+            </div>
+            <span class="error-msg" *ngIf="showValidationError('departmentId')">Department is required</span>
+          </div>
+          <div class="form-group">
+            <label>Location *</label>
+            <select formControlName="locationId" class="input-control">
+              <option value="">Select Location</option>
+              <option *ngFor="let loc of locations" [value]="loc.id">{{ loc.name }}</option>
+            </select>
+            <span class="error-msg" *ngIf="showValidationError('locationId')">Location is required</span>
+          </div>
+          <div class="form-group">
+            <label>Sub Location *</label>
+            <select formControlName="subLocationId" class="input-control">
+              <option value="">Select Sub Location</option>
+              <option *ngFor="let sl of subLocations" [value]="sl.id">{{ sl.name }}</option>
+            </select>
+            <span class="error-msg" *ngIf="showValidationError('subLocationId')">Sub Location is required</span>
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <select formControlName="categoryId" class="input-control">
+              <option value="">Select Category</option>
+              <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+            </select>
+            <span class="error-msg" *ngIf="showValidationError('categoryId')">Category is required</span>
+          </div>
+          <div class="form-group">
+            <label>Sub Category *</label>
+            <select formControlName="subCategoryId" class="input-control">
+              <option value="">Select Sub Category</option>
+              <option *ngFor="let scat of filteredSubCategories" [value]="scat.id">{{ scat.name }}</option>
+            </select>
+            <span class="error-msg" *ngIf="showValidationError('subCategoryId')">Sub Category is required</span>
+          </div>
+          <div class="form-group">
+            <label>Designation *</label>
+            <input type="text" formControlName="designation" class="input-control" placeholder="Designation" />
+            <span class="error-msg" *ngIf="showValidationError('designation')">Designation is required</span>
+          </div>
+          <div class="form-group">
+            <label>Access Card Number *</label>
+            <input type="text" formControlName="accessCardNumber" class="input-control" placeholder="CARD1001" />
+            <span class="error-msg" *ngIf="showValidationError('accessCardNumber')">Access Card is required</span>
+          </div>
+          @if (!isDirectorSelected()) {
+            <div class="form-group">
+              <label>Reporting Manager *</label>
+              <select formControlName="reportingManagerId" class="input-control">
+                <option value="">Select Reporting Manager</option>
+                <option *ngFor="let emp of activeEmployees" [value]="emp.id">{{ emp.employeeName }} ({{ emp.employeeCode }})</option>
+              </select>
+              <span class="error-msg" *ngIf="showValidationError('reportingManagerId')">Reporting Manager is required</span>
+            </div>
+            <div class="form-group">
+              <label>Functional Manager</label>
+              <select formControlName="functionalManagerId" class="input-control">
+                <option value="">Select Functional Manager</option>
+                <option *ngFor="let emp of activeEmployees" [value]="emp.id">{{ emp.employeeName }} ({{ emp.employeeCode }})</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Skip-Level Manager</label>
+              <select formControlName="skipLevelManagerId" class="input-control">
+                <option value="">Select Skip-Level Manager</option>
+                <option *ngFor="let emp of activeEmployees" [value]="emp.id">{{ emp.employeeName }} ({{ emp.employeeCode }})</option>
+              </select>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Bank Details -->
+    <div *ngIf="progressService.currentStep() === 3" class="step-card card">
+      <div class="step-card-header">
+        <span class="material-icons text-primary">account_balance</span>
+        <h4>Bank Details</h4>
+      </div>
+      <div class="step-card-body">
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label>Account Holder Name</label>
+            <input type="text" formControlName="bankAccountHolder" class="input-control" placeholder="Account Holder Name" />
+          </div>
+          <div class="form-group">
+            <label>Account Number *</label>
+            <input type="text" formControlName="bankAccountNumber" class="input-control" placeholder="Account Number" />
+            <span class="error-msg" *ngIf="showValidationError('bankAccountNumber')">Bank Account Number is required</span>
+          </div>
+          <div class="form-group">
+            <label>Bank Name *</label>
+            <input type="text" formControlName="bankName" class="input-control" placeholder="Bank Name" />
+            <span class="error-msg" *ngIf="showValidationError('bankName')">Bank Name is required</span>
+          </div>
+          <div class="form-group">
+            <label>Branch *</label>
+            <input type="text" formControlName="bankBranch" class="input-control" placeholder="Branch" />
+            <span class="error-msg" *ngIf="showValidationError('bankBranch')">Branch is required</span>
+          </div>
+          <div class="form-group">
+            <label>IFSC *</label>
+            <input type="text" formControlName="bankIfsc" class="input-control" placeholder="IFSC Code" style="text-transform: uppercase;" />
+            <span class="error-msg" *ngIf="showValidationError('bankIfsc')">Enter valid IFSC (e.g. SBIN0001234)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: Family Details -->
+    <div *ngIf="progressService.currentStep() === 4" class="step-card card">
+      <div class="step-card-header-row">
+        <div class="header-left">
+          <span class="material-icons text-primary">groups</span>
+          <h4>Family Details</h4>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" (click)="openFamilyDrawer('add')">
+          <span class="material-icons">add</span> Add Member
+        </button>
+      </div>
+      <div class="step-card-body">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>Relationship</th>
+              <th>Member Name</th>
+              <th>Date of Birth</th>
+              <th>Contact Number</th>
+              <th>Employee of Org?</th>
+              <th style="width: 80px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="familyArray.length === 0">
+              <td colspan="6" class="empty-table-msg">No family members configured. Click "Add Member" to add one.</td>
+            </tr>
+            <tr *ngFor="let member of familyArray.controls; let i = index">
+              <td>{{ member.get('relationship')?.value }}</td>
+              <td>{{ member.get('memberName')?.value }}</td>
+              <td>{{ member.get('dob')?.value || 'N/A' }}</td>
+              <td>{{ member.get('contactNumber')?.value || 'N/A' }}</td>
+              <td>
+                <span class="status-badge" [class.active]="member.get('isEmployeeOfOrg')?.value">
+                  {{ member.get('isEmployeeOfOrg')?.value ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons-row">
+                  <button type="button" class="btn btn-ghost btn-icon" (click)="openFamilyDrawer('edit', i)" title="Edit">
+                    <span class="material-icons text-primary" style="font-size: 16px;">edit</span>
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-icon" (click)="removeFamilyMember(i)" title="Delete">
+                    <span class="material-icons text-danger" style="font-size: 16px;">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STEP 5: Nominee Details -->
+    <div *ngIf="progressService.currentStep() === 5" class="step-card card">
+      <div class="step-card-header-row">
+        <div class="header-left">
+          <span class="material-icons text-primary">assignment_ind</span>
+          <h4>Nominee Details</h4>
+          <span class="badge" [class.badge-success]="isNomineeShareValid()" [class.badge-danger]="!isNomineeShareValid()">
+            Total Share: {{ totalNomineeShare() }}% (Must equal 100%)
+          </span>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" (click)="openNomineeDrawer('add')">
+          <span class="material-icons">add</span> Add Nominee
+        </button>
+      </div>
+      <div class="step-card-body">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>Nominee Name</th>
+              <th>Relationship</th>
+              <th>Share %</th>
+              <th>Gender</th>
+              <th>Contact Number</th>
+              <th style="width: 80px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="nomineesArray.length === 0">
+              <td colspan="6" class="empty-table-msg">No nominees configured. Click "Add Nominee" to add one.</td>
+            </tr>
+            <tr *ngFor="let nominee of nomineesArray.controls; let i = index">
+              <td>{{ nominee.get('nomineeName')?.value }}</td>
+              <td>{{ nominee.get('relationship')?.value }}</td>
+              <td><strong>{{ nominee.get('sharePercentage')?.value }}%</strong></td>
+              <td>{{ nominee.get('gender')?.value }}</td>
+              <td>{{ nominee.get('contactNumber')?.value || 'N/A' }}</td>
+              <td>
+                <div class="action-buttons-row">
+                  <button type="button" class="btn btn-ghost btn-icon" (click)="openNomineeDrawer('edit', i)" title="Edit">
+                    <span class="material-icons text-primary" style="font-size: 16px;">edit</span>
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-icon" (click)="removeNominee(i)" title="Delete">
+                    <span class="material-icons text-danger" style="font-size: 16px;">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STEP 6: Scale & Scale Details -->
+    <div *ngIf="progressService.currentStep() === 6" class="step-card card">
+      <div class="step-card-header-row">
+        <div class="header-left">
+          <span class="material-icons text-primary">payments</span>
+          <h4>Scale & Scale Details</h4>
+        </div>
+      </div>
+      <div class="step-card-body">
+        <!-- Salary Mode Selector Radio Group -->
+        <div class="salary-assignment-mode-section" style="margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+          <label style="font-size: 11px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.05em; width: 180px; flex-shrink: 0; margin-bottom: 0; display: block;">Salary Assignment Mode</label>
+          
+          <div class="assignment-mode-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; flex-grow: 1;">
+            <!-- Option 1: PACKAGE -->
+            <label class="mode-card" [class.selected]="form.get('assignmentMode')?.value === 'PACKAGE'" style="position: relative; padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.2s ease-in-out;">
+              <input type="radio" value="PACKAGE" formControlName="assignmentMode" style="accent-color: #2563eb; width: 16px; height: 16px; flex-shrink: 0;" />
+              <div class="card-content" style="display: flex; flex-direction: column; gap: 2px;">
+                <span class="card-title" style="font-size: 12px; font-weight: 700; color: #1e293b;">Use Existing Package</span>
+                <span class="card-subtitle" style="font-size: 10px; color: #64748b; line-height: 1.2;">Assign from available packages</span>
+              </div>
+            </label>
+
+            <!-- Option 2: CUSTOM_FROM_PACKAGE -->
+            <label class="mode-card" [class.selected]="form.get('assignmentMode')?.value === 'CUSTOM_FROM_PACKAGE'" style="position: relative; padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.2s ease-in-out;">
+              <input type="radio" value="CUSTOM_FROM_PACKAGE" formControlName="assignmentMode" style="accent-color: #2563eb; width: 16px; height: 16px; flex-shrink: 0;" />
+              <div class="card-content" style="display: flex; flex-direction: column; gap: 2px;">
+                <span class="card-title" style="font-size: 12px; font-weight: 700; color: #1e293b;">Customize Package</span>
+                <span class="card-subtitle" style="font-size: 10px; color: #64748b; line-height: 1.2;">Modify selected package</span>
+              </div>
+            </label>
+
+            <!-- Option 3: CUSTOM -->
+            <label class="mode-card" [class.selected]="form.get('assignmentMode')?.value === 'CUSTOM'" style="position: relative; padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.2s ease-in-out;">
+              <input type="radio" value="CUSTOM" formControlName="assignmentMode" style="accent-color: #2563eb; width: 16px; height: 16px; flex-shrink: 0;" />
+              <div class="card-content" style="display: flex; flex-direction: column; gap: 2px;">
+                <span class="card-title" style="font-size: 12px; font-weight: 700; color: #1e293b;">Create New Structure</span>
+                <span class="card-subtitle" style="font-size: 10px; color: #64748b; line-height: 1.2;">Define a brand new structure</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Mode Status Badge & Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div style="font-size: 14px; font-weight: 600; color: #1e293b;">Configuration & Fields</div>
+          <div>
+            <span *ngIf="form.get('assignmentMode')?.value === 'PACKAGE'" class="badge" style="background: #dcfce7; color: #15803d; padding: 6px 12px; font-size: 12px; border-radius: 12px; font-weight: 600;">
+              Inherited Package
+            </span>
+            <span *ngIf="form.get('assignmentMode')?.value === 'CUSTOM_FROM_PACKAGE'" class="badge" style="background: #ffedd5; color: #c2410c; padding: 6px 12px; font-size: 12px; border-radius: 12px; font-weight: 600;">
+              Customized from Existing Package
+            </span>
+            <span *ngIf="form.get('assignmentMode')?.value === 'CUSTOM'" class="badge" style="background: #e0f2fe; color: #0369a1; padding: 6px 12px; font-size: 12px; border-radius: 12px; font-weight: 600;">
+              Custom Salary Structure
+            </span>
+          </div>
+        </div>
+
+        <!-- Form Fields Grid -->
+        <div class="form-grid-2" style="margin-bottom: 20px;">
+          <!-- CTC Package Selection (only for PACKAGE and CUSTOM_FROM_PACKAGE) -->
+          <div class="form-group" *ngIf="form.get('assignmentMode')?.value !== 'CUSTOM'">
+            <label for="ctcId">CTC Package *</label>
+            <select id="ctcId" formControlName="ctcId" class="input-control">
+              <option value="">-- Choose Package --</option>
+              <option *ngFor="let ctc of ctcMasters" [value]="ctc.id">
+                {{ ctc.ctcName }} (₹{{ ctc.annualCTC | number:'1.0-0' }}/Yr)
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Effective From (WEF) *</label>
+            <input type="date" formControlName="effectiveFrom" class="input-control" />
+          </div>
+          <div class="form-group">
+            <label>Revision Reason</label>
+            <input type="text" formControlName="revisionReason" class="input-control" placeholder="e.g. Initial Assignment" />
+          </div>
+          <div class="form-group">
+            <label>Remarks</label>
+            <input type="text" formControlName="ctcRemarks" class="input-control" placeholder="Remarks..." />
+          </div>
+        </div>
+
+        <!-- Optional Save As Package fields (only for CUSTOM mode) -->
+        <div *ngIf="form.get('assignmentMode')?.value === 'CUSTOM'" style="margin-bottom: 20px; padding: 16px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #1e293b; margin-bottom: 12px; cursor: pointer;">
+            <input type="checkbox" formControlName="saveAsPackage" />
+            Save this salary structure as a reusable CTC Package
+          </label>
+          <div class="form-grid-2" *ngIf="form.get('saveAsPackage')?.value">
+            <div class="form-group">
+              <label>Package Name *</label>
+              <input type="text" formControlName="newPackageName" class="input-control" placeholder="e.g. Senior Software Engineer Package" />
+            </div>
+            <div class="form-group">
+              <label>Package Code *</label>
+              <input type="text" formControlName="newPackageCode" class="input-control" placeholder="e.g. SSE-PKG-01" />
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label>Description</label>
+              <input type="text" formControlName="newPackageDescription" class="input-control" placeholder="Optional description..." />
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Row -->
+        <div class="salary-kpi-row grid-2" style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+          <div class="card kpi-card glass-panel" style="padding: 12px; margin-bottom: 0;">
+            <div class="kpi-content" style="display: flex; flex-direction: column;">
+              <span class="kpi-label" style="font-size: 11px; color: #64748b;">Monthly CTC</span>
+              <span class="kpi-val" style="font-size: 18px; font-weight: 700; color: #1e293b;">&#x20b9;{{ (selectedCtcAnnualAmount() / 12) | number:'1.2-2' }}</span>
+            </div>
+          </div>
+          <div class="card kpi-card glass-panel" style="padding: 12px; margin-bottom: 0;">
+            <div class="kpi-content" style="display: flex; flex-direction: column;">
+              <span class="kpi-label" style="font-size: 11px; color: #64748b;">Annual CTC</span>
+              <span class="kpi-val" style="font-size: 18px; font-weight: 700; color: #1e293b;">&#x20b9;{{ selectedCtcAnnualAmount() | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Breakup component view / edit -->
+        <!-- Mode 1: PACKAGE View (Read-Only) -->
+        <div *ngIf="form.get('assignmentMode')?.value === 'PACKAGE'">
+          <div *ngIf="form.get('ctcId')?.value" style="margin-bottom: 12px; font-size: 13px; font-weight: 600; color: #0f766e;">
+            Salary Breakup Components (Read-only):
+          </div>
+          <table class="master-table" *ngIf="form.get('ctcId')?.value">
+            <thead>
+              <tr>
+                <th>Salary Head</th>
+                <th>Calculation Type</th>
+                <th>Value</th>
+                <th style="text-align: right;">Monthly (₹)</th>
+                <th style="text-align: right;">Annual (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let comp of currentCtcComponents">
+                <td><strong>{{ comp.salaryHead }}</strong></td>
+                <td>{{ comp.calculationType }}</td>
+                <td>{{ comp.value || 0 }}</td>
+                <td style="text-align: right;">{{ comp.monthlyAmount | number:'1.2-2' }}</td>
+                <td style="text-align: right;">{{ comp.annualAmount | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="!form.get('ctcId')?.value" style="padding: 20px; text-align: center; color: #64748b; font-style: italic;">
+            Please select a CTC Package to view its components.
+          </div>
+        </div>
+
+        <!-- Mode 2 & 3: CUSTOMIZE / CUSTOM Edit Grid -->
+        <div *ngIf="form.get('assignmentMode')?.value !== 'PACKAGE'">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-size: 13px; font-weight: 600; color: #0f766e;">
+              Salary Breakup (Editable Grid):
+            </div>
+            <!-- Add Head button only for Mode 3 (Create New) -->
+            <button *ngIf="form.get('assignmentMode')?.value === 'CUSTOM'" type="button" class="btn btn-primary btn-sm" (click)="addCustomSalaryHead()">
+              <span class="material-icons">add</span> Add Salary Head
+            </button>
+          </div>
+
+          <div *ngIf="form.get('assignmentMode')?.value === 'CUSTOM_FROM_PACKAGE' && !form.get('ctcId')?.value" style="padding: 20px; text-align: center; color: #64748b; font-style: italic;">
+            Please select a base CTC Package to customize.
+          </div>
+
+          <table class="master-table" *ngIf="form.get('assignmentMode')?.value === 'CUSTOM' || form.get('ctcId')?.value" [formGroup]="form">
+            <thead>
+              <tr>
+                <th>Salary Head</th>
+                <th>Calculation Type</th>
+                <th>Value</th>
+                <th style="text-align: right;">Monthly (₹)</th>
+                <th style="text-align: right;">Annual (₹)</th>
+                <th style="width: 80px;" *ngIf="form.get('assignmentMode')?.value === 'CUSTOM'">Actions</th>
+              </tr>
+            </thead>
+            <tbody formArrayName="customComponents">
+              <tr *ngIf="customComponentsArray.length === 0">
+                <td colspan="6" class="empty-table-msg">No components configured. Click "Add Salary Head" to begin.</td>
+              </tr>
+              <tr *ngFor="let comp of customComponentsArray.controls; let i = index" [formGroupName]="i">
+                <td>
+                  <!-- Head name is editable in Mode 3 (CUSTOM) and read-only in Mode 2 -->
+                  <input *ngIf="form.get('assignmentMode')?.value === 'CUSTOM'" type="text" formControlName="salaryHead" class="input-control input-sm" placeholder="e.g. Basic, HRA" />
+                  <strong *ngIf="form.get('assignmentMode')?.value !== 'CUSTOM'">{{ comp.get('salaryHead')?.value }}</strong>
+                </td>
+                <td>
+                  <select class="form-control form-control-sm" formControlName="calculationType" style="padding: 2px; height: 30px; border: 1px solid #cbd5e1; border-radius: 4px; background-color: #f8fafc;">
+                    <option value="Fixed Amount">Fixed Amount</option>
+                    <option value="Percentage of CTC" *ngIf="form.get('assignmentMode')?.value !== 'CUSTOM'">Percentage of CTC</option>
+                    <option value="Percentage of Basic">Percentage of Basic</option>
+                    <option value="Remaining Balance" *ngIf="form.get('assignmentMode')?.value !== 'CUSTOM'">Remaining Balance</option>
+                  </select>
+                </td>
+                <td>
+                  <input *ngIf="comp.get('calculationType')?.value !== 'Remaining Balance'" type="number" class="form-control form-control-sm" formControlName="value" style="width: 80px; padding: 2px; height: 30px; border: 1px solid #cbd5e1; border-radius: 4px; background-color: #f8fafc;" min="0">
+                  <span *ngIf="comp.get('calculationType')?.value === 'Remaining Balance'">-</span>
+                </td>
+                <td style="text-align: right;">{{ comp.get('monthlyAmount')?.value | number:'1.2-2' }}</td>
+                <td style="text-align: right;">{{ comp.get('annualAmount')?.value | number:'1.2-2' }}</td>
+                <td *ngIf="form.get('assignmentMode')?.value === 'CUSTOM'">
+                  <button type="button" class="btn btn-ghost btn-icon" (click)="removeCustomSalaryHead(i)" title="Delete">
+                    <span class="material-icons text-danger" style="font-size: 16px;">delete</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 7: General Information -->
+    <div *ngIf="progressService.currentStep() === 7" class="step-card card">
+      <div class="step-card-header">
+        <span class="material-icons text-primary">info</span>
+        <h4>General Information</h4>
+      </div>
+      <div class="step-card-body">
+        
+        <!-- Permanent Address -->
+        <h5 class="section-sub-title">Permanent Address</h5>
+        <div class="form-grid-3">
+          <div class="form-group span-2">
+            <label>Address Line 1 *</label>
+            <input type="text" formControlName="permanentAddress1" class="input-control" placeholder="Apartment, Street" />
+            <span class="error-msg" *ngIf="showValidationError('permanentAddress1')">Address Line 1 is required</span>
+          </div>
+          <div class="form-group">
+            <label>Address Line 2</label>
+            <input type="text" formControlName="permanentAddress2" class="input-control" placeholder="Landmark" />
+          </div>
+          <div class="form-group">
+            <label>City *</label>
+            <input type="text" formControlName="permanentCity" class="input-control" placeholder="City" />
+            <span class="error-msg" *ngIf="showValidationError('permanentCity')">City is required</span>
+          </div>
+          <div class="form-group">
+            <label>State *</label>
+            <input type="text" formControlName="permanentState" class="input-control" placeholder="State" />
+            <span class="error-msg" *ngIf="showValidationError('permanentState')">State is required</span>
+          </div>
+          <div class="form-group">
+            <label>Country *</label>
+            <input type="text" formControlName="permanentCountry" class="input-control" placeholder="Country" />
+            <span class="error-msg" *ngIf="showValidationError('permanentCountry')">Country is required</span>
+          </div>
+          <div class="form-group">
+            <label>Pin Code *</label>
+            <input type="text" formControlName="permanentPinCode" class="input-control" placeholder="6-digit ZIP" />
+            <span class="error-msg" *ngIf="showValidationError('permanentPinCode')">Valid 6-digit pin code is required</span>
+          </div>
+        </div>
+
+        <div class="address-sync-checkbox checkbox-group mt-16" style="margin: 16px 0;">
+          <input type="checkbox" formControlName="sameAsPermanent" id="sameAsPermanent" />
+          <label for="sameAsPermanent" style="font-weight: 600; color: #0f766e; cursor: pointer;">Current Address is same as Permanent Address</label>
+        </div>
+
+        <!-- Current Address -->
+        <h5 class="section-sub-title">Current Address</h5>
+        <div class="form-grid-3">
+          <div class="form-group span-2">
+            <label>Address Line 1 *</label>
+            <input type="text" formControlName="currentAddress1" class="input-control" placeholder="Apartment, Street" [readonly]="form.get('sameAsPermanent')?.value" />
+            <span class="error-msg" *ngIf="showValidationError('currentAddress1')">Address Line 1 is required</span>
+          </div>
+          <div class="form-group">
+            <label>Address Line 2</label>
+            <input type="text" formControlName="currentAddress2" class="input-control" placeholder="Landmark" [readonly]="form.get('sameAsPermanent')?.value" />
+          </div>
+          <div class="form-group">
+            <label>City *</label>
+            <input type="text" formControlName="currentCity" class="input-control" placeholder="City" [readonly]="form.get('sameAsPermanent')?.value" />
+            <span class="error-msg" *ngIf="showValidationError('currentCity')">City is required</span>
+          </div>
+          <div class="form-group">
+            <label>State *</label>
+            <input type="text" formControlName="currentState" class="input-control" placeholder="State" [readonly]="form.get('sameAsPermanent')?.value" />
+            <span class="error-msg" *ngIf="showValidationError('currentState')">State is required</span>
+          </div>
+          <div class="form-group">
+            <label>Country *</label>
+            <input type="text" formControlName="currentCountry" class="input-control" placeholder="Country" [readonly]="form.get('sameAsPermanent')?.value" />
+            <span class="error-msg" *ngIf="showValidationError('currentCountry')">Country is required</span>
+          </div>
+          <div class="form-group">
+            <label>Pin Code *</label>
+            <input type="text" formControlName="currentPinCode" class="input-control" placeholder="6-digit ZIP" [readonly]="form.get('sameAsPermanent')?.value" />
+            <span class="error-msg" *ngIf="showValidationError('currentPinCode')">Valid 6-digit pin code is required</span>
+          </div>
+        </div>
+
+        <!-- Shift & Attendance Rules -->
+        <h5 class="section-sub-title" style="margin-top: 24px;">Shift & Attendance Rules</h5>
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label>Shift Group *</label>
+            <select formControlName="shiftGroup" class="input-control">
+              <option value="General Group">General Group</option>
+              <option value="Night Shift Group">Night Shift Group</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Shift Name *</label>
+            <input type="text" formControlName="shiftName" class="input-control" />
+          </div>
+          <div class="form-group">
+            <label>Shift Timings *</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" formControlName="shiftFrom" class="input-control" style="width: 70px; text-align: center;" />
+              <span>to</span>
+              <input type="text" formControlName="shiftTo" class="input-control" style="width: 70px; text-align: center;" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Allowed Late In (Mins)</label>
+            <input type="number" formControlName="shiftLateIn" class="input-control" placeholder="15" />
+          </div>
+          <div class="form-group">
+            <label>Allowed Early Out (Mins)</label>
+            <input type="number" formControlName="shiftEarlyOut" class="input-control" placeholder="15" />
+          </div>
+        </div>
+
+        <!-- Education & Skills -->
+        <h5 class="section-sub-title" style="margin-top: 24px;">Education, Skills & Experience</h5>
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label>Highest Qualification</label>
+            <input type="text" formControlName="highestQualification" class="input-control" placeholder="e.g. B.Tech" />
+          </div>
+          <div class="form-group">
+            <label>Field of Study</label>
+            <input type="text" formControlName="fieldOfStudy" class="input-control" placeholder="e.g. Computer Science" />
+          </div>
+          <div class="form-group">
+            <label>University/College</label>
+            <input type="text" formControlName="university" class="input-control" placeholder="University Name" />
+          </div>
+          <div class="form-group">
+            <label>Skills & Certifications</label>
+            <input type="text" formControlName="skills" class="input-control" placeholder="e.g. Java, Angular, AWS" />
+          </div>
+          <div class="form-group">
+            <label>Experience Type *</label>
+            <select formControlName="experienceType" class="input-control">
+              <option value="Fresher">Fresher</option>
+              <option value="Experienced">Experienced</option>
+            </select>
+          </div>
+          <div class="form-group" *ngIf="form.get('experienceType')?.value === 'Experienced'">
+            <label>Previous Employer *</label>
+            <input type="text" formControlName="prevEmployer" class="input-control" placeholder="Company Name" />
+          </div>
+          <div class="form-group" *ngIf="form.get('experienceType')?.value === 'Experienced'">
+            <label>Previous Designation *</label>
+            <input type="text" formControlName="prevDesignation" class="input-control" placeholder="Designation" />
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STEP 8: Attachments (Documents) -->
+    <div *ngIf="progressService.currentStep() === 8" class="step-card card">
+      <div class="step-card-header-row" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
+        <div class="header-left" style="display: flex; align-items: center; gap: 8px;">
+          <span class="material-icons text-primary" style="font-size: 22px;">description</span>
+          <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;">Onboarding Attachments</h4>
+        </div>
+      </div>
+      
+      <div class="step-card-body">
+        <p class="section-description" style="color: #64748b; font-size: 13px; margin: 0 0 20px 0;">
+          Please upload the following onboarding documents. Supported formats: <strong>PDF, PNG, JPG, JPEG, DOC, DOCX</strong>. Max size: <strong>10 MB</strong>.
+        </p>
+
+        <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+          <div 
+            *ngFor="let doc of getRequiredDocuments(); trackBy: trackByDocType" 
+            class="document-card card" 
+            [class.uploaded]="doc.uploadedFile" 
+            [class.missing]="doc.isMandatory && !doc.uploadedFile"
+            style="border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s; position: relative; min-height: 180px; box-shadow: none;"
+          >
+            <!-- Badge overlay -->
+            <div style="position: absolute; top: 12px; right: 12px;">
+              <span 
+                class="badge" 
+                [ngClass]="{
+                  'badge-success': doc.uploadedFile,
+                  'badge-danger': doc.isMandatory && !doc.uploadedFile,
+                  'badge-warning': !doc.isMandatory && !doc.uploadedFile
+                }"
+                style="padding: 4px 8px; font-size: 11px; border-radius: 12px; font-weight: 600;"
+              >
+                {{ doc.uploadedFile ? '🟢 Uploaded' : (doc.isMandatory ? '🔴 Mandatory' : '🟡 Optional') }}
+              </span>
+            </div>
+
+            <!-- Card Content -->
+            <div style="margin-right: 80px;">
+              <h5 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 700; color: #1e293b;">{{ doc.name }}</h5>
+              <p style="margin: 0; font-size: 12px; color: #64748b; line-height: 1.4;">{{ doc.description }}</p>
+              
+              <!-- Uploaded details -->
+              <div *ngIf="doc.uploadedFile" style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 11px; color: #64748b;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                  <span>Uploaded By:</span>
+                  <span style="font-weight: 600; color: #334155;">{{ doc.uploadedFile.uploadedBy }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span>Date:</span>
+                  <span style="font-weight: 600; color: #334155;">{{ doc.uploadedFile.uploadedDate | date:'mediumDate' }} (v{{ doc.uploadedFile.version }})</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+              <!-- Upload Area / Button -->
+              <ng-container *ngIf="!doc.uploadedFile">
+                <button 
+                  type="button" 
+                  class="btn btn-secondary btn-sm" 
+                  (click)="fileInput.click()"
+                  [disabled]="uploadProgress()[doc.type] !== undefined"
+                  style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px;"
+                >
+                  <span class="material-icons" style="font-size: 18px;">cloud_upload</span> Upload File
+                </button>
+              </ng-container>
+
+              <ng-container *ngIf="doc.uploadedFile">
+                <button 
+                  type="button" 
+                  class="btn btn-secondary btn-sm" 
+                  (click)="onPreviewDocument(doc.uploadedFile)"
+                  [disabled]="uploadProgress()[doc.type] !== undefined"
+                  style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px;"
+                >
+                  <span class="material-icons" style="font-size: 16px;">visibility</span> Preview
+                </button>
+                <button 
+                  type="button" 
+                  class="btn btn-secondary btn-sm" 
+                  (click)="onDownloadDocument(doc.uploadedFile)"
+                  [disabled]="uploadProgress()[doc.type] !== undefined"
+                  style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px;"
+                >
+                  <span class="material-icons" style="font-size: 16px;">download</span> Download
+                </button>
+                <button 
+                  type="button" 
+                  class="btn btn-ghost btn-sm error" 
+                  (click)="onDeleteDocument(doc.uploadedFile)"
+                  [disabled]="uploadProgress()[doc.type] !== undefined"
+                  style="display: flex; align-items: center; justify-content: center; padding: 6px;"
+                  title="Delete"
+                >
+                  <span class="material-icons" style="font-size: 18px;">delete</span>
+                </button>
+                
+                <!-- Replace Button -->
+                <button 
+                  type="button" 
+                  class="btn btn-ghost btn-sm" 
+                  (click)="fileInput.click()"
+                  [disabled]="uploadProgress()[doc.type] !== undefined"
+                  style="width: 100%; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: #2563eb;"
+                >
+                  <span class="material-icons" style="font-size: 14px;">cached</span> Replace Document (v{{ doc.uploadedFile.version }})
+                </button>
+              </ng-container>
+
+              <!-- Uploading Progress Bar -->
+              <div *ngIf="uploadProgress()[doc.type] !== undefined" class="upload-progress-container" style="width: 100%; margin-top: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #475569; margin-bottom: 4px;">
+                  <span style="display: flex; align-items: center; gap: 4px;">
+                    <span class="material-icons rotating" style="font-size: 14px; animation: spin 1s linear infinite; display: inline-block;">sync</span> Uploading...
+                  </span>
+                  <span style="font-weight: 600;">{{ uploadProgress()[doc.type] }}%</span>
+                </div>
+                <div class="progress-bar-bg" style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                  <div class="progress-bar-fill" [style.width.%]="uploadProgress()[doc.type]" style="height: 100%; background: #2563eb; transition: width 0.1s ease-in-out;"></div>
+                </div>
+              </div>
+
+              <!-- Hidden File Input -->
+              <input 
+                type="file" 
+                #fileInput 
+                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" 
+                (change)="onFileSelected($event, doc.type)" 
+                style="display: none;" 
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 9: Review & Save -->
+    <div *ngIf="progressService.currentStep() === 9">
+      <app-employee-review 
+        [form]="form" 
+        [uploadedDocuments]="documents()"
+        [masterData]="{
+          locations: locations,
+          subLocations: subLocations,
+          departments: departments,
+          functionalUnits: functionalUnits,
+          divisions: divisions,
+          categories: categories,
+          subCategories: subCategories,
+          employees: activeEmployees
+        }"
+        [ctcMasters]="ctcMasters"
+        (stepSelected)="onStepSelected($event)"
+      ></app-employee-review>
+    </div>
+
+  </form>
+</div>
+
+<!-- INLINE DRAWER MODALS FOR FAMILY AND NOMINEE DETAILS -->
+
+<!-- 1. Family Drawer -->
+<div class="stepper-drawer-overlay" *ngIf="familyDrawerOpen">
+  <div class="stepper-drawer card glass-panel">
+    <div class="drawer-header">
+      <h4>{{ familyDrawerMode === 'add' ? 'Add Family Member' : 'Edit Family Member' }}</h4>
+      <button type="button" class="btn-close-drawer" (click)="familyDrawerOpen = false">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <form [formGroup]="familyForm" (ngSubmit)="saveFamilyMember()" class="drawer-body">
+      <div class="form-group">
+        <label>Relationship *</label>
+        <select formControlName="relationship" class="input-control">
+          <option value="FATHER">Father</option>
+          <option value="MOTHER">Mother</option>
+          <option value="SPOUSE">Spouse</option>
+          <option value="SON">Son</option>
+          <option value="DAUGHTER">Daughter</option>
+          <option value="BROTHER">Brother</option>
+          <option value="SISTER">Sister</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Member Name *</label>
+        <input type="text" formControlName="memberName" class="input-control" placeholder="Full Name" />
+      </div>
+      <div class="form-group">
+        <label>Date of Birth</label>
+        <input type="date" formControlName="dob" class="input-control" />
+      </div>
+      <div class="form-group">
+        <label>Occupation</label>
+        <input type="text" formControlName="occupation" class="input-control" placeholder="Occupation" />
+      </div>
+      <div class="form-group">
+        <label>Contact Number</label>
+        <input type="text" formControlName="contactNumber" class="input-control" placeholder="10-digit mobile" />
+      </div>
+      <div class="form-group checkbox-group">
+        <input type="checkbox" formControlName="isEmployeeOfOrg" id="isEmployeeOfOrg" />
+        <label for="isEmployeeOfOrg">Is employee of this organization</label>
+      </div>
+      <div class="drawer-actions">
+        <button type="button" class="btn btn-secondary" (click)="familyDrawerOpen = false">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="familyForm.invalid">Save Member</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. Nominee Drawer -->
+<div class="stepper-drawer-overlay" *ngIf="nomineeDrawerOpen">
+  <div class="stepper-drawer card glass-panel">
+    <div class="drawer-header">
+      <h4>{{ nomineeDrawerMode === 'add' ? 'Add Nominee' : 'Edit Nominee' }}</h4>
+      <button type="button" class="btn-close-drawer" (click)="nomineeDrawerOpen = false">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <form [formGroup]="nomineeForm" (ngSubmit)="saveNominee()" class="drawer-body">
+      <div class="form-group">
+        <label>Nominee Name *</label>
+        <input type="text" formControlName="nomineeName" class="input-control" placeholder="Full Name" />
+      </div>
+      <div class="form-group">
+        <label>Relationship *</label>
+        <select formControlName="relationship" class="input-control">
+          <option value="FATHER">Father</option>
+          <option value="MOTHER">Mother</option>
+          <option value="SPOUSE">Spouse</option>
+          <option value="SON">Son</option>
+          <option value="DAUGHTER">Daughter</option>
+          <option value="BROTHER">Brother</option>
+          <option value="SISTER">Sister</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Gender *</label>
+        <select formControlName="gender" class="input-control">
+          <option value="MALE">Male</option>
+          <option value="FEMALE">Female</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date of Birth</label>
+        <input type="date" formControlName="dob" class="input-control" />
+      </div>
+      <div class="form-group">
+        <label>Age</label>
+        <input type="text" formControlName="age" class="input-control" readonly />
+      </div>
+      <div class="form-group">
+        <label>Contact Number</label>
+        <input type="text" formControlName="contactNumber" class="input-control" placeholder="10-digit mobile" />
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <textarea formControlName="address" class="input-control" rows="2" placeholder="Address"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Share Percentage *</label>
+        <input type="number" formControlName="sharePercentage" class="input-control" placeholder="0" />
+      </div>
+      <div class="drawer-actions">
+        <button type="button" class="btn btn-secondary" (click)="nomineeDrawerOpen = false">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="nomineeForm.invalid">Save Nominee</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Inline Department Drawer -->
+<div class="stepper-drawer-overlay" *ngIf="inlineDepartmentOpen" (click)="inlineDepartmentOpen = false">
+  <div class="stepper-drawer card" (click)="$event.stopPropagation()">
+    <div class="drawer-header">
+      <h4>New Department Details</h4>
+      <button class="btn-close-drawer" (click)="inlineDepartmentOpen = false">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      <form [formGroup]="inlineDepartmentForm" (ngSubmit)="saveInlineDepartment()">
+        <div class="form-group">
+          <label>Department Name *</label>
+          <input type="text" formControlName="name" class="input-control" placeholder="e.g. Development" />
+          <span class="error-msg" *ngIf="inlineDepartmentForm.get('name')?.invalid && inlineDepartmentForm.get('name')?.touched">
+            Department name is required (min 2 characters)
+          </span>
+        </div>
+
+        <div class="drawer-actions">
+          <button type="button" class="btn btn-secondary" (click)="inlineDepartmentOpen = false">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="inlineDepartmentForm.invalid">Save Department</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================================
+     DOCUMENT PREVIEW MODAL
+     ============================================== -->
+<div class="drawer-overlay" *ngIf="previewModalOpen" (click)="closePreviewModal()" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
+  <div class="modal-panel animated-scale-in" (click)="$event.stopPropagation()" style="background: #ffffff; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 90%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column;">
+    <div class="modal-header" style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        Preview: {{ previewFileName }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <!-- Zoom controls for images -->
+        <ng-container *ngIf="previewMimeType && previewMimeType.startsWith('image/')">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="zoomOut()" style="padding: 6px 8px; display: flex; align-items: center; justify-content: center;"><span class="material-icons" style="font-size: 18px;">zoom_out</span></button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="zoomIn()" style="padding: 6px 8px; display: flex; align-items: center; justify-content: center;"><span class="material-icons" style="font-size: 18px;">zoom_in</span></button>
+          <span style="font-size: 12px; color: #64748b; font-weight: 600; margin-right: 8px;">{{ zoomLevel * 100 | number:'1.0-0' }}%</span>
+        </ng-container>
+        <button type="button" class="btn btn-ghost btn-icon" (click)="closePreviewModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="modal-body" style="padding: 24px; overflow: auto; display: flex; align-items: center; justify-content: center; background: #f8fafc; flex: 1; min-height: 450px;">
+      <!-- PDF Viewer -->
+      <iframe 
+        *ngIf="previewMimeType === 'application/pdf'" 
+        [src]="previewUrl" 
+        style="width: 100%; height: 600px; border: none; border-radius: 8px;"
+      ></iframe>
+
+      <!-- Image Viewer -->
+      <div 
+        *ngIf="previewMimeType && previewMimeType.startsWith('image/')" 
+        style="overflow: auto; max-width: 100%; max-height: 600px; display: flex; align-items: center; justify-content: center;"
+      >
+        <img 
+          [src]="previewUrl" 
+          [style.transform]="'scale(' + zoomLevel + ')'" 
+          style="max-width: 100%; max-height: 500px; object-fit: contain; transition: transform 0.2s; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" 
+        />
+      </div>
+    </div>
+  </div>
+</div>

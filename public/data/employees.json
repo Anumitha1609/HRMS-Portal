@@ -1,0 +1,192 @@
+[
+  {
+    "id": "emp-1",
+    "employeeCode": "EMP0001",
+    "employeeName": "Aishwarya Krishnan",
+    "photoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    "gender": "FEMALE",
+    "dob": "1994-05-12",
+    "maritalStatus": "SINGLE",
+    "bloodGroup": "O+",
+    "mobileNumber": "+91 98765 43210",
+    "officialEmail": "aishwarya.k@eazehrms.com",
+    "personalEmail": "aishwarya.krishnan@gmail.com",
+
+    "currentAddress1": "12, Kalyanapuram Street",
+    "currentAddress2": "Near RS Puram",
+    "currentCity": "Coimbatore",
+    "currentState": "Tamil Nadu",
+    "currentCountry": "India",
+    "currentPinCode": "641002",
+
+    "permanentAddress1": "12, Kalyanapuram Street",
+    "permanentAddress2": "Near RS Puram",
+    "permanentCity": "Coimbatore",
+    "permanentState": "Tamil Nadu",
+    "permanentCountry": "India",
+    "permanentPinCode": "641002",
+    "sameAsPermanent": true,
+
+    "joiningDate": "2022-06-01",
+    "probationEndDate": "2022-12-01",
+    "confirmationDate": "2022-12-05",
+    "status": "ACTIVE",
+    "dateOfRelieving": "",
+
+    "pan": "ABCDE1234F",
+    "aadhaar": "1234 5678 9012",
+    "pfNumber": "TNCBE00123450000012345",
+    "uanNumber": "123456789012",
+    "accessCardNumber": "AC-1001",
+
+    "functionalUnitId": "fu-1",
+    "divisionId": "div-2",
+    "departmentId": "dept-1",
+    "locationId": "loc-1",
+    "subLocationId": "subloc-1",
+    "categoryId": "cat-1",
+    "subCategoryId": "subcat-1",
+    "designation": "HR Manager",
+    "ctcId": "ctc-2",
+    "effectiveFrom": "2022-06-01",
+    "revisionReason": "",
+    "ctcRemarks": "",
+    "assignmentMode": "PACKAGE",
+
+    "reportingManagerId": "",
+    "functionalManagerId": "",
+    "skipLevelManagerId": "",
+
+    "bankAccountHolder": "Aishwarya Krishnan",
+    "bankAccountNumber": "123456789012",
+    "bankName": "State Bank of India",
+    "bankBranch": "RS Puram, Coimbatore",
+    "bankIfsc": "SBIN0001234",
+
+    "shiftGroup": "General Group",
+    "shiftName": "General Shift",
+    "shiftFrom": "09:00",
+    "shiftTo": "18:00",
+    "shiftLateIn": 15,
+    "shiftEarlyOut": 15,
+
+    "highestQualification": "MBA",
+    "fieldOfStudy": "Human Resource Management",
+    "university": "Bharathiar University",
+    "yearOfPassing": "2016",
+
+    "experienceType": "Experienced",
+    "skills": ["Recruitment", "Employee Relations", "HRIS"],
+    "prevEmployer": "TechCorp Solutions",
+    "prevDesignation": "HR Executive",
+
+    "familyDetails": [
+      { "relationship": "FATHER", "memberName": "Krishnan R", "dob": "1965-03-10", "occupation": "Retired", "contactNumber": "9876500001", "isEmployeeOfOrg": false }
+    ],
+    "nomineeDetails": [
+      { "nomineeName": "Krishnan R", "relationship": "FATHER", "gender": "MALE", "dob": "1965-03-10", "age": 59, "contactNumber": "9876500001", "address": "12, Kalyanapuram Street, Coimbatore", "sharePercentage": 100 }
+    ],
+    "salaryBreakups": [
+      { "salaryHead": "Basic", "wef": "2022-06-01", "amount": 30000 }
+    ],
+    "scaleDetails": [
+      { "wef": "2022-06-01", "basic": 30000, "ca": 1600, "hra": 12000, "others": 16400, "totalSalary": 60000 }
+    ],
+    "overrideFlag": false,
+    "customSalaryComponents": null
+  },
+  {
+    "id": "emp-2",
+    "employeeCode": "EMP0002",
+    "employeeName": "Rahul Menon",
+    "photoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    "gender": "MALE",
+    "dob": "1996-11-22",
+    "maritalStatus": "SINGLE",
+    "bloodGroup": "B+",
+    "mobileNumber": "+91 91234 56780",
+    "officialEmail": "rahul.menon@eazehrms.com",
+    "personalEmail": "rahul.menon96@gmail.com",
+
+    "currentAddress1": "45, Anna Salai",
+    "currentAddress2": "",
+    "currentCity": "Chennai",
+    "currentState": "Tamil Nadu",
+    "currentCountry": "India",
+    "currentPinCode": "600002",
+
+    "permanentAddress1": "45, Anna Salai",
+    "permanentAddress2": "",
+    "permanentCity": "Chennai",
+    "permanentState": "Tamil Nadu",
+    "permanentCountry": "India",
+    "permanentPinCode": "600002",
+    "sameAsPermanent": true,
+
+    "joiningDate": "2023-03-15",
+    "probationEndDate": "2023-09-15",
+    "confirmationDate": "2023-09-20",
+    "status": "ACTIVE",
+    "dateOfRelieving": "",
+
+    "pan": "PQRSX5678K",
+    "aadhaar": "9876 5432 1098",
+    "pfNumber": "TNCHN00123450000067890",
+    "uanNumber": "987654321098",
+    "accessCardNumber": "AC-1002",
+
+    "functionalUnitId": "fu-2",
+    "divisionId": "div-2",
+    "departmentId": "dept-2",
+    "locationId": "loc-2",
+    "subLocationId": "subloc-3",
+    "categoryId": "cat-2",
+    "subCategoryId": "subcat-3",
+    "designation": "Software Engineer",
+    "ctcId": "ctc-1",
+    "effectiveFrom": "2023-03-15",
+    "revisionReason": "",
+    "ctcRemarks": "",
+    "assignmentMode": "PACKAGE",
+
+    "reportingManagerId": "emp-1",
+    "functionalManagerId": "",
+    "skipLevelManagerId": "",
+
+    "bankAccountHolder": "Rahul Menon",
+    "bankAccountNumber": "654321098765",
+    "bankName": "HDFC Bank",
+    "bankBranch": "Anna Salai, Chennai",
+    "bankIfsc": "HDFC0004567",
+
+    "shiftGroup": "General Group",
+    "shiftName": "General Shift",
+    "shiftFrom": "09:00",
+    "shiftTo": "18:00",
+    "shiftLateIn": 15,
+    "shiftEarlyOut": 15,
+
+    "highestQualification": "B.E.",
+    "fieldOfStudy": "Computer Science",
+    "university": "Anna University",
+    "yearOfPassing": "2018",
+
+    "experienceType": "Experienced",
+    "skills": ["Angular", "Node.js", "SQL"],
+    "prevEmployer": "Procurement Innovations Pvt Ltd",
+    "prevDesignation": "Software Developer",
+
+    "familyDetails": [],
+    "nomineeDetails": [
+      { "nomineeName": "Meera Menon", "relationship": "MOTHER", "gender": "FEMALE", "dob": "1968-07-04", "age": 56, "contactNumber": "9123400002", "address": "45, Anna Salai, Chennai", "sharePercentage": 100 }
+    ],
+    "salaryBreakups": [
+      { "salaryHead": "Basic", "wef": "2023-03-15", "amount": 20000 }
+    ],
+    "scaleDetails": [
+      { "wef": "2023-03-15", "basic": 20000, "ca": 1600, "hra": 8000, "others": 10400, "totalSalary": 40000 }
+    ],
+    "overrideFlag": false,
+    "customSalaryComponents": null
+  }
+]

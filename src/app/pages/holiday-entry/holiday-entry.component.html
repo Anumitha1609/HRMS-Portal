@@ -1,0 +1,462 @@
+<div class="main-area">
+  <div class="page-content" style="padding: 0;">
+    <!-- Holiday Details — Modal Form -->
+    <div
+      class="modal-backdrop"
+      *ngIf="editMode"
+      (click)="onCancel()"
+      style="position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 100;"
+    >
+      <div class="card" style="width: 640px; max-width: 95vw; max-height: 88vh; overflow-y: auto; margin: 0; position: relative;" (click)="$event.stopPropagation()">
+        <button class="icon-btn ghost" (click)="onCancel()" title="Close" style="position: absolute; top: 16px; right: 16px; z-index: 1;">
+          <lucide-icon [name]="'x'" [size]="16"></lucide-icon>
+        </button>
+        <div class="card-title">{{ selectedId === null ? 'Add Holiday' : 'Edit Holiday' }}</div>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label class="form-label">Date<span class="req">*</span></label>
+            <input class="form-control" type="date" [(ngModel)]="form.date" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Day</label>
+            <input class="form-control readonly" [value]="dayOf(form.date)" readonly placeholder="Auto" />
+          </div>
+
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="form-label">Reason<span class="req">*</span></label>
+            <input class="form-control" [(ngModel)]="form.reason" placeholder="e.g. Pongal" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Location<span class="req">*</span></label>
+            <select class="form-control" [(ngModel)]="form.location">
+              <option *ngFor="let loc of locations" [value]="loc">{{ loc }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pay Status<span class="req">*</span></label>
+            <select class="form-control" [(ngModel)]="form.payStatus">
+              <option *ngFor="let ps of payStatuses" [value]="ps">{{ ps }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Bank</label>
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="form.bank" />
+              <span>Applicable</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Postal</label>
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="form.postal" />
+              <span>Applicable</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Our Holiday</label>
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="form.ourHoliday" />
+              <span>Applicable</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">National</label>
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="form.national" />
+              <span>Applicable</span>
+            </label>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+          <button class="btn btn-outline" (click)="onCancel()">
+            <lucide-icon [name]="'x-circle'" [size]="15"></lucide-icon>
+            Cancel
+          </button>
+          <button class="btn btn-success" (click)="onSave()">
+            <lucide-icon [name]="'save'" [size]="15"></lucide-icon>
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add for a Year — Bulk Holiday Entry Modal -->
+    <div
+      class="modal-backdrop"
+      *ngIf="bulkModalOpen"
+      (click)="closeBulkModal()"
+      style="position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 100;"
+    >
+      <div class="card bulk-modal" (click)="$event.stopPropagation()">
+        <div class="bulk-modal-header">
+          <div class="bulk-modal-title">
+            <lucide-icon [name]="'calendar-plus'" [size]="20"></lucide-icon>
+            Add Holidays for Year {{ bulkYear }}
+          </div>
+          <button class="icon-btn ghost" (click)="closeBulkModal()" title="Close">
+            <lucide-icon [name]="'x'" [size]="16"></lucide-icon>
+          </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bulk-tabs">
+          <div class="bulk-tab" [class.active]="bulkActiveTab === 'calendar'" (click)="setBulkTab('calendar')">Calendar Wise Entry</div>
+          <div class="bulk-tab" [class.active]="bulkActiveTab === 'row'" (click)="setBulkTab('row')">Row Wise Entry</div>
+        </div>
+
+        <!-- ===================== Calendar Wise Entry ===================== -->
+        <div class="bulk-tab-panel" *ngIf="bulkActiveTab === 'calendar'">
+          <div class="bulk-cal-layout">
+            <!-- Left sidebar -->
+            <div class="bulk-cal-sidebar">
+              <div class="form-group">
+                <label class="form-label">Select Year</label>
+                <select class="form-control" [ngModel]="bulkYear" (ngModelChange)="onBulkYearChange($event)">
+                  <option *ngFor="let y of bulkYears" [value]="y">{{ y }}</option>
+                </select>
+              </div>
+
+              <div class="bulk-legend">
+                <div class="bulk-legend-title">Legend</div>
+                <div class="bulk-legend-item"><span class="dot dot-bank"></span> Bank</div>
+                <div class="bulk-legend-item"><span class="dot dot-portal"></span> Portal</div>
+                <div class="bulk-legend-item"><span class="dot dot-our"></span> Our Holiday</div>
+                <div class="bulk-legend-item"><span class="dot dot-national"></span> National</div>
+              </div>
+
+              <div class="bulk-info-box">
+                <lucide-icon [name]="'info'" [size]="15"></lucide-icon>
+                <span>Click on any date to add holiday</span>
+              </div>
+            </div>
+
+            <!-- Right calendar -->
+            <div class="bulk-cal-main">
+              <div class="bulk-cal-toolbar">
+                <div class="bulk-cal-nav">
+                  <button class="icon-btn ghost" (click)="prevMonth()" title="Previous month">
+                    <lucide-icon [name]="'chevron-left'" [size]="15"></lucide-icon>
+                  </button>
+                  <button class="icon-btn ghost" (click)="nextMonth()" title="Next month">
+                    <lucide-icon [name]="'chevron-right'" [size]="15"></lucide-icon>
+                  </button>
+                  <button class="btn btn-outline btn-sm" (click)="goToday()">Today</button>
+                </div>
+                <div class="bulk-cal-label">{{ bulkMonthLabel }}</div>
+                <div class="bulk-cal-viewtoggle">
+                  <button class="btn btn-sm" [class.btn-primary]="bulkCalViewMode === 'month'" [class.btn-outline]="bulkCalViewMode !== 'month'" (click)="setBulkCalViewMode('month')">
+                    <lucide-icon [name]="'layout-grid'" [size]="13"></lucide-icon> Month
+                  </button>
+                  <button class="btn btn-sm" [class.btn-primary]="bulkCalViewMode === 'list'" [class.btn-outline]="bulkCalViewMode !== 'list'" (click)="setBulkCalViewMode('list')">
+                    <lucide-icon [name]="'list'" [size]="13"></lucide-icon> List
+                  </button>
+                </div>
+              </div>
+
+              <!-- Month grid view -->
+              <table class="bulk-calendar" *ngIf="bulkCalViewMode === 'month'">
+                <thead>
+                  <tr>
+                    <th *ngFor="let d of ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']">{{ d }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let week of bulkCalendarWeeks">
+                    <td
+                      *ngFor="let cell of week"
+                      class="bulk-cal-cell"
+                      [class.out-month]="!cell.inMonth"
+                      [class.is-today]="cell.isToday"
+                      (click)="openDatePopup(cell)"
+                    >
+                      <div class="bulk-cal-daynum">{{ cell.dayNum }}</div>
+                      <div
+                        class="bulk-cal-chip"
+                        *ngIf="getBulkDraft(cell.iso) as d"
+                        [title]="d.reason"
+                      >
+                        <span class="bulk-cal-chip-text">{{ d.reason }}</span>
+                        <span class="bulk-cal-chip-dots">
+                          <span class="dot dot-bank" *ngIf="d.bank"></span>
+                          <span class="dot dot-portal" *ngIf="d.postal"></span>
+                          <span class="dot dot-our" *ngIf="d.ourHoliday"></span>
+                          <span class="dot dot-national" *ngIf="d.national"></span>
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- List view -->
+              <div class="bulk-cal-list" *ngIf="bulkCalViewMode === 'list'">
+                <div class="bulk-cal-list-row" *ngFor="let d of bulkSortedDrafts" (click)="openDatePopup({iso: d.date, dayNum: 0, inMonth: true, isToday: false})">
+                  <span class="bulk-cal-list-date">{{ bulkFormatDate(d.date) }}</span>
+                  <span class="bulk-cal-list-day">{{ bulkDayOf(d.date) }}</span>
+                  <span class="bulk-cal-chip bulk-cal-chip-inline">
+                    <span class="bulk-cal-chip-text">{{ d.reason }}</span>
+                    <span class="bulk-cal-chip-dots">
+                      <span class="dot dot-bank" *ngIf="d.bank"></span>
+                      <span class="dot dot-portal" *ngIf="d.postal"></span>
+                      <span class="dot dot-our" *ngIf="d.ourHoliday"></span>
+                      <span class="dot dot-national" *ngIf="d.national"></span>
+                    </span>
+                  </span>
+                </div>
+                <div class="bulk-cal-list-empty" *ngIf="bulkSortedDrafts.length === 0">
+                  No holidays added for {{ bulkYear }} yet. Switch to Month view and click a date to add one.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== Row Wise Entry ===================== -->
+        <div class="bulk-tab-panel" *ngIf="bulkActiveTab === 'row'">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+            <button class="btn btn-primary btn-sm" (click)="addBulkRow()">
+              <lucide-icon [name]="'plus'" [size]="14"></lucide-icon>
+              Add Row
+            </button>
+          </div>
+
+          <div class="table-card">
+            <table class="master-table bulk-row-grid">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Date</th>
+                  <th>Day</th>
+                  <th>Reason</th>
+                  <th style="text-align:center;"><span class="dot dot-bank"></span> Bank</th>
+                  <th style="text-align:center;"><span class="dot dot-portal"></span> Portal</th>
+                  <th style="text-align:center;"><span class="dot dot-our"></span> Our Holiday</th>
+                  <th style="text-align:center;"><span class="dot dot-national"></span> National</th>
+                  <th style="text-align:center;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of bulkSortedDrafts; let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td>
+                    <input class="form-control" type="date" [(ngModel)]="row.date" />
+                  </td>
+                  <td>{{ bulkDayOf(row.date) }}</td>
+                  <td>
+                    <input class="form-control" [(ngModel)]="row.reason" placeholder="Enter reason" />
+                  </td>
+                  <td style="text-align:center;"><input type="checkbox" [(ngModel)]="row.bank" /></td>
+                  <td style="text-align:center;"><input type="checkbox" [(ngModel)]="row.postal" /></td>
+                  <td style="text-align:center;"><input type="checkbox" [(ngModel)]="row.ourHoliday" /></td>
+                  <td style="text-align:center;"><input type="checkbox" [(ngModel)]="row.national" /></td>
+                  <td style="text-align:center;">
+                    <button class="icon-btn del" (click)="removeBulkRow(row.uid)" title="Remove row">
+                      <lucide-icon [name]="'trash-2'" [size]="13"></lucide-icon>
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- Blank trailing row for quick entry -->
+                <tr class="bulk-new-row">
+                  <td>{{ bulkDrafts.length + 1 }}</td>
+                  <td><input class="form-control" type="date" [(ngModel)]="bulkNewRow.date" /></td>
+                  <td>{{ bulkDayOf(bulkNewRow.date) }}</td>
+                  <td><input class="form-control" [(ngModel)]="bulkNewRow.reason" placeholder="Enter reason" /></td>
+                  <td style="text-align:center;"><input type="checkbox" [(ngModel)]="bulkNewRow.bank" /></td>
+                  <td style="text-align:center;"><input type="checkbox" [(ngModel)]="bulkNewRow.postal" /></td>
+                  <td style="text-align:center;"><input type="checkbox" [(ngModel)]="bulkNewRow.ourHoliday" /></td>
+                  <td style="text-align:center;"><input type="checkbox" [(ngModel)]="bulkNewRow.national" /></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="bulk-total-badge">
+            Total Holidays: <strong>{{ bulkDrafts.length }}</strong>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bulk-modal-footer">
+          <button class="btn btn-outline" (click)="closeBulkModal()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveBulkHolidays()">Save Holidays</button>
+        </div>
+
+        <!-- Quick date entry popup (Calendar Wise Entry) -->
+        <div class="bulk-popup-backdrop" *ngIf="bulkPopupOpen" (click)="closeDatePopup()">
+          <div class="card bulk-popup" (click)="$event.stopPropagation()">
+            <div class="card-title" style="display:flex; align-items:center; justify-content:space-between;">
+              <span>{{ bulkPopupIsEdit ? 'Edit Holiday' : 'Add Holiday' }} — {{ bulkFormatDate(bulkPopupForm.date) }} ({{ bulkDayOf(bulkPopupForm.date) }})</span>
+              <button class="icon-btn ghost" (click)="closeDatePopup()" title="Close">
+                <lucide-icon [name]="'x'" [size]="14"></lucide-icon>
+              </button>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label class="form-label">Reason<span class="req">*</span></label>
+              <input class="form-control" [(ngModel)]="bulkPopupForm.reason" placeholder="e.g. Pongal" />
+            </div>
+
+            <div class="form-row cols-2" style="margin-bottom: 8px;">
+              <label class="checkbox-label"><input type="checkbox" [(ngModel)]="bulkPopupForm.bank" /><span class="dot dot-bank"></span> Bank</label>
+              <label class="checkbox-label"><input type="checkbox" [(ngModel)]="bulkPopupForm.postal" /><span class="dot dot-portal"></span> Portal</label>
+              <label class="checkbox-label"><input type="checkbox" [(ngModel)]="bulkPopupForm.ourHoliday" /><span class="dot dot-our"></span> Our Holiday</label>
+              <label class="checkbox-label"><input type="checkbox" [(ngModel)]="bulkPopupForm.national" /><span class="dot dot-national"></span> National</label>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 12px;">
+              <button class="btn btn-outline" *ngIf="bulkPopupIsEdit" (click)="removeDatePopupEntry()" style="border-color:var(--red); color:var(--red);">
+                <lucide-icon [name]="'trash-2'" [size]="14"></lucide-icon>
+                Remove
+              </button>
+              <div style="display:flex; gap:10px; margin-left:auto;">
+                <button class="btn btn-outline" (click)="closeDatePopup()">Cancel</button>
+                <button class="btn btn-success" (click)="saveDatePopup()">
+                  <lucide-icon [name]="'save'" [size]="14"></lucide-icon>
+                  {{ bulkPopupIsEdit ? 'Update' : 'Add' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding: 0 24px;">
+      <!-- Holiday List -->
+      <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap;">
+            <div class="form-group" style="min-width: 140px;">
+              <label class="form-label">Year</label>
+              <select class="form-control" [ngModel]="selectedYear" (ngModelChange)="onYearChange($event)">
+                <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+              </select>
+            </div>
+            <div class="form-group" style="min-width: 160px;">
+              <label class="form-label">Location</label>
+              <select class="form-control" [ngModel]="selectedLocation" (ngModelChange)="onLocationChange($event)">
+                <option *ngFor="let loc of locations" [value]="loc">{{ loc }}</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-outline" (click)="openBulkModal()">
+              <lucide-icon [name]="'calendar-plus'" [size]="15"></lucide-icon>
+              Add for a Year
+            </button>
+            <button class="btn btn-primary" (click)="onNew()">
+              <lucide-icon [name]="'plus'" [size]="15"></lucide-icon>
+              Add Holiday
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 16px;">
+          <div class="grid-search">
+            <lucide-icon [name]="'search'" [size]="14" style="color: var(--text-muted)"></lucide-icon>
+            <input
+              #gridSearchInput
+              placeholder="Search holidays..."
+              [ngModel]="searchTerm"
+              (ngModelChange)="onSearchChange($event)"
+            />
+          </div>
+          <button class="icon-btn ghost" (click)="onResetFilters()" title="Reset filters">
+            <lucide-icon [name]="'filter'" [size]="15"></lucide-icon>
+          </button>
+          <button class="icon-btn ghost" (click)="onExport()" title="Export">
+            <lucide-icon [name]="'download'" [size]="15"></lucide-icon>
+          </button>
+        </div>
+
+        <div class="table-card">
+          <table class="master-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Reason</th>
+                <th style="text-align: center;">Bank</th>
+                <th style="text-align: center;">Postal</th>
+                <th style="text-align: center;">Our Holiday</th>
+                <th style="text-align: center;">National</th>
+                <th>Location</th>
+                <th style="text-align: center;">Pay Status</th>
+                <th style="text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let h of pageRows; let i = index">
+                <td>{{ startEntry + i }}</td>
+                <td style="font-weight: 500;">{{ formatDate(h.date) }}</td>
+                <td>{{ dayOf(h.date) }}</td>
+                <td>{{ h.reason }}</td>
+                <td style="text-align: center;">
+                  <input type="checkbox" [checked]="h.bank" disabled />
+                </td>
+                <td style="text-align: center;">
+                  <input type="checkbox" [checked]="h.postal" disabled />
+                </td>
+                <td style="text-align: center;">
+                  <input type="checkbox" [checked]="h.ourHoliday" disabled />
+                </td>
+                <td style="text-align: center;">
+                  <input type="checkbox" [checked]="h.national" disabled />
+                </td>
+                <td>{{ h.location }}</td>
+                <td style="text-align: center;">
+                  <span class="badge-pill" [class.active]="h.payStatus === 'Pay'" [class.inactive]="h.payStatus !== 'Pay'">
+                    {{ h.payStatus }}
+                  </span>
+                </td>
+                <td style="text-align: center;">
+                  <div style="display: flex; gap: 6px; justify-content: center;">
+                    <button class="icon-btn edit" (click)="editRow(h)" title="Edit"><span class="material-icons">edit</span></button>
+                    <button class="icon-btn del" (click)="deleteRow(h)" title="Delete"><span class="material-icons">delete</span></button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="pageRows.length === 0">
+                <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                  No holidays found.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Pagination footer -->
+          <div class="grid-footer" style="padding: 12px 16px; margin-top: 0;">
+            <span>
+              {{ filteredHolidays.length === 0 ? 'No entries' : 'Showing ' + startEntry + ' to ' + endEntry + ' of ' + filteredHolidays.length + ' entries' }}
+            </span>
+            <div class="pagination">
+              <button class="page-btn" [disabled]="currentPage === 1" (click)="prevPage()">
+                <lucide-icon [name]="'chevron-left'" [size]="14"></lucide-icon>
+              </button>
+              <ng-container *ngFor="let n of pageNumbers">
+                <span *ngIf="n === '…'" class="page-dots">…</span>
+                <button
+                  *ngIf="n !== '…'"
+                  class="page-btn"
+                  [class.active]="n === currentPage"
+                  (click)="setPage(n)"
+                >
+                  {{ n }}
+                </button>
+              </ng-container>
+              <button class="page-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+                <lucide-icon [name]="'chevron-right'" [size]="14"></lucide-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,590 @@
+<div class="shifts-page animated-fade-in">
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'entry'" (click)="setTab('entry')">
+      Shift Entry
+    </button>
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'group'" (click)="setTab('group')">
+      Shift Group
+    </button>
+  </div>
+
+  <!-- ============ SHIFT ENTRY TAB ============ -->
+  @if (activeTab() === 'entry') {
+    <div class="tab-panel">
+      <div class="table-card entry-card">
+        <div class="card-toolbar">
+          <div class="toolbar-title">
+            <span class="material-icons title-icon">description</span>
+            <h2>Shifts Entry Table</h2>
+          </div>
+          <div class="toolbar-search">
+            <span class="material-icons search-icon">search</span>
+            <input
+              type="text"
+              [value]="entrySearch()"
+              (input)="entrySearch.set($any($event.target).value); entryPage.set(1)"
+              placeholder="Search shift code, name..."
+              class="search-input"
+            />
+          </div>
+          <div class="toolbar-actions">
+            <button type="button" class="btn btn-primary" (click)="openAddShift()">
+              <span class="material-icons">add</span>
+              <span>Add New</span>
+            </button>
+            <button type="button" class="btn btn-outline" (click)="exportShifts()">
+              <span class="material-icons">file_download</span>
+              <span>Export</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="master-table">
+            <thead>
+              <tr>
+                <th>Shift Code</th>
+                <th>Shift Name</th>
+                <th>Shift Begin</th>
+                <th>Shift End</th>
+                <th>Total Work Duration</th>
+                <th>Total Break Duration</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of pagedShifts(); track row.id) {
+                <tr>
+                  <td class="code-cell">{{ row.code }}</td>
+                  <td class="name-cell">{{ row.name }}</td>
+                  <td class="mono-cell">{{ formatTime12(row.begin) }}</td>
+                  <td class="mono-cell">{{ formatTime12(row.end) }}</td>
+                  <td><span class="pill pill-work">{{ workDurationLabel(row) }}</span></td>
+                  <td><span class="pill pill-break">{{ breakDurationLabel(row) }}</span></td>
+                  <td class="actions-col">
+                    <div class="action-buttons">
+                      <button class="btn-action btn-edit" title="Edit Shift" (click)="openEditShift(row)">
+                        <span class="material-icons">edit</span>
+                      </button>
+                      <button class="btn-action btn-delete" title="Delete" (click)="deleteShift(row)">
+                        <span class="material-icons">delete</span>
+                      </button>
+                      <button
+                        class="btn-action btn-expand"
+                        [class.open]="expandedShiftId() === row.id"
+                        title="Shift details"
+                        (click)="toggleExpand(row.id)"
+                      >
+                        <span class="material-icons">expand_more</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                @if (expandedShiftId() === row.id) {
+                  <tr class="detail-row">
+                    <td colspan="7">
+                      <div class="detail-panel">
+                        <div class="detail-panel-head">
+                          <span class="detail-title">
+                            <span class="material-icons info-icon">info</span>
+                            Shift Details &amp; Break Schedule
+                          </span>
+                          <span class="auto-badge">Automated Calculation</span>
+                        </div>
+                        <div class="detail-table-wrapper">
+                          <table class="detail-table">
+                            <thead>
+                              <tr>
+                                <th>No</th>
+                                <th>Break Begin</th>
+                                <th>Break End</th>
+                                <th>Break Type</th>
+                                <th>Total Break Hours</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (b of row.breaks; track b.id; let i = $index) {
+                                <tr>
+                                  <td>{{ i + 1 }}</td>
+                                  <td><span class="time-cell"><span class="material-icons clock-icon">schedule</span>{{ b.begin }}</span></td>
+                                  <td><span class="time-cell"><span class="material-icons clock-icon">schedule</span>{{ b.end }}</span></td>
+                                  <td>{{ b.type }}</td>
+                                  <td>{{ formatBreakHours(b) }}</td>
+                                </tr>
+                              } @empty {
+                                <tr>
+                                  <td colspan="5" class="empty-msg">No breaks configured for this shift.</td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              } @empty {
+                <tr>
+                  <td colspan="7" class="empty-table-msg">No shift configurations matching your search were found.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid-footer">
+          <span>
+            {{ filteredShifts().length === 0 ? 'No shift configurations' : 'Showing ' + entryStart() + ' to ' + entryEnd() + ' of ' + filteredShifts().length + ' shift configurations' }}
+          </span>
+          <div class="pagination">
+            <button class="page-btn" [disabled]="entryPage() === 1" (click)="entryPrevPage()">
+              <span class="material-icons">chevron_left</span>
+            </button>
+            <button class="page-btn active">{{ entryPage() }}</button>
+            <button class="page-btn" [disabled]="entryPage() === entryTotalPages()" (click)="entryNextPage()">
+              <span class="material-icons">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============ SHIFT GROUP TAB ============ -->
+  @if (activeTab() === 'group') {
+    <div class="tab-panel">
+      <div class="page-header">
+        <div class="header-left">
+          </div>
+        <div class="header-actions">
+          <button type="button" class="btn btn-outline" (click)="downloadGroupReport()">
+            <span class="material-icons">file_download</span>
+            <span>Download Report</span>
+          </button>
+          <button type="button" class="btn btn-primary" (click)="openAddGroup()">
+            <span class="material-icons">add</span>
+            <span>Add Employee Group</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-card group-card">
+        <div class="card-toolbar">
+          <div class="toolbar-title">
+            <h2>Operational Groups</h2>
+            <span class="count-badge total-badge">{{ totalGroupsCount() }} Total</span>
+            <span class="count-badge active-badge">{{ activeGroupsCount() }} Active</span>
+          </div>
+          <div class="toolbar-search">
+            <span class="material-icons search-icon">search</span>
+            <input
+              type="text"
+              [value]="groupSearch()"
+              (input)="groupSearch.set($any($event.target).value); groupPage.set(1)"
+              placeholder="Search groups..."
+              class="search-input"
+            />
+          </div>
+          <button type="button" class="btn-action btn-filter" title="Filter">
+            <span class="material-icons">filter_list</span>
+          </button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="master-table">
+            <thead>
+              <tr>
+                <th>Group Code</th>
+                <th>Group Name</th>
+                <th>Shifts</th>
+                <th>Status</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (group of pagedGroups(); track group.id) {
+                <tr>
+                  <td class="code-cell">{{ group.code }}</td>
+                  <td>
+                    <div class="group-name-cell">
+                      <span class="group-icon"><span class="material-icons">groups</span></span>
+                      <span class="name-cell">{{ group.name }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="shift-count-cell">
+                      <strong>{{ group.shiftIds.length }}</strong>
+                      <small>Shifts</small>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge" [ngClass]="getStatusClass(group.status)">
+                      <span class="status-dot"></span>
+                      {{ group.status }}
+                    </span>
+                  </td>
+                  <td class="actions-col">
+                    <div class="action-buttons">
+                      <button class="btn-action btn-edit" title="Edit Group" (click)="openEditGroup(group)">
+                        <span class="material-icons">edit</span>
+                      </button>
+                      <button class="btn-action btn-delete" title="Delete" (click)="deleteGroup(group)">
+                        <span class="material-icons">delete</span>
+                      </button>
+                      <button
+                        class="btn-action btn-expand"
+                        [class.open]="expandedGroupId() === group.id"
+                        title="Assigned shifts"
+                        (click)="toggleExpandGroup(group.id)"
+                      >
+                        <span class="material-icons">expand_more</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                @if (expandedGroupId() === group.id) {
+                  <tr class="detail-row">
+                    <td colspan="5">
+                      <div class="detail-panel">
+                        <div class="detail-panel-head">
+                          <span class="detail-title">
+                            <span class="material-icons info-icon">info</span>
+                            Assigned Shifts Checklist
+                          </span>
+                        </div>
+                        <div class="detail-table-wrapper">
+                          <table class="detail-table">
+                            <thead>
+                              <tr>
+                                <th>Shift Code</th>
+                                <th>Shift Name</th>
+                                <th>Shift Time</th>
+                                <th>Net Hours</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (s of shiftsForGroup(group); track s.id) {
+                                <tr>
+                                  <td class="code-cell">{{ s.code }}</td>
+                                  <td>{{ s.name }}</td>
+                                  <td><span class="time-cell"><span class="material-icons clock-icon">schedule</span>{{ formatTime12(s.begin) }} - {{ formatTime12(s.end) }}</span></td>
+                                  <td>{{ workDurationLabel(s) }}</td>
+                                </tr>
+                              } @empty {
+                                <tr>
+                                  <td colspan="4" class="empty-msg">No shifts assigned to this group yet.</td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              } @empty {
+                <tr>
+                  <td colspan="5" class="empty-table-msg">No operational groups matching your search were found.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid-footer">
+          <span>
+            {{ filteredGroups().length === 0 ? 'No groups' : 'Showing ' + groupStart() + ' to ' + groupEnd() + ' of ' + filteredGroups().length + ' groups' }}
+          </span>
+          <div class="pagination">
+            <button class="page-btn" [disabled]="groupPage() === 1" (click)="groupPrevPage()">
+              <span class="material-icons">chevron_left</span>
+            </button>
+            <button class="page-btn active">{{ groupPage() }}</button>
+            <button class="page-btn" [disabled]="groupPage() === groupTotalPages()" (click)="groupNextPage()">
+              <span class="material-icons">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ============ ADD / EDIT SHIFT MODAL ============ -->
+@if (showShiftModal()) {
+  <div class="modal-overlay animated-overlay" (click)="$event.target === $event.currentTarget && closeShiftModal()">
+    <div class="modal-container animated-scale-in">
+      <div class="modal-header">
+        <h3 class="modal-title">{{ editingShiftId() !== null ? 'Edit Shift' : 'Add New Shift' }}</h3>
+        <button class="modal-close-btn" (click)="closeShiftModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Shift Code</label>
+              <input type="text" class="input-control" [value]="shiftForm().code" (input)="updateFormField('code', $any($event.target).value)" placeholder="e.g. SFT-005" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Shift Name</label>
+              <div class="select-wrapper">
+                <select class="input-control select-control" (change)="onNamePresetChange($any($event.target).value)">
+                  <option value="" disabled [selected]="!shiftForm().namePreset">Select shift name</option>
+                  @for (opt of shiftNameOptions; track opt) {
+                    <option [value]="opt" [selected]="shiftForm().namePreset === opt">{{ opt }}</option>
+                  }
+                  <option value="Other" [selected]="shiftForm().namePreset === 'Other'">Other (custom)</option>
+                </select>
+                <span class="material-icons select-arrow">expand_more</span>
+              </div>
+            </div>
+          </div>
+
+          @if (shiftForm().namePreset === 'Other') {
+            <div class="form-group">
+              <label class="form-label">Custom Shift Name</label>
+              <input type="text" class="input-control" [value]="shiftForm().customName" (input)="updateFormField('customName', $any($event.target).value)" placeholder="e.g. Afternoon Shift" />
+            </div>
+          }
+
+          <div class="form-group">
+            <label class="form-label">Shift Type</label>
+            <div class="select-wrapper">
+              <select class="input-control select-control" (change)="onShiftTypeChange($any($event.target).value)">
+                <option value="" disabled [selected]="!shiftForm().shiftType">Select shift type</option>
+                @for (group of shiftGroups(); track group.id) {
+                  <option [value]="group.id" [selected]="isShiftTypeSelected(group.id)">{{ group.name }}</option>
+                }
+              </select>
+              <span class="material-icons select-arrow">expand_more</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Shift Time</label>
+            <div class="select-wrapper">
+              <select class="input-control select-control" (change)="onTimePresetChange($any($event.target).value)">
+                <option value="" disabled [selected]="!shiftForm().timePreset">Select a preset or set custom timing</option>
+                @for (preset of shiftTimePresets; track preset.label) {
+                  <option [value]="preset.label" [selected]="shiftForm().timePreset === preset.label">{{ preset.label }}</option>
+                }
+                <option value="Custom" [selected]="shiftForm().timePreset === 'Custom'">Custom timing</option>
+              </select>
+              <span class="material-icons select-arrow">expand_more</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Shift Begin</label>
+              <div class="time-picker-group">
+                <select class="input-control time-select" (change)="updateBeginPart('hour', $any($event.target).value)">
+                  @for (h of hourOptions; track h) {
+                    <option [value]="h" [selected]="shiftForm().beginHour === h">{{ h }}</option>
+                  }
+                </select>
+                <span class="time-colon">:</span>
+                <select class="input-control time-select" (change)="updateBeginPart('minute', $any($event.target).value)">
+                  @for (m of minuteOptions; track m) {
+                    <option [value]="m" [selected]="shiftForm().beginMinute === m">{{ m < 10 ? '0' + m : m }}</option>
+                  }
+                </select>
+                <select class="input-control period-select" (change)="updateBeginPart('period', $any($event.target).value)">
+                  @for (p of periodOptions; track p) {
+                    <option [value]="p" [selected]="shiftForm().beginPeriod === p">{{ p }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Shift End</label>
+              <div class="time-picker-group">
+                <select class="input-control time-select" (change)="updateEndPart('hour', $any($event.target).value)">
+                  @for (h of hourOptions; track h) {
+                    <option [value]="h" [selected]="shiftForm().endHour === h">{{ h }}</option>
+                  }
+                </select>
+                <span class="time-colon">:</span>
+                <select class="input-control time-select" (change)="updateEndPart('minute', $any($event.target).value)">
+                  @for (m of minuteOptions; track m) {
+                    <option [value]="m" [selected]="shiftForm().endMinute === m">{{ m < 10 ? '0' + m : m }}</option>
+                  }
+                </select>
+                <select class="input-control period-select" (change)="updateEndPart('period', $any($event.target).value)">
+                  @for (p of periodOptions; track p) {
+                    <option [value]="p" [selected]="shiftForm().endPeriod === p">{{ p }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Total Shift Hours</label>
+            <div class="readonly-box">
+              <span class="material-icons">schedule</span>
+              {{ totalShiftHoursLabel() }}
+            </div>
+          </div>
+
+          <div class="breaks-section">
+            <div class="breaks-header">
+              <span class="form-label">Break Schedule</span>
+              <button type="button" class="btn btn-outline btn-sm" (click)="addBreakRow()">
+                <span class="material-icons">add</span>
+                <span>Add Break</span>
+              </button>
+            </div>
+            @for (b of shiftForm().breaks; track b.id) {
+              <div class="break-row">
+                <div class="time-field-wrapper">
+                  <button type="button" class="time-field-btn" (click)="openBreakClock(b, 'begin', $event)">
+                    <span>{{ breakTimeLabel(b.begin) }}</span>
+                    <span class="material-icons">schedule</span>
+                  </button>
+                </div>
+                <div class="time-field-wrapper">
+                  <button type="button" class="time-field-btn" (click)="openBreakClock(b, 'end', $event)">
+                    <span>{{ breakTimeLabel(b.end) }}</span>
+                    <span class="material-icons">schedule</span>
+                  </button>
+                </div>
+                <select class="input-control select-control" (change)="updateBreakField(b.id, 'type', $any($event.target).value)">
+                  <option value="Tea Break" [selected]="b.type === 'Tea Break'">Tea Break</option>
+                  <option value="Lunch Break" [selected]="b.type === 'Lunch Break'">Lunch Break</option>
+                  <option value="Dinner Break" [selected]="b.type === 'Dinner Break'">Dinner Break</option>
+                  <option value="Rest Break" [selected]="b.type === 'Rest Break'">Rest Break</option>
+                </select>
+                <button type="button" class="btn-action btn-delete" (click)="removeBreakRow(b.id)">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
+            } @empty {
+              <p class="no-breaks-msg">No breaks added yet. Click "Add Break" to configure one.</p>
+            }
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary modal-btn" (click)="closeShiftModal()">Cancel</button>
+            <button type="button" class="btn btn-primary modal-btn" (click)="saveShift()">
+              {{ editingShiftId() !== null ? 'Save Changes' : 'Create Shift' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rendered as a sibling of modal-container (not inside the scrolling/transformed modal-body)
+         so it centers on the viewport instead of pushing the modal's scroll height. -->
+    @if (activeBreakClock()) {
+      <div class="clock-backdrop" (click)="closeBreakClock()"></div>
+      <div class="clock-popover" (click)="$event.stopPropagation()">
+        <div class="clock-popover-header">
+          <div class="clock-time-display">
+            <span class="clock-time-part" [class.active]="clockStep() === 'hour'" (click)="clockStep.set('hour')">{{ clockDraftHour() }}</span>
+            <span class="clock-time-colon">:</span>
+            <span class="clock-time-part" [class.active]="clockStep() === 'minute'" (click)="clockStep.set('minute')">{{ clockDraftMinute() < 10 ? '0' + clockDraftMinute() : clockDraftMinute() }}</span>
+            <div class="clock-period-toggle">
+              <button type="button" [class.active]="clockDraftPeriod() === 'AM'" (click)="setClockPeriod('AM')">AM</button>
+              <button type="button" [class.active]="clockDraftPeriod() === 'PM'" (click)="setClockPeriod('PM')">PM</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="clock-face">
+          <div class="clock-center-dot"></div>
+          @if (clockStep() === 'hour') {
+            @for (mark of clockHourMarks; track mark.value) {
+              <button
+                type="button"
+                class="clock-mark"
+                [class.selected]="clockDraftHour() === mark.value"
+                [style.left.px]="mark.x"
+                [style.top.px]="mark.y"
+                (click)="selectClockHour(mark.value)"
+              >{{ mark.label }}</button>
+            }
+          } @else {
+            @for (mark of clockMinuteMarks; track mark.value) {
+              <button
+                type="button"
+                class="clock-mark"
+                [class.selected]="clockDraftMinute() === mark.value"
+                [style.left.px]="mark.x"
+                [style.top.px]="mark.y"
+                (click)="selectClockMinute(mark.value)"
+              >{{ mark.label }}</button>
+            }
+          }
+        </div>
+
+        <div class="clock-popover-actions">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="closeBreakClock()">Cancel</button>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- ============ ADD / EDIT GROUP MODAL ============ -->
+@if (showGroupModal()) {
+  <div class="modal-overlay animated-overlay" (click)="$event.target === $event.currentTarget && closeGroupModal()">
+    <div class="modal-container animated-scale-in">
+      <div class="modal-header">
+        <h3 class="modal-title">{{ editingGroupId() !== null ? 'Edit Employee Group' : 'Add Employee Group' }}</h3>
+        <button class="modal-close-btn" (click)="closeGroupModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Group Code</label>
+              <input type="text" class="input-control" [value]="groupForm().code" (input)="updateGroupField('code', $any($event.target).value)" placeholder="e.g. SG-QA" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Group Name</label>
+              <input type="text" class="input-control" [value]="groupForm().name" (input)="updateGroupField('name', $any($event.target).value)" placeholder="e.g. Quality Assurance" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <div class="select-wrapper">
+              <select class="input-control select-control" (change)="updateGroupField('status', $any($event.target).value)">
+                <option value="Active" [selected]="groupForm().status === 'Active'">Active</option>
+                <option value="Inactive" [selected]="groupForm().status === 'Inactive'">Inactive</option>
+              </select>
+              <span class="material-icons select-arrow">expand_more</span>
+            </div>
+          </div>
+
+          <div class="breaks-section">
+            <span class="form-label">Assign Shifts</span>
+            <div class="shift-checklist">
+              @for (s of shifts(); track s.id) {
+                <label class="checklist-item" (click)="$event.preventDefault(); toggleGroupShift(s.id)">
+                  <input type="checkbox" [checked]="isShiftChecked(s.id)" tabindex="-1" />
+                  <span class="checklist-code">{{ s.code }}</span>
+                  <span class="checklist-name">{{ s.name }}</span>
+                  <span class="checklist-time">{{ formatTime12(s.begin) }} - {{ formatTime12(s.end) }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary modal-btn" (click)="closeGroupModal()">Cancel</button>
+            <button type="button" class="btn btn-primary modal-btn" (click)="saveGroup()">
+              {{ editingGroupId() !== null ? 'Save Changes' : 'Create Group' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

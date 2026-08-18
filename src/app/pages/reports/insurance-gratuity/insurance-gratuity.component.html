@@ -1,0 +1,190 @@
+<div class="space-y-6">
+  <!-- Metric Summary Cards -->
+  <app-cards [cards]="summaryCards"></app-cards>
+
+  <!-- Filter Panel -->
+  <app-filters 
+    [activeFilters]="metadata.filters || []" 
+    [currentFilters]="filters"
+    [showImportButton]="true"
+    (filterChange)="onFilterChange($event)"
+    (generateReport)="onGenerateReport()"
+    (reset)="onResetFilters()"
+    (export)="onExport($event)"
+    (excelImport)="onExcelImport($event)"
+  ></app-filters>
+
+  <!-- Split Grid Layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Left 2 Columns: Table Data -->
+    <div class="lg:col-span-2">
+      <app-tables
+        [title]="(metadata.title && metadata.title.endsWith('Details')) ? metadata.title : ((metadata.title || 'Gratuity Ledger') + ' Details')"
+        [headers]="metadata.headers || []"
+        [data]="reportData"
+        [total]="total"
+        [page]="page"
+        [pageSize]="pageSize"
+        [sortKey]="sortKey"
+        [sortDir]="sortDir"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+        (search)="onSearch($event)"
+        (sort)="onSort($event)"
+        (rowSelect)="onRowSelect($event)"
+      ></app-tables>
+    </div>
+
+    <!-- Right 1 Column: Dynamic Context Panels -->
+    <div class="lg:col-span-1 space-y-6">
+      
+      <!-- CASE A: ELIGIBILITY INSIGHTS PANEL (DEFAULT VIEW) -->
+      <div 
+        *ngIf="reportId !== 'claim'"
+        class="bg-white border border-[#E5E7EB] rounded-[16px] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.015),0_1px_2px_rgba(0,0,0,0.02)] flex flex-col space-y-6 self-start"
+      >
+        <h3 class="text-sm font-bold text-slate-900 border-b border-[#E5E7EB] pb-3 flex items-center gap-2">
+          <i class="fa-solid fa-gauge-high text-slate-455 text-xs"></i>
+          <span>Eligibility Insights</span>
+        </h3>
+
+        <!-- Approaching Threshold -->
+        <div class="space-y-3.5">
+          <h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Approaching 5-Year Threshold</h4>
+          
+          <div *ngFor="let item of insights.approaching" class="space-y-2 text-xs font-semibold">
+            <div class="flex justify-between text-slate-700 leading-tight">
+              <span>{{ item.name }} ({{ item.id }})</span>
+              <span class="text-enterprise-blue font-bold">{{ item.tenure }} / 5.0 Yrs</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/20">
+              <div 
+                [style.width.%]="item.progressPercent" 
+                class="bg-gradient-to-r from-blue-500 to-[#2563EB] h-2 rounded-full transition-all duration-500 shadow-xs"
+              ></div>
+            </div>
+          </div>
+
+          <div *ngIf="insights.approaching.length === 0" class="text-center text-slate-400 py-3 text-xs font-semibold">
+            No employees currently between 4.0 and 5.0 years tenure.
+          </div>
+        </div>
+
+        <!-- Highest Projected Liability -->
+        <div class="space-y-3.5">
+          <h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Highest Trust Liabilities</h4>
+          <div class="space-y-2">
+            <div 
+              *ngFor="let item of insights.highLiability" 
+              class="flex items-center justify-between p-3 bg-slate-50/60 border border-slate-100 rounded-xl text-xs"
+            >
+              <div class="font-semibold text-slate-800">
+                <p class="leading-none font-bold text-slate-900">{{ item.name }}</p>
+                <span class="text-[9px] text-slate-450 uppercase font-black tracking-wider block mt-1">{{ item.dept }}</span>
+              </div>
+              <span class="text-enterprise-blue font-black text-sm">{{ item.amount }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming Retirement -->
+        <div class="space-y-3.5">
+          <h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Upcoming Retirements</h4>
+          <div class="space-y-2">
+            <div 
+              *ngFor="let item of insights.retiringSoon" 
+              class="flex items-center justify-between p-3 bg-slate-50/60 border border-slate-100 rounded-xl text-xs font-semibold"
+            >
+              <div>
+                <p class="font-bold text-slate-900 leading-none">{{ item.name }}</p>
+                <span class="text-[9px] text-slate-455 uppercase font-black tracking-wider block mt-1">{{ item.dept }}</span>
+              </div>
+              <span class="bg-rose-50 text-rose-705 border border-rose-200/50 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
+                <i class="fa-regular fa-clock mr-1 text-[8px]"></i>{{ item.date }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CASE B: GOVERNMENT FORM I PROFORMA PREVIEW (CLAIM VIEW) -->
+      <div 
+        *ngIf="reportId === 'claim' && selectedClaim"
+        class="bg-white border border-[#E5E7EB] rounded-[16px] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.015),0_1px_2px_rgba(0,0,0,0.02)] flex flex-col justify-between self-start space-y-6"
+      >
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 border-b border-[#E5E7EB] pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-file-invoice text-slate-455 text-xs"></i>
+            <span>Form I Claim Proforma</span>
+          </h3>
+          
+          <!-- Government Form I Outline -->
+          <div class="border-2 border-dashed border-[#E5E7EB] rounded-[16px] p-4 bg-slate-50/30 space-y-4 text-slate-650 font-semibold text-[10px] leading-relaxed max-w-xs mx-auto">
+            <div class="text-center border-b border-slate-200 pb-2 space-y-0.5">
+              <h4 class="font-bold text-slate-900 text-[11px] uppercase">FORM I</h4>
+              <p class="text-[8px] text-slate-450 font-bold uppercase tracking-wider">Notice for Payment of Gratuity</p>
+              <p class="text-[7px] text-slate-400 font-medium">(See sub-rule (1) of rule 7)</p>
+            </div>
+
+            <div class="space-y-2">
+              <p><span class="font-bold text-slate-450">To:</span> <span class="text-slate-900 font-bold">Easy Design Systems Pvt Ltd</span></p>
+              <p class="leading-relaxed">
+                I, <span class="text-slate-900 font-bold">{{ selectedClaim.name }}</span>, beg to request that the gratuity to which I am entitled under the Payment of Gratuity Act, 1972, may be sanctioned and disbursed.
+              </p>
+            </div>
+
+            <!-- Roster Fields -->
+            <div class="space-y-1 border-t border-b border-slate-200 py-2 font-semibold">
+              <div class="flex justify-between"><span class="text-slate-400">Emp ID:</span><span class="font-mono text-slate-900">{{ selectedClaim.id }}</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Designation:</span><span class="text-slate-900">{{ selectedClaim.desg }}</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Department:</span><span class="text-slate-900">{{ selectedClaim.dept }}</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Date of Joining:</span><span class="text-slate-900">{{ selectedClaim.joiningDate }}</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Relieving Date:</span><span class="text-slate-900">{{ selectedClaim.leavingDate }}</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Tenure (Years):</span><span class="text-slate-900">{{ selectedClaim.years }} Years</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Eligible Base:</span><span class="text-slate-900">₹{{ selectedClaim.lastSalary.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}</span></div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200/50 p-2.5 rounded-xl text-center font-bold text-enterprise-blue text-xs shadow-xs">
+              <span class="block text-[8px] uppercase tracking-wider text-enterprise-blue/70 font-black">Projected Gratuity Amount</span>
+              ₹{{ selectedClaim.eligibleAmt.toLocaleString('en-IN', {minimumFractionDigits: 2}) }}
+            </div>
+            
+            <p class="text-[7px] text-slate-400 text-center uppercase tracking-wider font-bold">Generated under Gratuity Act compliance</p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-2 border-t border-slate-100 pt-4">
+          <button (click)="onExport('print')" class="w-full bg-enterprise-blue hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-sm shadow-enterprise-blue/10 flex items-center justify-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-print"></i>
+            <span>Print Form I Claim</span>
+          </button>
+          <button (click)="triggerToast('Verification check passed. Proforma is fully auditable.')" class="w-full border border-[#E5E7EB] hover:bg-slate-50 text-slate-700 text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-circle-check text-slate-450"></i>
+            <span>Verify Compliance Signatures</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ============================================== -->
+  <!-- TOAST NOTIFICATION POPUP -->
+  <!-- ============================================== -->
+  <div 
+    [class.opacity-100]="showToast" 
+    [class.translate-y-0]="showToast" 
+    [class.opacity-0]="!showToast" 
+    [class.translate-y-3]="!showToast"
+    [class.pointer-events-none]="!showToast"
+    class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs py-3 px-5 rounded-lg shadow-xl transition-all duration-300 z-50 flex items-center gap-2"
+  >
+    <i class="fa-solid text-green-400" [ngClass]="toastIcon"></i>
+    <span class="font-medium">{{ toastMessage }}</span>
+  </div>
+</div>

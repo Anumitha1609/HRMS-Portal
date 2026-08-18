@@ -1,0 +1,277 @@
+:host {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #1e293b;
+  background: #f3f4f6;
+}
+
+.eh-page {
+  padding: 16px;
+}
+
+/* ---------- Shared card ---------- */
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 14px;
+}
+
+.table-section {
+  margin-bottom: 16px;
+}
+
+/* ---------- Toolbar ---------- */
+
+.eh-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.danger-text {
+  color: #dc2626;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+/* ---------- Alerts ---------- */
+
+.alert {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  border: 1px solid transparent;
+}
+
+.alert-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.saved-msg {
+  margin: 0 0 16px;
+  color: #15803d;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ---------- Form fields ---------- */
+
+.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.text-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1px solid #f3f4f6;
+  border-radius: 10px;
+  outline: none;
+  background: #f3f4f6;
+  color: #1e293b;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.text-input::placeholder {
+  color: #6b7280;
+}
+
+.text-input:focus {
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.text-input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #f3f4f6;
+}
+
+/* ---------- Filter card ---------- */
+
+.filter-grid {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-grid .form-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.compact-date {
+  max-width: 180px;
+}
+
+.search-btn {
+  height: 40px;
+}
+
+/* ---------- History editor ---------- */
+
+.history-editor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.employee-identity {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.detail-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.detail-panel legend {
+  padding: 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.detail-field {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-field .field-label {
+  margin: 0;
+  text-align: right;
+}
+
+.remarks-field {
+  margin-top: 4px;
+}
+
+.editor-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ---------- Table ---------- */
+
+// Table look now comes from the shared .master-table / .table-card
+// styles (see styles.scss) so this page matches every other data table.
+.table-scroll {
+  overflow-x: auto;
+
+  th,
+  td {
+    white-space: nowrap;
+  }
+}
+
+.cell-strong {
+  font-weight: 700;
+  color: #0f172a !important;
+}
+
+@media (max-width: 900px) {
+  .history-editor {
+    grid-template-columns: 1fr;
+  }
+  .employee-identity {
+    grid-template-columns: 1fr;
+  }
+  .detail-field {
+    grid-template-columns: 1fr;
+  }
+  .detail-field .field-label {
+    text-align: left;
+  }
+}

@@ -1,0 +1,175 @@
+<div class="view-container">
+  <!-- <h2>Attendance View</h2> -->
+
+  <div class="card filter-card">
+    <!--
+      [FIXED] The filter row now wraps in a flex layout, and the
+      period-value slot has a CONSTANT width (.filter-value) no matter
+      which period type is selected. Only the content inside that slot
+      changes (single date input vs. two inputs vs. two selects), so
+      Search / Fetch / Reset never shift sideways when you switch
+      Filter By.
+    -->
+    <div class="filter-controls">
+      <div class="form-group filter-type">
+        <label>Filter By</label>
+        <select [(ngModel)]="periodType" class="form-control" (change)="fieldError=''">
+          <option value="date">Date</option>
+          <option value="week">Week</option>
+          <option value="month">Month</option>
+          <option value="year">Year</option>
+        </select>
+      </div>
+
+      <div class="filter-value">
+        <div class="form-group" *ngIf="periodType === 'date'">
+          <label>Att. Date <span class="required">*</span></label>
+          <input type="date" [(ngModel)]="attendanceDate" class="form-control" [class.has-error]="fieldError" (change)="fieldError=''">
+        </div>
+
+        <div class="form-group row-group" *ngIf="periodType === 'week'">
+          <label>Week <span class="required">*</span></label>
+          <div class="inline-inputs">
+            <input type="date" [(ngModel)]="weekStart" class="form-control" [class.has-error]="fieldError" (change)="fieldError=''">
+            <span class="sep">to</span>
+            <input type="date" [(ngModel)]="weekEnd" [min]="weekStart" class="form-control" [class.has-error]="fieldError" (change)="fieldError=''">
+          </div>
+        </div>
+
+        <div class="form-group row-group" *ngIf="periodType === 'month'">
+          <label>Month / Year <span class="required">*</span></label>
+          <div class="inline-inputs">
+            <select [(ngModel)]="month" class="form-control month-select" [class.has-error]="fieldError" (change)="fieldError=''">
+              <option *ngFor="let m of monthOptions" [value]="m.value">{{ m.label }}</option>
+            </select>
+            <select [(ngModel)]="year" class="form-control" [class.has-error]="fieldError" (change)="fieldError=''">
+              <option *ngFor="let y of yearOptions" [value]="y">{{ y }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="periodType === 'year'">
+          <label>Year <span class="required">*</span></label>
+          <select [(ngModel)]="year" class="form-control" [class.has-error]="fieldError" (change)="fieldError=''">
+            <option *ngFor="let y of yearOptions" [value]="y">{{ y }}</option>
+          </select>
+        </div>
+
+        <div *ngIf="fieldError" class="error-text">{{ fieldError }}</div>
+      </div>
+
+      <div class="form-group search-group">
+        <label class="label-spacer">Search</label>
+        <input type="text" [(ngModel)]="search" class="form-control" placeholder="Search by emp code or name">
+      </div>
+
+      <div class="form-group actions-group">
+        <label class="label-spacer">Actions</label>
+        <div class="actions-buttons">
+          <button class="btn-primary" [disabled]="loading" (click)="handleFetch()">Fetch</button>
+          <button class="btn-outline" (click)="handleReset()">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs-container mt-4">
+      <button
+        *ngFor="let tab of tabs"
+        class="tab-button"
+        [class.active]="activeTab === tab"
+        (click)="activeTab = tab">
+        {{ tab }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert error">{{ error }}</div>
+  <div *ngIf="infoMessage && !error" class="alert info">{{ infoMessage }}</div>
+
+  <div class="main-layout" *ngIf="!loading && fetchedRecords.length > 0">
+
+    <div class="table-section">
+      <div class="card">
+        <div class="card-header">Attendance Records ({{ filteredRecords.length }})</div>
+        <div class="table-card">
+        <div class="table-responsive">
+          <table class="master-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Emp Code</th>
+                <th>Employee Name</th>
+                <th class="text-center">In</th>
+                <th class="text-center">Out</th>
+                <th class="text-center">Act.In</th>
+                <th class="text-center">Act.Out</th>
+                <th class="text-center">Tot.Hrs</th>
+                <th class="text-center">Type</th>
+                <th class="text-center">Leave Half</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let record of filteredRecords">
+                <td>{{ record.date }}</td>
+                <td>{{ record.employeeCode }}</td>
+                <td>{{ record.employeeName }}</td>
+                <td class="text-center">{{ record.inTime || '-' }}</td>
+                <td class="text-center">{{ record.outTime || '-' }}</td>
+                <td class="text-center actual-time">09:00</td>
+                <td class="text-center actual-time">18:00</td>
+                <td class="text-center">{{ calculateTotalHours(record.inTime, record.outTime) }}</td>
+                <td class="text-center"><span class="status-badge" [attr.data-status]="record.attendanceType">{{ record.attendanceType || 'Unknown' }}</span></td>
+                <td class="text-center">{{ record.leaveHaving ? 'Yes' : 'No' }}</td>
+              </tr>
+              <tr *ngIf="filteredRecords.length === 0">
+                <td colspan="10" class="text-center">No attendance records found for the selected attendance type.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-section" *ngIf="summary">
+      <div class="card summary-panel">
+        <h3 class="summary-title">Attendance Summary</h3>
+        <div class="summary-total">
+          <span>Total Employees</span>
+          <strong>{{ summary.totalEmployees }}</strong>
+        </div>
+        <div class="summary-grid">
+          <div class="stat-box success">
+            <span>Present</span><strong>{{ summary.present }}</strong>
+          </div>
+          <div class="stat-box error">
+            <span>Absent</span><strong>{{ summary.absent }}</strong>
+          </div>
+          <div class="stat-box orange">
+            <span>Leave</span><strong>{{ summary.leave }}</strong>
+          </div>
+          <div class="stat-box warning">
+            <span>Unpunch</span><strong>{{ summary.unpunch }}</strong>
+          </div>
+          <div class="stat-box purple">
+            <span>Forgot</span><strong>{{ summary.forgotCard }}</strong>
+          </div>
+          <div class="stat-box info">
+            <span>Partial</span><strong>{{ summary.partialPresent }}</strong>
+          </div>
+          <div class="stat-box cyan">
+            <span>WAH</span><strong>{{ summary.wah }}</strong>
+          </div>
+          <div class="stat-box indigo">
+            <span>Duty</span><strong>{{ summary.onDuty }}</strong>
+          </div>
+        </div>
+        <div class="summary-deputation">
+          <span>Deputation</span>
+          <strong>{{ summary.deputation }}</strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

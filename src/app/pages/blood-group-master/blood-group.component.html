@@ -1,0 +1,188 @@
+<div class="blood-group-master animated-fade-in">
+  <!-- Header and Actions -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Blood Group Master</h1>
+      <p class="page-subtitle">Configure clinical metrics and safety flags for employee emergency directories.</p>
+    </div>
+    <div class="header-actions">
+      <button (click)="triggerExportAlert()" class="btn btn-secondary">
+        <span class="material-icons">download</span>
+        <span>Export CSV</span>
+      </button>
+      <button (click)="onOpenAddModal()" class="btn btn-success">
+        <span class="material-icons">add</span>
+        <span>Add Blood Group</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards (Bento Style) -->
+  <div class="stats-grid">
+    <div class="stat-card card">
+      <div class="stat-header">
+        <span class="stat-icon-wrapper stat-icon-red">
+          <span class="material-icons stat-icon pulse">favorite</span>
+        </span>
+        <p class="stat-label">Total Groups</p>
+      </div>
+      <p class="stat-value">{{ padCount(bloodGroups().length) }}</p>
+    </div>
+
+    <div class="stat-card card">
+      <div class="stat-header">
+        <span class="stat-icon-wrapper stat-icon-green">
+          <span class="material-icons stat-icon">volunteer_activism</span>
+        </span>
+        <p class="stat-label">Active Status</p>
+      </div>
+      <p class="stat-value">{{ padCount(activeBloodGroupsCount()) }}</p>
+    </div>
+
+    <div class="stat-card stat-card-wide card">
+      <div class="coverage-content">
+        <p class="stat-label">Clinical Coverage Rating</p>
+        <div class="progress-row">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="coveragePercentage()"></div>
+          </div>
+          <span class="progress-text">{{ coveragePercentage() }}%</span>
+        </div>
+        <p class="coverage-note">{{ coveragePercentage() }}% of active profiles have updated medical declarations.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Listing -->
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <span class="material-icons search-icon">search</span>
+        <input
+          type="text"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+          placeholder="Search blood groups..."
+          class="search-input"
+        />
+      </div>
+      <span class="entries-count">
+        Total Entries: <strong>{{ filteredBloodGroups().length }}</strong>
+      </span>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="master-table">
+        <thead>
+          <tr>
+            <th>Blood Group</th>
+            <th>Medical Description</th>
+            <th>Date Configured</th>
+            <th>Status</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (b of filteredBloodGroups(); track b.id) {
+            <tr>
+              <td>
+                <div class="blood-group-cell">
+                  <div class="blood-icon">{{ b.name }}</div>
+                  <span class="blood-label">Type {{ b.name }}</span>
+                </div>
+              </td>
+              <td class="description-cell">{{ b.description }}</td>
+              <td class="date-cell">{{ formatDate(b.created_at) }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(b.status)">
+                  <span class="status-dot"></span>
+                  {{ b.status }}
+                </span>
+              </td>
+              <td class="actions-col">
+                <div class="action-buttons">
+                  <button (click)="onOpenEditModal(b)" class="btn-action btn-edit" title="Edit">
+                    <span class="material-icons">edit</span>
+                  </button>
+                  <button (click)="onDelete(b.id!, b.name)" class="btn-action btn-delete" title="Delete">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="empty-table-msg">
+                No blood groups matching your search were found.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dialog -->
+@if (showModal()) {
+  <div class="modal-overlay animated-overlay" (click)="onBackdropClick($event)">
+    <div class="modal-container animated-scale-in">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h3 class="modal-title">{{ editingId() !== null ? 'Modify Clinical Blood Specification' : 'Register Clinical Blood Standard' }}</h3>
+        <button (click)="onCloseModal()" class="modal-close-btn">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+          <div class="form-group">
+            <label class="form-label">Blood Group Name</label>
+            <input type="text" formControlName="name" placeholder="e.g. O-" class="input-control" />
+            @if (form.get('name')?.touched && form.get('name')?.hasError('required')) {
+              <span class="error-message">Blood Group Name is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Clinical Description</label>
+            <input type="text" formControlName="description" placeholder="e.g. Universal donor classification." class="input-control" />
+            @if (form.get('description')?.touched && form.get('description')?.hasError('required')) {
+              <span class="error-message">Clinical description is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <div class="select-wrapper">
+              <select formControlName="status" class="input-control select-control">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+              <span class="material-icons select-arrow">expand_more</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Date Configured</label>
+            <input type="date" formControlName="created_at" class="input-control" />
+            @if (form.get('created_at')?.touched && form.get('created_at')?.hasError('required')) {
+              <span class="error-message">Date Configured is required</span>
+            }
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="onCloseModal()" class="btn btn-secondary modal-btn">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="form.invalid" class="btn btn-primary modal-btn">
+              {{ editingId() !== null ? 'Save Changes' : 'Save Group' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

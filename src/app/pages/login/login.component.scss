@@ -1,0 +1,150 @@
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.08) 0%, rgba(16, 185, 129, 0.05) 90.2%), #F8FAFC;
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 16px;
+  border: 1px solid rgba(229, 231, 235, 0.7);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+
+  .brand-icon {
+    font-size: 48px;
+    color: #2563EB;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.2) 100%);
+    padding: 12px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    font-size: 13px;
+    color: #6B7280;
+    line-height: 1.5;
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .input-icon {
+    position: absolute;
+    left: 12px;
+    color: #9CA3AF;
+    font-size: 20px;
+  }
+
+  .input-control {
+    width: 100%;
+    padding: 11px 12px 11px 40px !important;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+    outline: none;
+    transition: all 0.2s ease;
+
+    &:focus {
+      border-color: #2563EB;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    &.is-invalid {
+      border-color: #EF4444;
+    }
+  }
+}
+
+.login-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+// Quick Login Seed buttons
+.quick-logins {
+  margin-top: 30px;
+  border-top: 1px dashed #E5E7EB;
+  padding-top: 24px;
+  text-align: center;
+
+  .quick-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .quick-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+
+    button {
+      flex: 1;
+      font-size: 12px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border-radius: 8px;
+
+      span {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Simple CSS Spinner for loading state
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,42 @@
+/* Filters Component Styles */
+:host {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+/* Normalize date input appearance and show a consistent calendar icon */
+input[type="date"].date-input {
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: none;
+}
+
+/* Hide native calendar icon in WebKit/Blink */
+input[type="date"].date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  display: none;
+}
+
+/* Add space for custom calendar icon */
+.calendar-icon {
+  pointer-events: auto;
+}
+
+/* Ensure the input has enough right padding so icon doesn't overlap text */
+input.date-input {
+  padding-right: 2.75rem; /* matches pr-10 spacing used in template */
+}

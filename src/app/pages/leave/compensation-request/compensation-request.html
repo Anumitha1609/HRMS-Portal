@@ -1,0 +1,109 @@
+<div class="comp-request-page">
+
+  <div class="toast success" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <div class="card">
+    <div class="history-header">
+      <h3>Work Request History</h3>
+      <button class="btn-primary" (click)="openModal()">+ New Work Request</button>
+    </div>
+
+    <div class="tabs">
+      <button 
+        *ngFor="let tab of tabs" 
+        class="tab-btn" 
+        [class.active]="activeTab === tab"
+        (click)="activeTab = tab">
+        {{ tab }} <span class="tab-count">({{ countFor(tab) }})</span>
+      </button>
+    </div>
+
+    <div class="table-card">
+    <div class="table-responsive">
+      <table class="master-table">
+        <thead>
+          <tr>
+            <th>Holiday Date</th>
+            <th>Day</th>
+            <th>Reason</th>
+            <th>Project</th>
+            <th>Approver</th>
+            <th>Status</th>
+            <th>Worked Hours</th>
+            <th>Comp-Off Earned</th>
+            <th>Requested On</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rec of filteredHistory">
+            <td>{{ rec.holidayDate }}</td>
+            <td>{{ rec.day }}</td>
+            <td>{{ rec.reason }}</td>
+            <td>{{ rec.project }}</td>
+            <td>{{ rec.approver }}</td>
+            <td><span class="status-badge" [class]="getStatusClass(rec.status)">{{ rec.status }}</span></td>
+            <td>{{ rec.workedHours }}</td>
+            <td>{{ rec.compOffEarned }}</td>
+            <td>{{ rec.requestedOn }}</td>
+          </tr>
+          <tr *ngIf="filteredHistory.length === 0">
+            <td colspan="9" class="empty">No records found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>New Work Request</h3>
+        <button class="modal-close" (click)="closeModal()" [disabled]="isSubmitting">✕</button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="errorMessage" class="alert error">{{ errorMessage }}</div>
+
+        <form [formGroup]="requestForm" (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label>Date Worked *</label>
+            <input type="date" formControlName="date" class="form-control">
+            <div *ngIf="requestForm.get('date')?.touched && requestForm.get('date')?.invalid" class="error-text">Date is required.</div>
+          </div>
+
+          <div class="form-group">
+            <label>Project *</label>
+            <select formControlName="project" class="form-control">
+              <option value="" disabled selected hidden>Select project</option>
+              <option *ngFor="let p of projects" [value]="p">{{ p }}</option>
+            </select>
+            <div *ngIf="requestForm.get('project')?.touched && requestForm.get('project')?.invalid" class="error-text">Project is required.</div>
+          </div>
+
+          <div class="form-group">
+            <label>Approver *</label>
+            <select formControlName="approver" class="form-control">
+              <option value="" disabled selected hidden>Select approver</option>
+              <option *ngFor="let a of approvers" [value]="a">{{ a }}</option>
+            </select>
+            <div *ngIf="requestForm.get('approver')?.touched && requestForm.get('approver')?.invalid" class="error-text">Approver is required.</div>
+          </div>
+
+          <div class="form-group">
+            <label>Reason *</label>
+            <textarea formControlName="reason" rows="3" class="form-control" placeholder="Describe the work done..."></textarea>
+            <div *ngIf="requestForm.get('reason')?.touched && requestForm.get('reason')?.invalid" class="error-text">Reason is required.</div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-outline" (click)="closeModal()" [disabled]="isSubmitting">Cancel</button>
+            <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+              {{ isSubmitting ? 'Submitting...' : 'Submit Request' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

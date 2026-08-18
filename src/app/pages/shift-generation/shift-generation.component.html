@@ -1,0 +1,147 @@
+
+
+<div class="card section">
+  <div class="row">
+    <div class="field">
+      <label for="from">From Date</label>
+      <input id="from" type="date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)" />
+    </div>
+    <div class="field">
+      <label for="to">To Date</label>
+      <input id="to" type="date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)" />
+    </div>
+    <div class="field">
+      <label>Mode</label>
+      <div class="mode-toggle">
+        <button type="button" class="btn" [class.active]="!bulkMode()" (click)="toggleBulkMode()">Single</button>
+        <button type="button" class="btn" [class.active]="bulkMode()" (click)="toggleBulkMode()">Bulk</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Generation</label>
+      <div class="mode-toggle">
+        <button type="button" class="btn" [class.active]="generationMode() === 'manual'" (click)="generationMode.set('manual')">Manual</button>
+        <button type="button" class="btn" [class.active]="generationMode() === 'automatic'" (click)="generationMode.set('automatic')">Automatic</button>
+      </div>
+    </div>
+    <ng-container *ngIf="!bulkMode()">
+      <app-employee-picker
+        label="Employee Selection"
+        required="true"
+        placeholder="Search by Employee Name, ID or Department"
+        (selected)="onEmployeeSelected($event)"
+      ></app-employee-picker>
+    </ng-container>
+    <ng-container *ngIf="bulkMode()">
+      <div class="field">
+        <label for="bulk-search">Search Employees</label>
+        <input id="bulk-search" type="text" [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Type to filter" />
+        <div class="bulk-list">
+          <div *ngFor="let e of filteredEmployees()" class="bulk-item">
+            <label><input type="checkbox" [checked]="isEmployeeSelected(e.empCode)" (change)="toggleSelectEmployee(e)" /> {{ e.empCode }} - {{ e.name }} <small class="muted">{{ e.department }}</small></label>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+    <button type="button" class="btn btn-secondary" (click)="toggleFilters()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      Filters
+    </button>
+  </div>
+</div>
+
+<div class="card section">
+  <div class="section-head"><h3>Shift Assignment</h3></div>
+  <div class="row">
+    <div class="field">
+      <label for="template">Shift Template</label>
+      <select id="template" [ngModel]="shiftTemplate()" (ngModelChange)="shiftTemplate.set($event)">
+        <option>General Shift Plan</option>
+        <option>Rotational 3-Shift Plan</option>
+        <option>Fixed Day Shift</option>
+      </select>
+    </div>
+    <div class="field" *ngIf="showFilters()">
+      <label for="dept">Department</label>
+      <select id="dept" [ngModel]="department()" (ngModelChange)="department.set($event)">
+        <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+      </select>
+    </div>
+    <div class="shift-detail-cards">
+      <div class="shift-card morning">
+        <span class="shift-name">Morning Shift</span>
+        <span class="shift-time">{{ shiftDetails.MS.start }} - {{ shiftDetails.MS.end }}</span>
+        <span class="shift-code-badge">MS - {{ shiftDetails.MS.hours }}</span>
+      </div>
+      <div class="shift-card evening">
+        <span class="shift-name">Evening Shift</span>
+        <span class="shift-time">{{ shiftDetails.ES.start }} - {{ shiftDetails.ES.end }}</span>
+        <span class="shift-code-badge">ES - {{ shiftDetails.ES.hours }}</span>
+      </div>
+      <div class="shift-card night">
+        <span class="shift-name">Night Shift</span>
+        <span class="shift-time">{{ shiftDetails.NS.start }} - {{ shiftDetails.NS.end }}</span>
+        <span class="shift-code-badge">NS - {{ shiftDetails.NS.hours }}</span>
+      </div>
+      <div class="shift-card weekly-off">
+        <span class="shift-name">Weekly Off</span>
+        <span class="shift-time">Full Day</span>
+        <span class="shift-code-badge">WO</span>
+      </div>
+    </div>
+  </div>
+  <div class="actions-row">
+  <button type="button" class="btn btn-secondary" (click)="clearSchedule()">Clear Schedule</button>
+  <button type="button" class="btn btn-primary" (click)="generate()" [disabled]="employees().length === 0">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5.5 9A7 7 0 0 1 19 12M18.5 15A7 7 0 0 1 5 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      {{ generationMode() === 'automatic' ? 'Generate Automatically' : 'Prepare Assignment' }}
+    </button>
+  </div>
+</div>
+
+<div class="card section" *ngIf="generated()">
+  <div class="section-head"><h3>Manual Shift Assignment</h3><span class="range-label">{{ dateFrom() }} - {{ dateTo() }}</span></div>
+  <div class="table-card">
+    <div class="schedule-scroll">
+      <table class="master-table schedule-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th *ngFor="let d of days()">{{ formatDay(d) }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let emp of employees(); let ei = index">
+            <td class="emp-cell">
+              <strong>{{ emp.name }}</strong>
+              <small>{{ emp.empCode }} - {{ emp.department }}</small>
+            </td>
+            <td *ngFor="let d of days(); let di = index">
+              <select
+                class="shift-select"
+                [ngModel]="shiftAt(ei, di)"
+                (ngModelChange)="assignShift(ei, di, $event)"
+                [attr.aria-label]="'Assign shift for ' + formatDay(d)"
+              >
+                <option value="">Select</option>
+                <option *ngFor="let shift of shiftOptions" [value]="shift.code">{{ shift.code }} - {{ shift.label }}</option>
+              </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="legend">
+    <span class="legend-item"><span class="dot ms"></span>Morning Shift</span>
+    <span class="legend-item"><span class="dot es"></span>Evening Shift</span>
+    <span class="legend-item"><span class="dot ns"></span>Night Shift</span>
+    <span class="legend-item"><span class="dot wo"></span>Weekly Off</span>
+  </div>
+  <div class="actions-row">
+    <button type="button" class="btn btn-secondary" (click)="clearSchedule()">Clear Schedule</button>
+    <button type="button" class="btn btn-primary" (click)="updateShift()" [disabled]="!generated()">Save Assignment</button>
+  </div>
+</div>
+
+<p class="saved-msg" *ngIf="savedMessage()">{{ savedMessage() }}</p>

@@ -1,0 +1,175 @@
+<div class="employee-layout-v2">
+  <!-- 1. LIST VIEW (Default Dashboard) -->
+  @if (!selectedRecord() && !isEditing()) {
+    <div class="dashboard-view animated-fade-in">
+      <!-- Consolidated Header & Advanced Search Card -->
+      <div class="card advanced-search-card compact-card">
+        <div class="card-header-row">
+          <div class="header-left-compact">
+            <span class="material-icons text-primary">lan</span>
+            <h2>Department Master</h2>
+          </div>
+          <div class="header-right-compact" *ngIf="authService.isExecutive()">
+            <button class="btn btn-primary btn-sm" (click)="onNew()">
+              <span class="material-icons">add</span> New Department
+            </button>
+          </div>
+        </div>
+
+        <div class="search-grid" style="grid-template-columns: 1fr;">
+          <div class="form-group">
+            <label>Department Name</label>
+            <input type="text" placeholder="Search by department name..." (input)="onSearchChange($event)" [value]="searchQuery()" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Departments Directory Table -->
+      <div class="card table-card">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>DEPARTMENT NAME</th>
+              <th>ACTIVE EMPLOYEES</th>
+              <th>CREATED DATE</th>
+              @if (authService.isExecutive() || authService.isAdmin()) {
+                <th style="width: 110px;">ACTIONS</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading()) {
+              <tr>
+                <td colspan="4" class="skeleton-row">Loading departments...</td>
+              </tr>
+            } @else if (filteredRecords().length === 0) {
+              <tr>
+                <td colspan="4" class="empty-table-msg">No departments found. Configure a new department record to begin.</td>
+              </tr>
+            } @else {
+              @for (rec of filteredRecords(); track rec.id) {
+                <tr>
+                  <td>
+                    <div class="profile-cell">
+                      <div class="profile-avatar"><span class="material-icons" style="font-size: 16px;">lan</span></div>
+                      <a class="profile-name" (click)="selectRecord(rec)">{{ rec.name }}</a>
+                    </div>
+                  </td>
+                  <td><span class="code-badge">{{ rec.employeeCount || 0 }} employee(s)</span></td>
+                  <td>{{ rec.createdAt | date:'mediumDate' }}</td>
+                  @if (authService.isExecutive() || authService.isAdmin()) {
+                    <td (click)="$event.stopPropagation()">
+                      <div class="action-buttons">
+                        @if (authService.isExecutive()) {
+                          <button class="btn-action btn-edit" (click)="editRecord(rec)" title="Edit">
+                            <span class="material-icons">edit</span>
+                          </button>
+                        }
+                        @if (authService.isAdmin()) {
+                          <button
+                            class="btn-action btn-delete"
+                            (click)="onDelete(rec)"
+                            [title]="(rec.employeeCount || 0) > 0 ? 'This has ' + (rec.employeeCount || 0) + ' employee(s) assigned - you will be asked to confirm' : 'Soft Delete'">
+                            <span class="material-icons">delete</span>
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  }
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- 2. DETAIL/EDIT VIEW -->
+  @if (selectedRecord() || isEditing()) {
+    <div class="detail-view animated-fade-in">
+      <!-- Sticky Action Bar -->
+      <div class="action-bar glass-panel card">
+        <div class="action-left">
+          <button class="btn btn-secondary btn-icon-only back-btn" (click)="selectedRecord.set(null); isEditing.set(false); departmentForm.reset()" title="Back to Directory">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          @if (selectedRecord(); as rec) {
+            <h2>Department Profile: {{ rec.name }}</h2>
+          } @else if (isEditing()) {
+            <h2>New Department Details</h2>
+          } @else {
+            <h2>Department Details</h2>
+          }
+        </div>
+        <div class="action-right">
+          @if (authService.isExecutive()) {
+            @if (!isEditing()) {
+              @if (selectedRecord()) {
+                <button class="btn btn-primary" (click)="onEdit()">
+                  <span class="material-icons">edit</span> Edit
+                </button>
+              }
+            } @else {
+              <button class="btn btn-primary" (click)="onSave()">
+                <span class="material-icons">save</span> Save
+              </button>
+              <button class="btn btn-secondary" (click)="onCancel()">
+                <span class="material-icons">close</span> Cancel
+              </button>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Form details in card -->
+      <div class="card detail-card" style="padding: 24px;">
+        <form [formGroup]="departmentForm" (ngSubmit)="onSave()" class="master-form">
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label for="name" style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: block;">Department Name *</label>
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              class="input-control"
+              placeholder="e.g. Development"
+            />
+            @if (departmentForm.get('name')?.invalid && departmentForm.get('name')?.touched) {
+              <span class="error-message" style="color: #ef4444; font-size: 12px; display: flex; align-items: center; gap: 4px; margin-top: 6px;">
+                <span class="material-icons" style="font-size: 16px;">error_outline</span>
+                Department name is required (min 2 characters)
+              </span>
+            }
+          </div>
+        </form>
+
+        @if (selectedRecord(); as rec) {
+          <div class="metadata-section" style="border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 20px;">
+            <div class="meta-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
+              <span class="meta-label" style="color: #64748b; font-weight: 500;">System ID:</span>
+              <span class="meta-val code" style="font-family: monospace; background-color: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ rec.id }}</span>
+            </div>
+            <div class="meta-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
+              <span class="meta-label" style="color: #64748b; font-weight: 500;">Employees Attached:</span>
+              <span class="meta-val" style="font-weight: 600; color: #1e293b;">{{ rec.employeeCount || 0 }} employee(s)</span>
+            </div>
+            <div class="meta-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
+              <span class="meta-label" style="color: #64748b; font-weight: 500;">Created At:</span>
+              <span class="meta-val" style="font-weight: 600; color: #1e293b;">{{ rec.createdAt | date:'medium' }}</span>
+            </div>
+          </div>
+
+          @if (authService.isAdmin() && !isEditing()) {
+            <div class="danger-zone" style="border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 20px;">
+              <h4 style="color: #ef4444; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Danger Zone</h4>
+              <p style="color: #64748b; font-size: 12px; margin-bottom: 12px;">Soft-delete this department. If employees are still assigned, you will get a confirmation warning first.</p>
+              <button class="btn btn-danger" (click)="onDelete(rec)">
+                <span class="material-icons">delete_forever</span> Soft Delete Department
+              </button>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>

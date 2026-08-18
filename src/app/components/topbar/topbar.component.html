@@ -1,0 +1,22 @@
+<div class="topbar">
+  <h1 class="topbar-title">{{ title }}</h1>
+
+  <div class="topbar-search">
+    <span class="material-icons">search</span>
+    <input
+      type="text"
+      placeholder="Search this page…"
+      [ngModel]="searchService.query()"
+      (ngModelChange)="searchService.setQuery($event)"
+    />
+    <button
+      *ngIf="searchService.query()"
+      type="button"
+      class="clear-btn"
+      title="Clear search"
+      (click)="searchService.clear()"
+    >
+      <span class="material-icons">close</span>
+    </button>
+  </div>
+</div>

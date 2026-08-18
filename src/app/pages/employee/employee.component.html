@@ -1,0 +1,1522 @@
+<div class="employee-layout-v2">
+  <!-- 1. LIST VIEW (Default Dashboard) -->
+  @if (!selectedEmployee() && !isEditing()) {
+    <div class="dashboard-view animated-fade-in">
+      <!-- Consolidated Header & Advanced Search Card -->
+      <div class="card advanced-search-card compact-card">
+        <div class="card-header-row">
+          <div class="header-left-compact">
+            <span class="material-icons text-primary">badge</span>
+            <h2>Employee Master</h2>
+          </div>
+          <div class="header-right-compact" *ngIf="authService.isExecutive()">
+            <button class="btn btn-primary btn-sm" (click)="onNew()">
+              <span class="material-icons">add</span> New Employee
+            </button>
+          </div>
+        </div>
+
+        <div class="search-grid">
+          <div class="form-group">
+            <label>EMPLOYEE CODE</label>
+            <input type="text" placeholder="e.g. EMP-10" (input)="searchCode.set($any($event.target).value); onSearch()" [value]="searchCode()" />
+          </div>
+          <div class="form-group">
+            <label>EMPLOYEE NAME</label>
+            <input type="text" placeholder="Name" (input)="searchName.set($any($event.target).value); onSearch()" [value]="searchName()" />
+          </div>
+          <div class="form-group">
+            <label>DEPARTMENT</label>
+            <select (change)="searchDepartmentId.set($any($event.target).value); onSearch()" [value]="searchDepartmentId()">
+              <option value="">All Departments</option>
+              @for (dept of departments(); track dept.id) {
+                <option [value]="dept.id">{{ dept.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>CATEGORY</label>
+            <select (change)="searchCategoryId.set($any($event.target).value); onSearch()" [value]="searchCategoryId()">
+              <option value="">All Categories</option>
+              @for (cat of categories(); track cat.id) {
+                <option [value]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Employee Directory Table -->
+      <div class="card table-card">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>PROFILE</th>
+              <th>CODE</th>
+              <th>DESIGNATION</th>
+              <th>DEPARTMENT</th>
+              <th>CATEGORY</th>
+              @if (authService.isExecutive()) {
+                <th style="width: 90px;">ACTIONS</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @if (isSearching()) {
+              <tr>
+                <td colspan="6" class="skeleton-row">Loading employees...</td>
+              </tr>
+            } @else if (searchResults().length === 0) {
+              <tr>
+                <td colspan="6" class="empty-table-msg">No employees found. Configure a new profile record to begin.</td>
+              </tr>
+            } @else {
+              @for (emp of searchResults(); track emp.id) {
+                <tr>
+                  <td>
+                    <div class="profile-cell">
+                      <div class="profile-avatar">{{ emp.employeeName[0] }}</div>
+                      <a class="profile-name" (click)="selectEmployee(emp.id)">{{ emp.employeeName }}</a>
+                    </div>
+                  </td>
+                  <td><span class="code-badge">{{ emp.employeeCode }}</span></td>
+                  <td>{{ emp.designation || 'Senior Developer' }}</td>
+                  <td>{{ emp.department }}</td>
+                  <td>{{ emp.category }}</td>
+                  @if (authService.isExecutive()) {
+                    <td (click)="$event.stopPropagation()">
+                      <div class="action-buttons">
+                        <button class="btn-action btn-edit" (click)="selectEmployee(emp.id, true)" title="Edit">
+                          <span class="material-icons">edit</span>
+                        </button>
+                      </div>
+                    </td>
+                  }
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+
+        <!-- Table Pagination Footer -->
+        <div class="table-pagination">
+          <div class="pagination-left">
+            <span class="pagination-text">{{ getShowingText() }}</span>
+          </div>
+          <div class="pagination-center">
+            <div class="page-size-selector">
+              <span class="page-size-label">Rows per page:</span>
+              <select class="page-size-select" [value]="pageSize()" (change)="onPageSizeChange($event)">
+                <option [value]="5">5</option>
+                <option [value]="10">10</option>
+                <option [value]="15">15</option>
+                <option [value]="20">20</option>
+                <option [value]="50">50</option>
+              </select>
+            </div>
+          </div>
+          <div class="pagination-actions">
+            <button class="btn btn-ghost btn-icon" title="Previous Page" [disabled]="currentPage() === 1" (click)="prevPage()">
+              <span class="material-icons">chevron_left</span>
+            </button>
+            <button class="btn btn-ghost btn-icon" title="Next Page" [disabled]="currentPage() === (paginationInfo()?.totalPages || 1)" (click)="nextPage()">
+              <span class="material-icons">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 2. DETAIL/EDIT VIEW -->
+  @if (selectedEmployee() || isEditing()) {
+    <div class="detail-view animated-fade-in">
+      @if (isEditing()) {
+        <!-- Guided Stepper (Wizard UI) for Create/Edit -->
+        <app-employee-stepper
+          [form]="employeeForm"
+          [isEditMode]="!!selectedEmployee()"
+          [locations]="locations()"
+          [subLocations]="subLocations()"
+          [departments]="departments()"
+          [functionalUnits]="functionalUnits()"
+          [divisions]="divisions()"
+          [categories]="categories()"
+          [subCategories]="subCategoriesCache()"
+          [activeEmployees]="activeEmployees()"
+          [filteredSubCategories]="filteredSubCategories()"
+          [ctcMasters]="ctcMasters()"
+          (saveEmployee)="onSave()"
+          (cancel)="onCancel()"
+          (documentsChanged)="uploadedDocuments.set($event)"
+        ></app-employee-stepper>
+      } @else {
+        <!-- Sticky Action Bar -->
+        <div class="action-bar glass-panel card">
+        <div class="action-left">
+          <button class="btn btn-secondary btn-icon-only back-btn" (click)="selectedEmployee.set(null); isEditing.set(false); employeeForm.reset()" title="Back to Directory">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          @if (selectedEmployee(); as emp) {
+            <span class="emp-code-pill">{{ emp.employeeCode }}</span>
+            <h2>{{ emp.employeeName }}</h2>
+          } @else if (isEditing()) {
+            <h2>New Employee Profile</h2>
+          } @else {
+            <h2>Employee Profile</h2>
+          }
+        </div>
+        <div class="action-right">
+          @if (authService.isExecutive()) {
+            @if (!isEditing()) {
+              @if (selectedEmployee()) {
+                <button class="btn btn-primary" (click)="onEdit()">
+                  <span class="material-icons">edit</span> Edit
+                </button>
+              }
+            } @else {
+              <button class="btn btn-primary" (click)="onSave()">
+                <span class="material-icons">save</span> Save
+              </button>
+              <button class="btn btn-secondary" (click)="onCancel()">
+                <span class="material-icons">close</span> Cancel
+              </button>
+            }
+          }
+          @if (selectedEmployee()) {
+            <button class="btn btn-secondary" (click)="onPrint()">
+              <span class="material-icons">print</span> Print
+            </button>
+          }
+        </div>
+      </div>
+
+      <form [formGroup]="employeeForm" class="full-form">
+        
+        <!-- Sticky Employee Header Section -->
+        <div class="card employee-header-card glass-panel">
+          <div class="header-main">
+            <!-- Photo Upload & Edit -->
+            <div class="photo-uploader" [class.editable]="isEditing()" (click)="isEditing() && photoInput.click()">
+              <img [src]="employeeForm.get('photoUrl')?.value || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'" alt="Employee Profile Photo" />
+              @if (isEditing()) {
+                <div class="photo-overlay">
+                  <span class="material-icons">photo_camera</span>
+                  <span>Change Photo</span>
+                </div>
+                <!-- Delete Button -->
+                <button 
+                  type="button" 
+                  class="btn-delete-photo" 
+                  *ngIf="employeeForm.get('photoUrl')?.value"
+                  (click)="onDeletePhoto($event)" 
+                  title="Remove Photo">
+                  <span class="material-icons">delete</span>
+                </button>
+              }
+              <input 
+                type="file" 
+                #photoInput 
+                accept="image/*" 
+                (change)="onPhotoSelected($event)" 
+                style="display: none;" 
+              />
+            </div>
+
+            <!-- Essential Info Details -->
+            <div class="header-details-grid">
+              <div class="form-group">
+                <label>Employee Code</label>
+                <input type="text" formControlName="employeeCode" class="input-control" placeholder="[Auto Generated]" [readonly]="!isEditing()" />
+              </div>
+              <div class="form-group">
+                <label>Employee Name *</label>
+                <input type="text" formControlName="employeeName" class="input-control" placeholder="Rohan Sharma" [readonly]="!isEditing()" />
+              </div>
+              <div class="form-group">
+                <label>Gender *</label>
+                <select formControlName="gender" class="input-control">
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>DOB *</label>
+                <input type="date" formControlName="dob" class="input-control" [readonly]="!isEditing()" />
+              </div>
+              <div class="form-group">
+                <label>Age</label>
+                <input type="text" formControlName="age" class="input-control" readonly />
+              </div>
+              <div class="form-group">
+                <label>Marital Status *</label>
+                <select formControlName="maritalStatus" class="input-control">
+                  <option value="SINGLE">Single</option>
+                  <option value="MARRIED">Married</option>
+                  <option value="DIVORCED">Divorced</option>
+                  <option value="WIDOWED">Widowed</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Blood Group</label>
+                <select formControlName="bloodGroup" class="input-control">
+                  <option value="">Select Blood Group</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Mobile Number *</label>
+                <div class="phone-input-group" style="display: flex; gap: 8px;">
+                  <select formControlName="mobileCountryCode" class="input-control" style="width: 100px; flex-shrink: 0;" *ngIf="isEditing()">
+                    <option *ngFor="let c of countryCodes" [value]="c.code">{{ c.code }}</option>
+                  </select>
+                  <span class="input-control" style="width: 60px; display: flex; align-items: center; justify-content: center; background: #f8fafc; font-weight: 600;" *ngIf="!isEditing()">
+                    {{ employeeForm.get('mobileCountryCode')?.value }}
+                  </span>
+                  <input 
+                    type="text" 
+                    formControlName="mobileNumber" 
+                    class="input-control" 
+                    [placeholder]="getMobilePlaceholder()" 
+                    [readonly]="!isEditing()"
+                    style="flex-grow: 1;"
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Official Email *</label>
+                <input type="email" formControlName="officialEmail" class="input-control" placeholder="name@workeaze.com" [readonly]="!isEditing()" />
+              </div>
+              <div class="form-group">
+                <label>Personal Email *</label>
+                <input type="email" formControlName="personalEmail" class="input-control" placeholder="name@gmail.com" [readonly]="!isEditing()" />
+              </div>
+              
+              <div class="form-group">
+                <label>Status *</label>
+                <select formControlName="status" class="input-control">
+                  <option value="ACTIVE">Active</option>
+                  <option value="INACTIVE">Inactive</option>
+                  <option value="RESIGNED">Resigned</option>
+                  <option value="TERMINATED">Terminated</option>
+                  <option value="RELIEVED">Relieved</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Date of Relieving</label>
+                <input type="date" formControlName="dateOfRelieving" class="input-control" [readonly]="!isEditing()" />
+              </div>
+              <div class="form-group">
+                <label>Access Card Number *</label>
+                <input type="text" formControlName="accessCardNumber" class="input-control" placeholder="CARD1001" [readonly]="!isEditing()" />
+              </div>
+            </div>
+          </div>
+          
+          <!-- Summary statutory and joining row -->
+          @if (!isEditing()) {
+            <div class="header-summary-row">
+              <div class="summary-item">
+                <span class="label">DOJ:</span>
+                <span class="val">{{ employeeForm.get('joiningDate')?.value | date:'mediumDate' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">PAN:</span>
+                <span class="val code">{{ employeeForm.get('pan')?.value || 'N/A' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Aadhaar:</span>
+                <span class="val code">{{ employeeForm.get('aadhaar')?.value || 'N/A' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">UAN:</span>
+                <span class="val code">{{ employeeForm.get('uanNumber')?.value || 'N/A' }}</span>
+              </div>
+            </div>
+          } @else {
+            <!-- Editable statutory and joining fields in header when editing -->
+            <div class="grid-4" style="border-top: 1px dashed #e2e8f0; padding-top: 16px; margin-top: 16px;">
+              <div class="form-group">
+                <label>Date of Joining *</label>
+                <input type="date" formControlName="joiningDate" class="input-control" />
+              </div>
+              <div class="form-group">
+                <label>PAN *</label>
+                <input type="text" formControlName="pan" class="input-control" placeholder="ABCDE1234F" />
+              </div>
+              <div class="form-group">
+                <label>Aadhaar *</label>
+                <input type="text" formControlName="aadhaar" class="input-control" placeholder="12-digit Aadhaar" />
+              </div>
+              <div class="form-group">
+                <label>UAN Number</label>
+                <input type="text" formControlName="uanNumber" class="input-control" placeholder="12-digit UAN" />
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Sticky Tabs Section -->
+        <nav class="sticky-tabs-container card">
+          <button type="button" class="tab-btn" [ngClass]="{ 'active': activeTab() === 'general' }" (click)="selectTab('general')">
+            <span class="material-icons">info</span> General Details
+          </button>
+          <button type="button" class="tab-btn" [ngClass]="{ 'active': activeTab() === 'org' }" (click)="selectTab('org')">
+            <span class="material-icons">lan</span> Classification & Org
+          </button>
+          <button type="button" class="tab-btn" [ngClass]="{ 'active': activeTab() === 'bank' }" (click)="selectTab('bank')">
+            <span class="material-icons">account_balance</span> Bank Account
+          </button>
+          <button type="button" class="tab-btn" [ngClass]="{ 'active': activeTab() === 'family' }" (click)="selectTab('family')">
+            <span class="material-icons">family_restroom</span> Family Details
+          </button>
+          <button type="button" class="tab-btn" [ngClass]="{ 'active': activeTab() === 'nominee' }" (click)="selectTab('nominee')">
+            <span class="material-icons">assignment_ind</span> Nominee Details
+          </button>
+          <button type="button" class="tab-btn" [ngClass]="{ 'active': activeTab() === 'salaryScale' }" (click)="selectTab('salaryScale')">
+            <span class="material-icons">payments</span> Scale & Scale Details
+          </button>
+          <button type="button" class="tab-btn" [ngClass]="{ 'active': activeTab() === 'documents' }" (click)="selectTab('documents')">
+            <span class="material-icons">description</span> Attachments
+          </button>
+        </nav>
+
+        <!-- Active Tab Content Panel -->
+        <div class="tab-content card">
+
+          <!-- 1. GENERAL DETAILS TAB -->
+          @if (activeTab() === 'general') {
+            <div class="tab-panel animated-fade-in">
+              <div class="form-section">
+                <h3>Addresses</h3>
+                <div class="grid-2">
+                  <!-- Permanent Address -->
+                  <div class="address-box">
+                    <h4>Permanent Address</h4>
+                    <div class="form-group">
+                      <label>Address Line 1 *</label>
+                      <input type="text" formControlName="permanentAddress1" class="input-control" placeholder="12, Rose Villa" [readonly]="!isEditing()" />
+                    </div>
+                    <div class="form-group">
+                      <label>Address Line 2</label>
+                      <input type="text" formControlName="permanentAddress2" class="input-control" placeholder="MG Road" [readonly]="!isEditing()" />
+                    </div>
+                    <div class="grid-2">
+                      <div class="form-group">
+                        <label>City *</label>
+                        <input type="text" formControlName="permanentCity" class="input-control" placeholder="Bangalore" [readonly]="!isEditing()" />
+                      </div>
+                      <div class="form-group">
+                        <label>State *</label>
+                        <input type="text" formControlName="permanentState" class="input-control" placeholder="Karnataka" [readonly]="!isEditing()" />
+                      </div>
+                    </div>
+                    <div class="grid-2">
+                      <div class="form-group">
+                        <label>Country *</label>
+                        <input type="text" formControlName="permanentCountry" class="input-control" placeholder="India" [readonly]="!isEditing()" />
+                      </div>
+                      <div class="form-group">
+                        <label>PIN Code *</label>
+                        <input type="text" formControlName="permanentPinCode" class="input-control" placeholder="560002" [readonly]="!isEditing()" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Current Address -->
+                  <div class="address-box">
+                    <div class="current-address-header">
+                      <h4>Current Address</h4>
+                      <label class="toggle-label" *ngIf="isEditing()">
+                        <input type="checkbox" formControlName="sameAsPermanent" />
+                        <span>Same as Permanent</span>
+                      </label>
+                    </div>
+                    <div class="form-group">
+                      <label>Address Line 1 *</label>
+                      <input type="text" formControlName="currentAddress1" class="input-control" placeholder="12, Rose Villa" [readonly]="!isEditing() || employeeForm.get('sameAsPermanent')?.value" />
+                    </div>
+                    <div class="form-group">
+                      <label>Address Line 2</label>
+                      <input type="text" formControlName="currentAddress2" class="input-control" placeholder="MG Road" [readonly]="!isEditing() || employeeForm.get('sameAsPermanent')?.value" />
+                    </div>
+                    <div class="grid-2">
+                      <div class="form-group">
+                        <label>City *</label>
+                        <input type="text" formControlName="currentCity" class="input-control" placeholder="Bangalore" [readonly]="!isEditing() || employeeForm.get('sameAsPermanent')?.value" />
+                      </div>
+                      <div class="form-group">
+                        <label>State *</label>
+                        <input type="text" formControlName="currentState" class="input-control" placeholder="Karnataka" [readonly]="!isEditing() || employeeForm.get('sameAsPermanent')?.value" />
+                      </div>
+                    </div>
+                    <div class="grid-2">
+                      <div class="form-group">
+                        <label>Country *</label>
+                        <input type="text" formControlName="currentCountry" class="input-control" placeholder="India" [readonly]="!isEditing() || employeeForm.get('sameAsPermanent')?.value" />
+                      </div>
+                      <div class="form-group">
+                        <label>PIN Code *</label>
+                        <input type="text" formControlName="currentPinCode" class="input-control" placeholder="560002" [readonly]="!isEditing() || employeeForm.get('sameAsPermanent')?.value" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3>Attendance & Shift Details</h3>
+                <div class="grid-3">
+                  <div class="form-group">
+                    <label>Shift Group *</label>
+                    <input type="text" formControlName="shiftGroup" class="input-control" placeholder="e.g. General Group" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Shift Name *</label>
+                    <input type="text" formControlName="shiftName" class="input-control" placeholder="e.g. General Shift" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>From Time *</label>
+                    <input type="text" formControlName="shiftFrom" class="input-control" placeholder="09:00" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>To Time *</label>
+                    <input type="text" formControlName="shiftTo" class="input-control" placeholder="18:00" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Late In Margin (mins)</label>
+                    <input type="number" formControlName="shiftLateIn" class="input-control" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Early Out Margin (mins)</label>
+                    <input type="number" formControlName="shiftEarlyOut" class="input-control" [readonly]="!isEditing()" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3>Education & Professional Qualifications</h3>
+                <div class="grid-4">
+                  <div class="form-group">
+                    <label>Highest Qualification</label>
+                    <input type="text" formControlName="highestQualification" class="input-control" placeholder="B.E" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Field of Study</label>
+                    <input type="text" formControlName="fieldOfStudy" class="input-control" placeholder="Information Technology" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>University / College</label>
+                    <input type="text" formControlName="university" class="input-control" placeholder="Anna University" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Year of Passing</label>
+                    <input type="number" formControlName="yearOfPassing" class="input-control" placeholder="2016" [readonly]="!isEditing()" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Skills & Certifications (Comma Separated)</label>
+                  <input type="text" formControlName="skills" class="input-control" placeholder="e.g. JavaScript, Angular, Node.js" [readonly]="!isEditing()" />
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3>Previous Employment</h3>
+                <div class="grid-3">
+                  <div class="form-group">
+                    <label>Experience Type *</label>
+                    <select formControlName="experienceType" class="input-control" *ngIf="isEditing()">
+                      <option value="Fresher">Fresher</option>
+                      <option value="Experienced">Experienced</option>
+                    </select>
+                    <input type="text" [value]="employeeForm.get('experienceType')?.value" class="input-control" readonly *ngIf="!isEditing()" />
+                  </div>
+                  <div class="form-group" *ngIf="employeeForm.get('experienceType')?.value === 'Experienced'">
+                    <label>Previous Employer *</label>
+                    <input type="text" formControlName="prevEmployer" class="input-control" placeholder="Infosys" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group" *ngIf="employeeForm.get('experienceType')?.value === 'Experienced'">
+                    <label>Previous Designation *</label>
+                    <input type="text" formControlName="prevDesignation" class="input-control" placeholder="Systems Engineer" [readonly]="!isEditing()" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- 2. CLASSIFICATION & ORG TAB -->
+          @if (activeTab() === 'org') {
+            <div class="tab-panel animated-fade-in">
+              <div class="form-section">
+                <h3>Organizational Assignment</h3>
+                <div class="grid-3">
+                  <div class="form-group">
+                    <label>Functional Unit *</label>
+                    <select formControlName="functionalUnitId" class="input-control">
+                      <option value="">Select Unit</option>
+                      @for (fu of functionalUnits(); track fu.id) {
+                        <option [value]="fu.id">{{ fu.name }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Division *</label>
+                    <select formControlName="divisionId" class="input-control">
+                      <option value="">Select Division</option>
+                      @for (div of divisions(); track div.id) {
+                        <option [value]="div.id">{{ div.name }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Department *</label>
+                    <div class="dropdown-with-action">
+                      <select formControlName="departmentId" class="input-control">
+                        <option value="">Select Department</option>
+                        @for (dept of departments(); track dept.id) {
+                          <option [value]="dept.id">{{ dept.name }}</option>
+                        }
+                      </select>
+                      <button type="button" class="btn btn-secondary btn-icon-only add-inline-btn" (click)="openAddDepartmentModal()" *ngIf="isEditing()" title="Add New Department">
+                        <span class="material-icons">add</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Location *</label>
+                    <select formControlName="locationId" class="input-control">
+                      <option value="">Select Location</option>
+                      @for (loc of locations(); track loc.id) {
+                        <option [value]="loc.id">{{ loc.name }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Sub Location *</label>
+                    <select formControlName="subLocationId" class="input-control">
+                      <option value="">Select Sub Location</option>
+                      @for (sl of subLocations(); track sl.id) {
+                        <option [value]="sl.id">{{ sl.name }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3>Employee Classification</h3>
+                <div class="grid-3">
+                  <div class="form-group">
+                    <label>Category *</label>
+                    <select formControlName="categoryId" class="input-control">
+                      <option value="">Select Category</option>
+                      @for (cat of categories(); track cat.id) {
+                        <option [value]="cat.id">{{ cat.name }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Sub Category *</label>
+                    <select formControlName="subCategoryId" class="input-control">
+                      <option value="">Select Sub Category</option>
+                      @for (sub of filteredSubCategories(); track sub.id) {
+                        <option [value]="sub.id">{{ sub.name }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Designation *</label>
+                    <input type="text" formControlName="designation" class="input-control" placeholder="e.g. Senior Developer" [readonly]="!isEditing()" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3>Reporting Hierarchy</h3>
+                <div class="grid-3">
+                  <div class="form-group">
+                    <label>Reporting Manager *</label>
+                    <select formControlName="reportingManagerId" class="input-control">
+                      <option value="">Select Manager</option>
+                      @for (mgr of activeEmployees(); track mgr.id) {
+                        <option [value]="mgr.id">{{ mgr.employeeName }} ({{ mgr.employeeCode }})</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Functional Manager</label>
+                    <select formControlName="functionalManagerId" class="input-control">
+                      <option value="">Select Manager</option>
+                      @for (mgr of activeEmployees(); track mgr.id) {
+                        <option [value]="mgr.id">{{ mgr.employeeName }} ({{ mgr.employeeCode }})</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Skip Level Manager</label>
+                    <select formControlName="skipLevelManagerId" class="input-control">
+                      <option value="">Select Manager</option>
+                      @for (mgr of activeEmployees(); track mgr.id) {
+                        <option [value]="mgr.id">{{ mgr.employeeName }} ({{ mgr.employeeCode }})</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3>Statutory & Employment Dates</h3>
+                <div class="grid-3">
+                  <div class="form-group">
+                    <label>Date of Joining *</label>
+                    <input type="date" formControlName="joiningDate" class="input-control" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Probation End Date</label>
+                    <input type="date" formControlName="probationEndDate" class="input-control" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Confirmation Date</label>
+                    <input type="date" formControlName="confirmationDate" class="input-control" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>PAN *</label>
+                    <input type="text" formControlName="pan" class="input-control" placeholder="ABCDE1234F" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Aadhaar *</label>
+                    <input type="text" formControlName="aadhaar" class="input-control" placeholder="12-digit Aadhaar" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>PF Number</label>
+                    <input type="text" formControlName="pfNumber" class="input-control" placeholder="PF Account Code" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>UAN Number</label>
+                    <input type="text" formControlName="uanNumber" class="input-control" placeholder="12-digit UAN" [readonly]="!isEditing()" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- 3. BANK DETAILS TAB -->
+          @if (activeTab() === 'bank') {
+            <div class="tab-panel animated-fade-in">
+              <div class="form-section">
+                <h3>Bank Account Information</h3>
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label>Account Holder Name *</label>
+                    <input type="text" formControlName="bankAccountHolder" class="input-control" placeholder="Auto Populated" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Bank Account Number *</label>
+                    <input type="text" formControlName="bankAccountNumber" class="input-control" placeholder="Enter bank account number" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Bank Name *</label>
+                    <input type="text" formControlName="bankName" class="input-control" placeholder="ICICI Bank" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Branch Name *</label>
+                    <input type="text" formControlName="bankBranch" class="input-control" placeholder="Koramangala" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>IFSC Code *</label>
+                    <input type="text" formControlName="bankIfsc" class="input-control" placeholder="e.g. ICIC0000123" [readonly]="!isEditing()" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- 4. FAMILY DETAILS TAB -->
+          @if (activeTab() === 'family') {
+            <div class="tab-panel animated-fade-in">
+              <div class="section-header">
+                <h3>Family Details Grid</h3>
+                <button type="button" class="btn btn-primary" *ngIf="isEditing()" (click)="openFamilyDrawer('add')">
+                  <span class="material-icons">add</span> Add Member
+                </button>
+              </div>
+
+              <table class="grid-table">
+                <thead>
+                  <tr>
+                    <th>Relationship</th>
+                    <th>Family Member Name</th>
+                    <th>DOB</th>
+                    <th>Occupation</th>
+                    <th>Contact Number</th>
+                    <th>Org Employee</th>
+                    <th *ngIf="isEditing()" style="width: 100px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (familyArray.length === 0) {
+                    <tr>
+                      <td colspan="7" class="empty-grid-msg">No family members added.</td>
+                    </tr>
+                  } @else {
+                    @for (member of familyArray.controls; track $index) {
+                      <tr>
+                        <td><strong>{{ member.get('relationship')?.value | titlecase }}</strong></td>
+                        <td>{{ member.get('memberName')?.value }}</td>
+                        <td>{{ member.get('dob')?.value | date:'shortDate' }}</td>
+                        <td>{{ member.get('occupation')?.value || 'N/A' }}</td>
+                        <td>{{ member.get('contactNumber')?.value || 'N/A' }}</td>
+                        <td>
+                          <span class="material-icons check" *ngIf="member.get('isEmployeeOfOrg')?.value">check_circle</span>
+                          <span class="material-icons cross" *ngIf="!member.get('isEmployeeOfOrg')?.value">cancel</span>
+                        </td>
+                        <td *ngIf="isEditing()">
+                          <button type="button" class="btn btn-ghost btn-icon" (click)="openFamilyDrawer('edit', $index)">
+                            <span class="material-icons">edit</span>
+                          </button>
+                          <button type="button" class="btn btn-ghost btn-icon error" (click)="removeFamilyMember($index)">
+                            <span class="material-icons">delete</span>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <!-- 5. NOMINEE DETAILS TAB -->
+          @if (activeTab() === 'nominee') {
+            <div class="tab-panel animated-fade-in">
+              <div class="section-header">
+                <h3>Nominee Details Grid</h3>
+                
+                <!-- Share Percentage Gauge Indicator -->
+                <div class="share-indicator" [ngClass]="{ 'valid': totalNomineeShare() === 100 }">
+                  <span class="label">Total Nominee Share:</span>
+                  <span class="val">{{ totalNomineeShare() }}%</span>
+                  <span class="material-icons status-icon">
+                    {{ totalNomineeShare() === 100 ? 'check_circle' : 'warning' }}
+                  </span>
+                </div>
+
+                <button type="button" class="btn btn-primary" *ngIf="isEditing()" (click)="openNomineeDrawer('add')">
+                  <span class="material-icons">add</span> Add Nominee
+                </button>
+              </div>
+
+              <table class="grid-table">
+                <thead>
+                  <tr>
+                    <th>Nominee Name</th>
+                    <th>Relationship</th>
+                    <th>Gender</th>
+                    <th>DOB</th>
+                    <th>Age</th>
+                    <th>Contact</th>
+                    <th>Share %</th>
+                    <th *ngIf="isEditing()" style="width: 100px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (nomineesArray.length === 0) {
+                    <tr>
+                      <td colspan="8" class="empty-grid-msg">No nominees added. Total share must equal 100%.</td>
+                    </tr>
+                  } @else {
+                    @for (nom of nomineesArray.controls; track $index) {
+                      <tr>
+                        <td><strong>{{ nom.get('nomineeName')?.value }}</strong></td>
+                        <td>{{ nom.get('relationship')?.value | titlecase }}</td>
+                        <td>{{ nom.get('gender')?.value | titlecase }}</td>
+                        <td>{{ nom.get('dob')?.value | date:'shortDate' }}</td>
+                        <td>{{ nom.get('age')?.value || 'N/A' }}</td>
+                        <td>{{ nom.get('contactNumber')?.value || 'N/A' }}</td>
+                        <td class="share-highlight">{{ nom.get('sharePercentage')?.value }}%</td>
+                        <td *ngIf="isEditing()">
+                          <button type="button" class="btn btn-ghost btn-icon" (click)="openNomineeDrawer('edit', $index)">
+                            <span class="material-icons">edit</span>
+                          </button>
+                          <button type="button" class="btn btn-ghost btn-icon error" (click)="removeNominee($index)">
+                            <span class="material-icons">delete</span>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <!-- 6 & 7. SCALE & SCALE DETAILS TAB -->
+          @if (activeTab() === 'salaryScale') {
+            <div class="tab-panel animated-fade-in">
+              <div class="card glass-panel" style="margin-bottom: 20px; padding: 20px;">
+                <h4 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Salary Assignment Configuration</h4>
+                
+                <!-- Salary Mode Selector (only visible in edit mode) -->
+                @if (isEditing()) {
+                  <div class="salary-mode-selector" style="margin-bottom: 20px; display: flex; align-items: center; gap: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+                    <label style="font-weight: 600; color: #334155; margin-bottom: 0;">Salary Assignment Mode:</label>
+                    <div style="display: flex; gap: 20px;">
+                      <label class="radio-label" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: #475569;">
+                        <input type="radio" value="PACKAGE" formControlName="assignmentMode" /> Use Existing CTC Package
+                      </label>
+                      <label class="radio-label" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: #475569;">
+                        <input type="radio" value="CUSTOM_FROM_PACKAGE" formControlName="assignmentMode" /> Customize Existing CTC Package
+                      </label>
+                      <label class="radio-label" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: #475569;">
+                        <input type="radio" value="CUSTOM" formControlName="assignmentMode" /> Create New Salary Structure
+                      </label>
+                    </div>
+                  </div>
+                } @else {
+                  <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                    <span style="font-weight: 600; color: #475569;">Salary Assignment Mode:</span>
+                    <span class="badge" [ngClass]="{
+                      'badge-success': employeeForm.get('assignmentMode')?.value === 'PACKAGE',
+                      'badge-warning': employeeForm.get('assignmentMode')?.value === 'CUSTOM_FROM_PACKAGE',
+                      'badge-primary': employeeForm.get('assignmentMode')?.value === 'CUSTOM'
+                    }" style="padding: 4px 12px; font-size: 12px; border-radius: 12px; font-weight: 600;">
+                      {{ employeeForm.get('assignmentMode')?.value === 'PACKAGE' ? 'Inherited Package' : (employeeForm.get('assignmentMode')?.value === 'CUSTOM_FROM_PACKAGE' ? 'Customized from Package' : 'Custom Salary Structure') }}
+                    </span>
+                  </div>
+                }
+
+                <div class="grid-2">
+                  <!-- CTC Package selection (only for PACKAGE and CUSTOM_FROM_PACKAGE) -->
+                  <div class="form-group" *ngIf="employeeForm.get('assignmentMode')?.value !== 'CUSTOM'">
+                    <label>CTC Package *</label>
+                    <select formControlName="ctcId" class="input-control" [disabled]="!isEditing()">
+                      <option value="">-- Choose Package --</option>
+                      <option *ngFor="let ctc of ctcMasters()" [value]="ctc.id">
+                        {{ ctc.ctcName }} (₹{{ ctc.annualCTC | number:'1.0-0' }}/Yr)
+                      </option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Effective From (WEF) *</label>
+                    <input type="date" formControlName="effectiveFrom" class="input-control" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Revision Reason</label>
+                    <input type="text" formControlName="revisionReason" class="input-control" placeholder="e.g. Annual Appraisal, Promotion" [readonly]="!isEditing()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Remarks</label>
+                    <input type="text" formControlName="ctcRemarks" class="input-control" placeholder="Enter remarks..." [readonly]="!isEditing()" />
+                  </div>
+                </div>
+
+                <!-- Optional Save As Package fields (only for CUSTOM mode in edit mode) -->
+                <div *ngIf="employeeForm.get('assignmentMode')?.value === 'CUSTOM' && isEditing()" style="margin-top: 20px; padding: 16px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px;">
+                  <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #1e293b; margin-bottom: 12px; cursor: pointer;">
+                    <input type="checkbox" formControlName="saveAsPackage" />
+                    Save this salary structure as a reusable CTC Package
+                  </label>
+                  <div class="grid-2" *ngIf="employeeForm.get('saveAsPackage')?.value">
+                    <div class="form-group">
+                      <label>Package Name *</label>
+                      <input type="text" formControlName="newPackageName" class="input-control" placeholder="e.g. Senior Software Engineer Package" />
+                    </div>
+                    <div class="form-group">
+                      <label>Package Code *</label>
+                      <input type="text" formControlName="newPackageCode" class="input-control" placeholder="e.g. SSE-PKG-01" />
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                      <label>Description</label>
+                      <input type="text" formControlName="newPackageDescription" class="input-control" placeholder="Optional description..." />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="salary-kpi-row grid-2 mt-20">
+                  <div class="card kpi-card glass-panel border-accent" style="margin-bottom: 0;">
+                    <div class="kpi-content">
+                      <span class="kpi-label">Monthly CTC</span>
+                      <span class="kpi-val">&#x20b9;{{ (selectedCtcAnnualAmount() / 12) | number:'1.2-2' }}</span>
+                    </div>
+                    <span class="material-icons icon">calendar_month</span>
+                  </div>
+                  <div class="card kpi-card glass-panel border-accent" style="margin-bottom: 0;">
+                    <div class="kpi-content">
+                      <span class="kpi-label">Annual CTC</span>
+                      <span class="kpi-val">&#x20b9;{{ selectedCtcAnnualAmount() | number:'1.2-2' }}</span>
+                    </div>
+                    <span class="material-icons icon">analytics</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Salary Breakup components table -->
+              <div class="card glass-panel" style="margin-bottom: 20px; padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 16px;">
+                  <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.05em;">Salary Breakup Components</h4>
+                  <button *ngIf="employeeForm.get('assignmentMode')?.value === 'CUSTOM' && isEditing()" type="button" class="btn btn-primary btn-sm" (click)="addCustomSalaryHead()">
+                    <span class="material-icons">add</span> Add Salary Head
+                  </button>
+                </div>
+
+                <!-- Mode 1: PACKAGE View (Read-Only) -->
+                <div *ngIf="employeeForm.get('assignmentMode')?.value === 'PACKAGE'">
+                  <table class="grid-table" *ngIf="employeeForm.get('ctcId')?.value">
+                    <thead>
+                      <tr>
+                        <th>Salary Head</th>
+                        <th>Calculation Type</th>
+                        <th>Value</th>
+                        <th style="text-align: right;">Monthly (₹)</th>
+                        <th style="text-align: right;">Annual (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let comp of currentCtcComponents">
+                        <td><strong>{{ comp.salaryHead }}</strong></td>
+                        <td>{{ comp.calculationType }}</td>
+                        <td>{{ comp.value || 0 }}</td>
+                        <td style="text-align: right;">{{ comp.monthlyAmount | number:'1.2-2' }}</td>
+                        <td style="text-align: right;">{{ comp.annualAmount | number:'1.2-2' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div *ngIf="!employeeForm.get('ctcId')?.value" style="padding: 20px; text-align: center; color: #64748b; font-style: italic;">
+                    Please select a CTC Package to view its components.
+                  </div>
+                </div>
+
+                <!-- Mode 2 & 3: CUSTOMIZE / CUSTOM Grid -->
+                <div *ngIf="employeeForm.get('assignmentMode')?.value !== 'PACKAGE'">
+                  <div *ngIf="employeeForm.get('assignmentMode')?.value === 'CUSTOM_FROM_PACKAGE' && !employeeForm.get('ctcId')?.value" style="padding: 20px; text-align: center; color: #64748b; font-style: italic;">
+                    Please select a base CTC Package to customize.
+                  </div>
+
+                  <table class="grid-table" *ngIf="employeeForm.get('assignmentMode')?.value === 'CUSTOM' || employeeForm.get('ctcId')?.value" [formGroup]="employeeForm">
+                    <thead>
+                      <tr>
+                        <th>Salary Head</th>
+                        <th>Calculation Type</th>
+                        <th>Value</th>
+                        <th style="text-align: right;">Monthly (₹)</th>
+                        <th style="text-align: right;">Annual (₹)</th>
+                        <th style="width: 80px;" *ngIf="employeeForm.get('assignmentMode')?.value === 'CUSTOM' && isEditing()">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody formArrayName="customComponents">
+                      <tr *ngIf="customComponentsArray.length === 0">
+                        <td colspan="6" class="empty-grid-msg">No components configured. Click "Add Salary Head" to begin.</td>
+                      </tr>
+                      <tr *ngFor="let comp of customComponentsArray.controls; let i = index" [formGroupName]="i">
+                        <td>
+                          <input *ngIf="employeeForm.get('assignmentMode')?.value === 'CUSTOM' && isEditing()" type="text" formControlName="salaryHead" class="input-control" placeholder="e.g. Basic, HRA" style="padding: 4px 8px;" />
+                          <strong *ngIf="employeeForm.get('assignmentMode')?.value !== 'CUSTOM' || !isEditing()">{{ comp.get('salaryHead')?.value }}</strong>
+                        </td>
+                        <td>
+                          <select *ngIf="isEditing()" class="form-control form-control-sm" formControlName="calculationType" style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 8px; width: 100%;">
+                            <option value="Fixed Amount">Fixed Amount</option>
+                            <option value="Percentage of CTC" *ngIf="employeeForm.get('assignmentMode')?.value !== 'CUSTOM'">Percentage of CTC</option>
+                            <option value="Percentage of Basic">Percentage of Basic</option>
+                            <option value="Remaining Balance" *ngIf="employeeForm.get('assignmentMode')?.value !== 'CUSTOM'">Remaining Balance</option>
+                          </select>
+                          <span *ngIf="!isEditing()">{{ comp.get('calculationType')?.value }}</span>
+                        </td>
+                        <td>
+                          <input *ngIf="isEditing() && comp.get('calculationType')?.value !== 'Remaining Balance'" type="number" class="form-control form-control-sm" formControlName="value" style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 8px; width: 100px;" min="0">
+                          <span *ngIf="!isEditing() || comp.get('calculationType')?.value === 'Remaining Balance'">
+                            {{ comp.get('calculationType')?.value === 'Remaining Balance' ? '-' : (comp.get('value')?.value || 0) }}
+                          </span>
+                        </td>
+                        <td style="text-align: right;">{{ comp.get('monthlyAmount')?.value | number:'1.2-2' }}</td>
+                        <td style="text-align: right;">{{ comp.get('annualAmount')?.value | number:'1.2-2' }}</td>
+                        <td *ngIf="employeeForm.get('assignmentMode')?.value === 'CUSTOM' && isEditing()">
+                          <button type="button" class="btn btn-ghost btn-icon error" (click)="removeCustomSalaryHead(i)" title="Delete">
+                            <span class="material-icons text-danger" style="font-size: 16px;">delete</span>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- CTC Assignment History -->
+              <div class="section-header mt-24">
+                <h3>Salary & CTC Assignment History</h3>
+              </div>
+
+              <table class="grid-table">
+                <thead>
+                  <tr>
+                    <th>CTC Package</th>
+                    <th>Effective From</th>
+                    <th>Monthly CTC (₹)</th>
+                    <th>Annual CTC (₹)</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="!selectedEmployee()?.ctcAssignments || selectedEmployee()?.ctcAssignments?.length === 0">
+                    <td colspan="6" class="empty-grid-msg" style="text-align: center; padding: 20px; color: #64748b;">No CTC assignment history found.</td>
+                  </tr>
+                  <tr *ngFor="let assign of selectedEmployee()?.ctcAssignments">
+                    <td><strong>{{ assign.ctc?.ctcName || 'Legacy / Custom' }}</strong></td>
+                    <td>{{ assign.effectiveFrom | date:'mediumDate' }}</td>
+                    <td>{{ assign.monthlyCTC | number:'1.2-2' }}</td>
+                    <td>{{ assign.annualCTC | number:'1.2-2' }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="assign.status === 'ACTIVE' ? 'badge-success' : 'badge-gray'">
+                        {{ assign.status }}
+                      </span>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-ghost btn-icon" (click)="viewHistoryRecord(assign)" title="View Breakup" style="padding: 2px;">
+                        <span class="material-icons text-primary" style="font-size: 18px;">visibility</span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <!-- 8. ATTACHMENTS (DOCUMENTS) TAB -->
+          @if (activeTab() === 'documents') {
+            <div class="tab-panel animated-fade-in">
+              <div class="section-header-row" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
+                <div class="header-left" style="display: flex; align-items: center; gap: 8px;">
+                  <span class="material-icons text-primary" style="font-size: 22px;">description</span>
+                  <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;">Employee Attachments</h4>
+                </div>
+                <span style="font-size: 12px; color: #64748b;">
+                  Supported formats: <strong>PDF, PNG, JPG, JPEG</strong> (Max 10MB)
+                </span>
+              </div>
+
+              <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                <div 
+                  *ngFor="let doc of getRequiredDocuments(); trackBy: trackByDocType" 
+                  class="document-card card" 
+                  [class.uploaded]="doc.uploadedFile" 
+                  [class.missing]="doc.isMandatory && !doc.uploadedFile"
+                  style="border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s; position: relative; min-height: 180px; box-shadow: none;"
+                >
+                  <!-- Badge overlay -->
+                  <div style="position: absolute; top: 12px; right: 12px;">
+                    <span 
+                      class="badge" 
+                      [ngClass]="{
+                        'badge-success': doc.uploadedFile,
+                        'badge-danger': doc.isMandatory && !doc.uploadedFile,
+                        'badge-warning': !doc.isMandatory && !doc.uploadedFile
+                      }"
+                      style="padding: 4px 8px; font-size: 11px; border-radius: 12px; font-weight: 600;"
+                    >
+                      {{ doc.uploadedFile ? '🟢 Uploaded' : (doc.isMandatory ? '🔴 Mandatory' : '🟡 Optional') }}
+                    </span>
+                  </div>
+
+                  <!-- Card Content -->
+                  <div style="margin-right: 80px;">
+                    <h5 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 700; color: #1e293b;">{{ doc.name }}</h5>
+                    <p style="margin: 0; font-size: 12px; color: #64748b; line-height: 1.4;">{{ doc.description }}</p>
+                    
+                    <!-- Uploaded details -->
+                    <div *ngIf="doc.uploadedFile" style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 11px; color: #64748b;">
+                      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span>Uploaded By:</span>
+                        <span style="font-weight: 600; color: #334155;">{{ doc.uploadedFile.uploadedBy }}</span>
+                      </div>
+                      <div style="display: flex; justify-content: space-between;">
+                        <span>Date:</span>
+                        <span style="font-weight: 600; color: #334155;">{{ doc.uploadedFile.uploadedDate | date:'mediumDate' }} (v{{ doc.uploadedFile.version }})</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Card Actions -->
+                  <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+                    <!-- Upload Button (only in Edit Mode) -->
+                    <ng-container *ngIf="!doc.uploadedFile">
+                      <button 
+                        *ngIf="isEditing()"
+                        type="button" 
+                        class="btn btn-secondary btn-sm" 
+                        (click)="fileInput.click()"
+                        [disabled]="uploadProgress()[doc.type] !== undefined"
+                        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px;"
+                      >
+                        <span class="material-icons" style="font-size: 18px;">cloud_upload</span> Upload File
+                      </button>
+                      <span *ngIf="!isEditing()" style="font-size: 12px; color: #ef4444; font-style: italic; font-weight: 500;">
+                        No document uploaded.
+                      </span>
+                    </ng-container>
+
+                    <ng-container *ngIf="doc.uploadedFile">
+                      <button 
+                        type="button" 
+                        class="btn btn-secondary btn-sm" 
+                        (click)="onPreviewDocument(doc.uploadedFile)"
+                        [disabled]="uploadProgress()[doc.type] !== undefined"
+                        style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px;"
+                      >
+                        <span class="material-icons" style="font-size: 16px;">visibility</span> Preview
+                      </button>
+                      <button 
+                        type="button" 
+                        class="btn btn-secondary btn-sm" 
+                        (click)="onDownloadDocument(doc.uploadedFile)"
+                        [disabled]="uploadProgress()[doc.type] !== undefined"
+                        style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px;"
+                      >
+                        <span class="material-icons" style="font-size: 16px;">download</span> Download
+                      </button>
+                      <button 
+                        *ngIf="isEditing()"
+                        type="button" 
+                        class="btn btn-ghost btn-sm error" 
+                        (click)="onDeleteDocument(doc.uploadedFile)"
+                        [disabled]="uploadProgress()[doc.type] !== undefined"
+                        style="display: flex; align-items: center; justify-content: center; padding: 6px;"
+                        title="Delete"
+                      >
+                        <span class="material-icons" style="font-size: 18px;">delete</span>
+                      </button>
+                      
+                      <!-- Replace Button (only in Edit Mode) -->
+                      <button 
+                        *ngIf="isEditing()"
+                        type="button" 
+                        class="btn btn-ghost btn-sm" 
+                        (click)="fileInput.click()"
+                        [disabled]="uploadProgress()[doc.type] !== undefined"
+                        style="width: 100%; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: #2563eb;"
+                      >
+                        <span class="material-icons" style="font-size: 14px;">cached</span> Replace Document (v{{ doc.uploadedFile.version }})
+                      </button>
+                    </ng-container>
+
+                    <!-- Uploading Progress Bar -->
+                    <div *ngIf="uploadProgress()[doc.type] !== undefined" class="upload-progress-container" style="width: 100%; margin-top: 8px;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #475569; margin-bottom: 4px;">
+                        <span style="display: flex; align-items: center; gap: 4px;">
+                          <span class="material-icons rotating" style="font-size: 14px; animation: spin 1s linear infinite; display: inline-block;">sync</span> Uploading...
+                        </span>
+                        <span style="font-weight: 600;">{{ uploadProgress()[doc.type] }}%</span>
+                      </div>
+                      <div class="progress-bar-bg" style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                        <div class="progress-bar-fill" [style.width.%]="uploadProgress()[doc.type]" style="height: 100%; background: #2563eb; transition: width 0.1s ease-in-out;"></div>
+                      </div>
+                    </div>
+
+                    <!-- Hidden File Input -->
+                    <input 
+                      type="file" 
+                      #fileInput 
+                      accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" 
+                      (change)="onFileSelected($event, doc.type)" 
+                      style="display: none;" 
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </form>
+      }
+    </div>
+  }
+</div>
+
+<!-- ==============================================
+     FAMILY DRAWER PANEL (SIDE-OVERLAY)
+     ============================================== -->
+<div class="drawer-overlay" *ngIf="familyDrawerOpen()" (click)="familyDrawerOpen.set(false)">
+  <div class="drawer-panel animated-slide-in" (click)="$event.stopPropagation()">
+    <div class="drawer-header">
+      <h3>{{ familyDrawerMode() === 'add' ? 'Add Family Member' : 'Edit Family Member' }}</h3>
+      <button class="btn btn-ghost btn-icon" (click)="familyDrawerOpen.set(false)">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    
+    <div class="drawer-body">
+      <form [formGroup]="familyForm" (ngSubmit)="saveFamilyMember()">
+        <div class="form-group">
+          <label>Relationship *</label>
+          <select formControlName="relationship" class="input-control">
+            <option value="FATHER">Father</option>
+            <option value="MOTHER">Mother</option>
+            <option value="SPOUSE">Spouse</option>
+            <option value="SON">Son</option>
+            <option value="DAUGHTER">Daughter</option>
+            <option value="BROTHER">Brother</option>
+            <option value="SISTER">Sister</option>
+            <option value="GUARDIAN">Guardian</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Family Member Name *</label>
+          <input type="text" formControlName="memberName" class="input-control" placeholder="Enter Full Name" />
+        </div>
+
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <input type="date" formControlName="dob" class="input-control" />
+        </div>
+
+        <div class="form-group">
+          <label>Occupation</label>
+          <input type="text" formControlName="occupation" class="input-control" placeholder="e.g. Business, Homemaker" />
+        </div>
+
+        <div class="form-group">
+          <label>Contact Number</label>
+          <input type="text" formControlName="contactNumber" class="input-control" placeholder="10-digit number" />
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="toggle-label">
+            <input type="checkbox" formControlName="isEmployeeOfOrg" />
+            <span>Employee of Organization</span>
+          </label>
+        </div>
+
+        <div class="drawer-footer">
+          <button type="button" class="btn btn-secondary" (click)="familyDrawerOpen.set(false)">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================================
+     NOMINEE DRAWER PANEL (SIDE-OVERLAY)
+     ============================================== -->
+<div class="drawer-overlay" *ngIf="nomineeDrawerOpen()" (click)="nomineeDrawerOpen.set(false)">
+  <div class="drawer-panel animated-slide-in" (click)="$event.stopPropagation()">
+    <div class="drawer-header">
+      <h3>{{ nomineeDrawerMode() === 'add' ? 'Add Nominee Record' : 'Edit Nominee Record' }}</h3>
+      <button class="btn btn-ghost btn-icon" (click)="nomineeDrawerOpen.set(false)">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      <form [formGroup]="nomineeForm" (ngSubmit)="saveNominee()">
+        <div class="form-group">
+          <label>Nominee Name *</label>
+          <input type="text" formControlName="nomineeName" class="input-control" placeholder="Enter Full Name" />
+        </div>
+
+        <div class="form-group">
+          <label>Relationship *</label>
+          <select formControlName="relationship" class="input-control">
+            <option value="FATHER">Father</option>
+            <option value="MOTHER">Mother</option>
+            <option value="SPOUSE">Spouse</option>
+            <option value="SON">Son</option>
+            <option value="DAUGHTER">Daughter</option>
+            <option value="BROTHER">Brother</option>
+            <option value="SISTER">Sister</option>
+            <option value="GUARDIAN">Guardian</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Gender *</label>
+          <select formControlName="gender" class="input-control">
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <input type="date" formControlName="dob" class="input-control" />
+        </div>
+
+        <div class="form-group">
+          <label>Age</label>
+          <input type="text" formControlName="age" class="input-control" readonly />
+        </div>
+
+        <div class="form-group">
+          <label>Contact Number</label>
+          <input type="text" formControlName="contactNumber" class="input-control" placeholder="10-digit number" />
+        </div>
+
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" formControlName="address" class="input-control" placeholder="Enter address details" />
+        </div>
+
+        <div class="form-group">
+          <label>Share Percentage * (1-100)</label>
+          <input type="number" formControlName="sharePercentage" class="input-control" placeholder="e.g. 50" />
+        </div>
+
+        <div class="drawer-footer">
+          <button type="button" class="btn btn-secondary" (click)="nomineeDrawerOpen.set(false)">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Nominee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================================
+     INLINE DEPARTMENT DRAWER PANEL (SIDE-OVERLAY)
+     ============================================== -->
+<div class="drawer-overlay" *ngIf="inlineDepartmentOpen()" (click)="inlineDepartmentOpen.set(false)">
+  <div class="drawer-panel animated-slide-in" (click)="$event.stopPropagation()">
+    <div class="drawer-header">
+      <h3>New Department Details</h3>
+      <button class="btn btn-ghost btn-icon" (click)="inlineDepartmentOpen.set(false)">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      <form [formGroup]="inlineDepartmentForm" (ngSubmit)="saveInlineDepartment()">
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label for="inline-dept-name" style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block;">Department Name *</label>
+          <input
+            id="inline-dept-name"
+            type="text"
+            formControlName="name"
+            class="input-control"
+            placeholder="e.g. Development"
+            style="width: 100%; padding: 10px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;"
+          />
+          @if (inlineDepartmentForm.get('name')?.invalid && inlineDepartmentForm.get('name')?.touched) {
+            <span class="error-message" style="color: #ef4444; font-size: 12px; display: flex; align-items: center; gap: 4px; margin-top: 6px;">
+              <span class="material-icons" style="font-size: 16px;">error_outline</span>
+              Department name is required (min 2 characters)
+            </span>
+          }
+        </div>
+
+        <div class="drawer-footer">
+          <button type="button" class="btn btn-secondary" (click)="inlineDepartmentOpen.set(false)">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Department</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================================
+     DOCUMENT PREVIEW MODAL
+     ============================================== -->
+<div class="drawer-overlay animated-overlay" *ngIf="previewModalOpen" (click)="closePreviewModal()" 
+     [style.top.px]="currentScrollTop()"
+     style="position: absolute !important; left: 0; right: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); height: 100vh; width: 100vw;">
+  <div id="preview-modal-container" role="dialog" aria-modal="true" aria-labelledby="preview-title" tabindex="-1" class="modal-panel animated-scale-in" (click)="$event.stopPropagation()" style="background: #ffffff; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 90%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; outline: none;">
+    <div class="modal-header" style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+      <h3 id="preview-title" style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        Preview: {{ previewFileName }}
+      </h3>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <!-- Zoom controls for images -->
+        <ng-container *ngIf="previewMimeType && previewMimeType.startsWith('image/')">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="zoomOut()" style="padding: 6px 8px; display: flex; align-items: center; justify-content: center;"><span class="material-icons" style="font-size: 18px;">zoom_out</span></button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="zoomIn()" style="padding: 6px 8px; display: flex; align-items: center; justify-content: center;"><span class="material-icons" style="font-size: 18px;">zoom_in</span></button>
+          <span style="font-size: 12px; color: #64748b; font-weight: 600; margin-right: 8px;">{{ zoomLevel * 100 | number:'1.0-0' }}%</span>
+        </ng-container>
+        <button type="button" class="btn btn-ghost btn-icon" (click)="closePreviewModal()" aria-label="Close dialog">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="modal-body" style="padding: 24px; overflow: auto; display: flex; align-items: center; justify-content: center; background: #f8fafc; flex: 1; min-height: 450px;">
+      <!-- PDF Viewer -->
+      <iframe 
+        *ngIf="previewMimeType === 'application/pdf'" 
+        [src]="previewUrl" 
+        style="width: 100%; height: 600px; border: none; border-radius: 8px;"
+      ></iframe>
+
+      <!-- Image Viewer -->
+      <div 
+        *ngIf="previewMimeType && previewMimeType.startsWith('image/')" 
+        style="overflow: auto; max-width: 100%; max-height: 600px; display: flex; align-items: center; justify-content: center;"
+      >
+        <img 
+          [src]="previewUrl" 
+          [style.transform]="'scale(' + zoomLevel + ')'" 
+          style="max-width: 100%; max-height: 500px; object-fit: contain; transition: transform 0.2s; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" 
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================================
+     CTC HISTORY BREAKUP DETAIL MODAL
+     ============================================== -->
+<div class="drawer-overlay animated-overlay" *ngIf="historyDetailModalOpen()" (click)="closeHistoryDetailModal()" 
+     [style.top.px]="currentScrollTop()"
+     style="position: absolute !important; left: 0; right: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); height: 100vh; width: 100vw;">
+  <div id="history-modal-container" role="dialog" aria-modal="true" aria-labelledby="ctc-breakup-title" tabindex="-1" class="modal-panel animated-scale-in" (click)="$event.stopPropagation()" style="background: #ffffff; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 90%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; outline: none;">
+    <div class="modal-header" style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+      <h3 id="ctc-breakup-title" style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;">
+        CTC Breakup Detail
+      </h3>
+      <button type="button" class="btn btn-ghost btn-icon" (click)="closeHistoryDetailModal()" aria-label="Close dialog">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    
+    <div class="modal-body" style="padding: 24px; overflow: auto; flex: 1;">
+      <div style="margin-bottom: 16px; font-size: 13px; color: #475569;">
+        <div><strong>CTC Package:</strong> {{ selectedHistoryRecord()?.ctc?.ctcName || 'Legacy / Custom' }}</div>
+        <div style="margin-top: 4px;"><strong>Effective From:</strong> {{ selectedHistoryRecord()?.effectiveFrom | date:'mediumDate' }}</div>
+        <div style="margin-top: 4px;"><strong>Remarks:</strong> {{ selectedHistoryRecord()?.remarks || '—' }}</div>
+      </div>
+      
+      <table class="grid-table compact-table" style="width: 100%; border-collapse: collapse; font-size: 12px;">
+        <thead>
+          <tr style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left;">
+            <th style="padding: 8px;">Salary Head</th>
+            <th style="padding: 8px;">Calculation Type</th>
+            <th style="padding: 8px; width: 100px;">Value</th>
+            <th style="padding: 8px; width: 120px; text-align: right;">Monthly (₹)</th>
+            <th style="padding: 8px; width: 120px; text-align: right;">Annual (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let comp of getHistoryComponents(selectedHistoryRecord())" style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 8px;"><strong>{{ comp.salaryHead }}</strong></td>
+            <td style="padding: 8px;">{{ comp.calculationType }}</td>
+            <td style="padding: 8px;">{{ comp.value || 0 }}</td>
+            <td style="padding: 8px; text-align: right;">{{ comp.monthlyAmount | number:'1.2-2' }}</td>
+            <td style="padding: 8px; text-align: right;">{{ comp.annualAmount | number:'1.2-2' }}</td>
+          </tr>
+          <tr style="background-color: #f8fafc; font-weight: 700; border-top: 1px solid #cbd5e1;">
+            <td colspan="3" style="padding: 8px; text-align: right;">Total Calculated CTC:</td>
+            <td style="padding: 8px; text-align: right;">₹{{ selectedHistoryRecord()?.monthlyCTC | number:'1.2-2' }}</td>
+            <td style="padding: 8px; text-align: right;">₹{{ selectedHistoryRecord()?.annualCTC | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+

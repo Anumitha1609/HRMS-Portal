@@ -1,0 +1,383 @@
+<div class="forgot-card-page">
+
+  <!-- ── Toast stack ─────────────────────────────────────────────────── -->
+  <div class="toast-stack" aria-live="polite">
+    <div *ngFor="let t of toasts" class="toast" [ngClass]="t.type" (click)="dismissToast(t.id)">
+      {{ t.text }}
+    </div>
+  </div>
+
+  <!-- ── Global error ────────────────────────────────────────────────── -->
+  <div *ngIf="globalError" class="alert error">{{ globalError }}</div>
+
+  <!-- ── Employee Information + action panel (expands above the table) ─ -->
+  <div class="animated-panel" [class.open]="detailsOpen">
+    <div class="details-grid" *ngIf="selectedRow as row">
+
+      <!-- Left: Employee Information -->
+      <div class="panel-card">
+        <div class="panel-card-header">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" fill="#6366f1" opacity="0.85" />
+            <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="#6366f1" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          Employee Information
+        </div>
+
+        <div class="employee-info-body">
+          <div class="employee-photo" [class.has-photo]="row.employee.photo">
+            <img *ngIf="row.employee.photo" [src]="row.employee.photo" [alt]="row.employee.employeeName" />
+            <span *ngIf="!row.employee.photo">{{ row.employee.employeeName.charAt(0) }}</span>
+          </div>
+
+          <div class="employee-info-fields">
+            <div class="field span-2">
+              <label>Employee Name</label>
+              <div class="readonly-input filled">{{ row.employee.employeeName }}</div>
+            </div>
+            <div class="field">
+              <label>Employee Number</label>
+              <div class="readonly-input filled">{{ row.employee.employeeCode }}</div>
+            </div>
+            <div class="field">
+              <label>Department</label>
+              <div class="readonly-input" [class.filled]="row.employee.department">{{ row.employee.department || '' }}</div>
+            </div>
+            <div class="field">
+              <label>Designation</label>
+              <div class="readonly-input" [class.filled]="row.employee.designation">{{ row.employee.designation || '' }}</div>
+            </div>
+            <div class="field">
+              <label>Original Card Number</label>
+              <div class="readonly-input" [class.filled]="row.employee.originalCardNumber">{{ row.employee.originalCardNumber || '' }}</div>
+              <div class="hint" *ngIf="row.status === 'Temporary Assigned'">
+                Original card is inactive while a temporary card is mapped.
+              </div>
+            </div>
+            <div class="field">
+              <label>Current Card Status</label>
+              <div class="status-slot">
+                <span class="status-badge" [ngClass]="statusClass(row.status)">
+                  <span class="dot"></span>{{ row.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Forgot Card form -->
+      <div class="panel-card" *ngIf="mode === 'forgot'">
+        <div class="panel-card-header spaced">
+          <span class="header-title">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="6" width="20" height="13" rx="2.5" fill="#6366f1" opacity="0.15" stroke="#6366f1" stroke-width="1.5" />
+              <path d="M7 12h10M7 15h6" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" />
+              <circle cx="18" cy="9.5" r="1.5" fill="#6366f1" />
+            </svg>
+            Temporary Card Adjustment
+          </span>
+          <button type="button" class="icon-btn" (click)="handleResetSelection()" aria-label="Close Temporary Card Adjustment" title="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        <div *ngIf="isAlreadyTemporaryAssigned" class="alert error small">
+          This employee already has an active temporary card. Use Employee Returned Card to revert it first.
+        </div>
+
+        <form [formGroup]="tempForm" class="temp-form-grid">
+          <div class="field">
+            <label>Temporary Card Number<span class="required">*</span></label>
+            <input
+              type="text"
+              formControlName="temporaryCardNumber"
+              placeholder="Scan or enter card number"
+              [class.error]="tempForm.get('temporaryCardNumber')?.touched && tempForm.get('temporaryCardNumber')?.invalid" />
+            <div class="error-text" *ngIf="tempForm.get('temporaryCardNumber')?.touched && tempForm.get('temporaryCardNumber')?.invalid">
+              Temporary Card Number is mandatory.
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Date Assigned<span class="required">*</span></label>
+            <input
+              type="date"
+              formControlName="assignedDate"
+              [class.error]="tempForm.get('assignedDate')?.touched && tempForm.get('assignedDate')?.invalid" />
+            <div class="error-text" *ngIf="tempForm.get('assignedDate')?.touched && tempForm.get('assignedDate')?.invalid">
+              Date Assigned is mandatory.
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Valid Until<span class="required">*</span></label>
+            <input
+              type="date"
+              formControlName="validUntil"
+              [class.error]="tempForm.get('validUntil')?.touched && tempForm.get('validUntil')?.invalid" />
+            <div class="error-text" *ngIf="tempForm.get('validUntil')?.touched && tempForm.get('validUntil')?.errors?.['required']">
+              Valid Until is mandatory.
+            </div>
+            <div class="error-text" *ngIf="tempForm.get('validUntil')?.errors?.['beforeAssignedDate']">
+              Valid Until cannot be before the Assigned Date.
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Status</label>
+            <div class="status-slot">
+              <span *ngIf="validUntilStatus" class="status-badge" [ngClass]="statusClass(validUntilStatus)">
+                <span class="dot"></span>{{ validUntilStatus }}
+              </span>
+              <div *ngIf="!validUntilStatus" class="readonly-input">Auto-calculated</div>
+            </div>
+          </div>
+
+          <div class="field span-2">
+            <label>Remarks</label>
+            <textarea formControlName="remarks" placeholder="Optional notes about this assignment" rows="2"></textarea>
+          </div>
+        </form>
+
+        <div class="panel-actions">
+          <button
+            type="button"
+            class="btn btn-map"
+            [class.mapped]="mapped"
+            [disabled]="isAlreadyTemporaryAssigned || mapped"
+            (click)="handleMapTemporaryCard()">
+            <svg *ngIf="mapped" width="14" height="14" viewBox="0 0 20 20" fill="none">
+              <path d="M4 10.5l4 4 8-9" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            {{ mapped ? 'Mapped' : 'Map Temporary Card' }}
+          </button>
+          <button type="button" class="btn btn-outline" [disabled]="isAlreadyTemporaryAssigned" (click)="handleResetForm()">
+            Reset
+          </button>
+          <button type="button" class="btn btn-success" [disabled]="isAlreadyTemporaryAssigned || saving" (click)="handleSaveTemporaryCard()">
+            {{ saving ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Returned Card details -->
+      <div class="panel-card" *ngIf="mode === 'returned' && row.record as record">
+        <div class="panel-card-header">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M9 14l-4-4 4-4" stroke="#6366f1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M5 10h9a5 5 0 010 10h-1" stroke="#6366f1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Card Return Details
+        </div>
+
+        <div class="temp-form-grid">
+          <div class="field">
+            <label>Original Card Number</label>
+            <div class="readonly-input filled">{{ row.employee.originalCardNumber || '' }}</div>
+          </div>
+          <div class="field">
+            <label>Temporary Card Number</label>
+            <div class="readonly-input filled">{{ record.temporaryCardNumber }}</div>
+          </div>
+          <div class="field">
+            <label>Date Assigned</label>
+            <div class="readonly-input filled">{{ formatDisplayDate(record.assignedDate) }}</div>
+          </div>
+          <div class="field">
+            <label>Valid Until</label>
+            <div class="readonly-input filled">{{ formatDisplayDate(record.validUntil) }}</div>
+          </div>
+          <div class="field span-2">
+            <label>Current Status</label>
+            <div class="status-slot">
+              <span class="status-badge" [ngClass]="statusClass(row.status)">
+                <span class="dot"></span>{{ row.status }}
+              </span>
+            </div>
+          </div>
+          <div class="field span-2" *ngIf="record.remarks">
+            <label>Remarks</label>
+            <div class="readonly-input filled">{{ record.remarks }}</div>
+          </div>
+        </div>
+
+        <div class="panel-actions end">
+          <button type="button" class="btn btn-primary" (click)="showConfirm = true">
+            Revert to Original Card
+          </button>
+        </div>
+
+        <div class="history-block" *ngIf="employeeHistory.length > 0">
+          <div class="history-title">Recent Assignment History</div>
+          <div class="history-list">
+            <div class="history-row" *ngFor="let h of employeeHistory; trackBy: trackByHistoryId">
+              <span>Card {{ h.temporaryCardNumber }} &middot; {{ formatDisplayDate(h.assignedDate) }}</span>
+              <span>{{ h.returnedDate ? ('Returned ' + formatDisplayDate(h.returnedDate)) : 'Active' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: placeholder hint when no mode chosen yet -->
+      <div class="panel-card placeholder-card" *ngIf="mode === null">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" opacity="0.4">
+          <rect x="2" y="6" width="20" height="13" rx="2.5" stroke="#6366f1" stroke-width="1.5" />
+          <path d="M7 12h10M7 15h6" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+        <div class="placeholder-text">
+          Use <strong>Forgot Card</strong> or <strong>Employee Returned Card</strong> below to take action.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Action buttons ──────────────────────────────────────────────── -->
+  <div class="action-bar">
+    <button type="button" class="btn btn-primary" [disabled]="!selectedRow" (click)="handleForgotCardClick()">
+      Forgot Card
+    </button>
+    <button
+      type="button"
+      class="btn btn-outline"
+      [disabled]="!selectedRow || selectedRow.status !== 'Temporary Assigned'"
+      (click)="handleReturnedCardClick()">
+      Employee Returned Card
+    </button>
+    <button type="button" class="btn btn-outline" *ngIf="selectedRow" (click)="handleResetSelection()">
+      Reset Selection
+    </button>
+  </div>
+
+  <!-- ── Employee table ──────────────────────────────────────────────── -->
+  <div class="panel-card table-card">
+    <div class="panel-card-header">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="4" width="18" height="16" rx="2" stroke="#6366f1" stroke-width="1.6" />
+        <path d="M3 9h18M9 4v16" stroke="#6366f1" stroke-width="1.6" />
+      </svg>
+      Employee Card Directory
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-row">
+      <input
+        class="filter-search"
+        type="text"
+        [ngModel]="search"
+        (ngModelChange)="onSearchChange($event)"
+        [ngModelOptions]="{standalone: true}"
+        placeholder="Search by employee name or code" />
+
+      <select class="filter-select" [ngModel]="departmentFilter" (ngModelChange)="onDepartmentFilterChange($event)" [ngModelOptions]="{standalone: true}">
+        <option value="">All Departments</option>
+        <option *ngFor="let d of departmentOptions" [value]="d">{{ d }}</option>
+      </select>
+
+      <select class="filter-select" [ngModel]="statusFilter" (ngModelChange)="onStatusFilterChange($event)" [ngModelOptions]="{standalone: true}">
+        <option value="">All Statuses</option>
+        <option value="Active">Active</option>
+        <option value="Temporary Assigned">Temporary Assigned</option>
+        <option value="Expired">Expired</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="table-inner-card">
+      <div class="table-scroll">
+        <table class="employee-table">
+          <thead>
+            <tr>
+              <th>Employee No</th>
+              <th>Employee Name</th>
+              <th>Department</th>
+              <th>Designation</th>
+              <th>Original Card No.</th>
+              <th>Temp. Card No.</th>
+              <th>Assigned Date</th>
+              <th>Valid Until</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="pagedRows.length === 0">
+              <td colspan="9" class="empty-cell">No employees match the current filters.</td>
+            </tr>
+            <tr
+              *ngFor="let row of pagedRows; trackBy: trackByEmployeeCode"
+              (click)="handleRowClick(row.employee.employeeCode)"
+              [class.selected]="selectedCode === row.employee.employeeCode"
+              title="Click to select this employee">
+              <td class="cell-strong">{{ row.employee.employeeCode }}</td>
+              <td>
+                <span class="name-cell">
+                  <svg *ngIf="selectedCode === row.employee.employeeCode" width="12" height="12" viewBox="0 0 20 20" fill="none">
+                    <path d="M4 10.5l4 4 8-9" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  {{ row.employee.employeeName }}
+                </span>
+              </td>
+              <td>{{ row.employee.department || '—' }}</td>
+              <td>{{ row.employee.designation || '—' }}</td>
+              <td>{{ row.employee.originalCardNumber || '—' }}</td>
+              <td>{{ row.record?.temporaryCardNumber || '—' }}</td>
+              <td class="nowrap">{{ row.record ? formatDisplayDate(row.record.assignedDate) : '—' }}</td>
+              <td class="nowrap">{{ row.record ? formatDisplayDate(row.record.validUntil) : '—' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="statusClass(row.status)">
+                  <span class="dot"></span>{{ row.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-row">
+        <div class="pagination-info">
+          Page {{ page }} of {{ totalPages }} &middot; {{ filteredRows.length }} employee{{ filteredRows.length !== 1 ? 's' : '' }}
+        </div>
+        <div class="pagination-buttons">
+          <button type="button" class="btn btn-outline sm" [disabled]="page === 1" (click)="goToPage(-1)">Previous</button>
+          <button type="button" class="btn btn-outline sm" [disabled]="page === totalPages" (click)="goToPage(1)">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected employee indicator -->
+    <div class="selected-indicator" *ngIf="selectedRow as row">
+      <span class="label">Selected Employee:</span>
+      {{ row.employee.employeeName }}
+      <span class="code">({{ row.employee.employeeCode }})</span>
+    </div>
+  </div>
+
+  <!-- ── Confirm dialog ──────────────────────────────────────────────── -->
+  <div class="confirm-overlay" *ngIf="showConfirm" (click)="showConfirm = false">
+    <div class="confirm-dialog" (click)="$event.stopPropagation()">
+      <div class="confirm-body">
+        <div class="confirm-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 9v4M12 16.5h.01" stroke="#b45309" stroke-width="2" stroke-linecap="round" />
+            <path d="M10.3 3.9 2.6 17.4c-.5.9.1 2.1 1.2 2.1h16.4c1.1 0 1.8-1.2 1.2-2.1L13.7 3.9c-.6-1-2-1-2.6 0z" stroke="#b45309" stroke-width="1.6" />
+          </svg>
+        </div>
+        <div>
+          <div class="confirm-title">Revert to Original Card</div>
+          <div class="confirm-message">
+            Are you sure you want to revert {{ selectedRow?.employee?.employeeName || 'this employee' }} back to the
+            original card? The temporary card will be released and the employee status will become Active.
+          </div>
+        </div>
+      </div>
+      <div class="confirm-actions">
+        <button type="button" class="btn btn-outline" (click)="showConfirm = false">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="handleRevertConfirmed()">Revert</button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,30 @@
+[
+  {
+    "id": "cat-1",
+    "name": "Employee",
+    "employeeCount": 1,
+    "createdAt": "2024-01-10T09:00:00.000Z",
+    "subCategories": [
+      { "id": "subcat-1", "categoryId": "cat-1", "name": "Permanent", "createdAt": "2024-01-10T09:00:00.000Z" },
+      { "id": "subcat-2", "categoryId": "cat-1", "name": "Probationer", "createdAt": "2024-01-10T09:00:00.000Z" }
+    ]
+  },
+  {
+    "id": "cat-2",
+    "name": "Consultant",
+    "employeeCount": 1,
+    "createdAt": "2024-01-12T09:00:00.000Z",
+    "subCategories": [
+      { "id": "subcat-3", "categoryId": "cat-2", "name": "Retainer", "createdAt": "2024-01-12T09:00:00.000Z" }
+    ]
+  },
+  {
+    "id": "cat-3",
+    "name": "Intern",
+    "employeeCount": 0,
+    "createdAt": "2024-01-15T09:00:00.000Z",
+    "subCategories": [
+      { "id": "subcat-4", "categoryId": "cat-3", "name": "Summer Intern", "createdAt": "2024-01-15T09:00:00.000Z" }
+    ]
+  }
+]

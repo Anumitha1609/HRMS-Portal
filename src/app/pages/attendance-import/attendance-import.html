@@ -1,0 +1,336 @@
+<div class="ai-page">
+
+  <!-- ══════════════════════════════════════════════════════════════
+       [LAYOUT CHANGE] TOP SECTION — every control above the results
+       table now lives inside .ai-page-top. Nothing inside this wrapper
+       (bindings, structure, logic) is modified — only the surrounding
+       container is new. It sizes to its own content (no scrollbar of
+       its own); .ai-page-bottom takes whatever viewport height remains.
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="ai-page-top">
+
+  <div *ngIf="globalError" class="alert error">{{ globalError }}</div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       FILTER ROW — period selectors + database fetch + file pickers
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="panel filter-row">
+    <div class="filter-row-inner">
+
+      <div class="field">
+        <label>Import Type</label>
+        <select [(ngModel)]="importType" (ngModelChange)="onPeriodChange()" class="control w-140">
+          <option value="daily">Daily Import</option>
+          <option value="monthly">Monthly Import</option>
+          <option value="weekly">Weekly Import</option>
+          <option value="yearly">Yearly Import</option>
+        </select>
+      </div>
+
+      <div class="field" *ngIf="importType === 'daily'">
+        <label>Date <span class="req" *ngIf="errors.date">*</span></label>
+        <input type="date" [(ngModel)]="attendanceDate" [max]="today"
+               (ngModelChange)="errors.date = ''; onPeriodChange()"
+               class="control" [class.control-error]="errors.date">
+      </div>
+
+      <ng-container *ngIf="importType === 'monthly'">
+        <div class="field">
+          <label>Month <span class="req" *ngIf="errors.month">*</span></label>
+          <select [(ngModel)]="month" (ngModelChange)="errors.month = ''; onPeriodChange()"
+                  class="control w-110" [class.control-error]="errors.month">
+            <option value="">Month</option>
+            <option *ngFor="let m of monthOptions" [value]="m.value">{{ m.label }}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Year <span class="req" *ngIf="errors.year">*</span></label>
+          <select [(ngModel)]="year" (ngModelChange)="errors.year = ''; onPeriodChange()"
+                  class="control w-80" [class.control-error]="errors.year">
+            <option *ngFor="let y of yearOptions" [value]="y">{{ y }}</option>
+          </select>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="importType === 'weekly'">
+        <div class="field">
+          <label>Week Start <span class="req" *ngIf="errors.weekStart">*</span></label>
+          <input type="date" [(ngModel)]="weekStart" (ngModelChange)="errors.weekStart = ''; onPeriodChange()"
+                 class="control" [class.control-error]="errors.weekStart">
+        </div>
+        <div class="field">
+          <label>Week End <span class="req" *ngIf="errors.weekEnd">*</span></label>
+          <input type="date" [(ngModel)]="weekEnd" [min]="weekStart" (ngModelChange)="errors.weekEnd = ''; onPeriodChange()"
+                 class="control" [class.control-error]="errors.weekEnd">
+        </div>
+      </ng-container>
+
+      <div class="field" *ngIf="importType === 'yearly'">
+        <label>Year <span class="req" *ngIf="errors.year">*</span></label>
+        <select [(ngModel)]="year" (ngModelChange)="errors.year = ''; onPeriodChange()"
+                class="control w-80" [class.control-error]="errors.year">
+          <option *ngFor="let y of yearOptions" [value]="y">{{ y }}</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Database</label>
+        <select [(ngModel)]="selectedDatabase" class="control w-150">
+          <option value="All">All</option>
+          <option value="Acer">Acer</option>
+          <option value="Domestic">Domestic</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label-ghost">Fetch</label>
+        <button type="button" class="btn btn-primary" (click)="handleFetchDatabase()">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"></path><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"></path></svg>
+          Fetch
+        </button>
+      </div>
+
+      <div class="spacer"></div>
+
+      <input #fileInput type="file" accept=".xlsx,.xls" (change)="onFileInputChange($event)" hidden>
+      <button type="button" class="btn btn-outline" (click)="fileInput.click()">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        Choose File
+      </button>
+      <button type="button" class="btn btn-outline" (click)="downloadTemplate()">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Download Template
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       IMPORT AREA — file chip, validation alert, action buttons
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="panel import-area"
+       (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
+
+    <div class="file-chip" *ngIf="selectedFile; else noFile">
+      <div class="file-chip-icon">
+        <svg class="icon icon-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
+      </div>
+      <div class="file-chip-text">
+        <span class="file-name">{{ selectedFile.name }}</span>
+        <span class="file-status">
+          <svg class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Uploaded Successfully
+        </span>
+      </div>
+      <div class="spacer"></div>
+      <button type="button" class="link-btn" (click)="clearFile(fileInput)">Remove File</button>
+    </div>
+    <ng-template #noFile>
+      <p class="field-error" *ngIf="errors.file">{{ errors.file }}</p>
+    </ng-template>
+
+    <div class="import-failed-alert" *ngIf="dateValidationError">
+      <svg class="icon icon-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <div>
+        <div class="import-failed-title">Import Failed</div>
+        <p class="import-failed-msg">{{ dateValidationError }}</p>
+      </div>
+    </div>
+
+    <div class="db-import-message" *ngIf="dbImportMessage">
+      <svg class="icon icon-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <p>{{ dbImportMessage }}</p>
+    </div>
+
+    <div class="import-actions-row">
+      <p class="hint">
+        <svg class="icon icon-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        Make sure your file follows the correct template.
+      </p>
+
+      <div class="import-actions-buttons">
+        <button type="button" class="btn btn-outline" (click)="reset(fileInput)">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+          Reset
+        </button>
+        <button type="button" class="btn btn-primary" [disabled]="loading || !selectedFile || !!dateValidationError" (click)="handleImport()">
+          <span class="spinner" *ngIf="loading"></span>
+          <svg class="icon" *ngIf="!loading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          {{ loading ? 'Importing…' : 'Import' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       KPI BAR
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="panel kpi-bar" *ngIf="displayedSummary">
+    <div class="kpi-row">
+      <div class="kpi" *ngFor="let item of kpiItems">
+        <div class="kpi-icon" [ngClass]="item.iconClass">
+          <svg *ngIf="item.icon === 'users'" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <svg *ngIf="item.icon === 'check'" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 11 15 16 9"></polyline></svg>
+          <svg *ngIf="item.icon === 'x'" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+          <svg *ngIf="item.icon === 'clock'" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <svg *ngIf="item.icon === 'alert-triangle'" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <div>
+          <div class="kpi-value">{{ item.value }}</div>
+          <div class="kpi-label">{{ item.label }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+  <!-- ══════════════════════════════════════════════════════════════
+       [LAYOUT CHANGE] end of .ai-page-top
+       ══════════════════════════════════════════════════════════════ -->
+
+  <!-- ══════════════════════════════════════════════════════════════
+       [LAYOUT CHANGE] BOTTOM SECTION (remaining viewport height, ~70%
+       in the typical case) — Import Results ONLY. This wrapper gives
+       the results panel a real, bound height so its own internal
+       table-scroll region (sticky header, pinned pagination footer —
+       already implemented below, unchanged) actually scrolls instead
+       of growing the page.
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="ai-page-bottom">
+
+  <!-- ══════════════════════════════════════════════════════════════
+       RESULTS — empty state or table
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="empty-state" *ngIf="!displayedSummary; else resultsBlock"
+       [class.drag-over]="isDragOver"
+       (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
+    <svg class="icon icon-xl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line></svg>
+    <h3>No import results yet</h3>
+    <p>Configure settings, then click Import or Fetch.</p>
+  </div>
+
+  <ng-template #resultsBlock>
+    <div class="panel results-panel">
+
+      <div class="results-header">
+        <div class="results-title-row">
+          <h3>{{ resultsView === 'application' ? 'Application Database (Attendance View)' : 'Import Results' }}</h3>
+
+          <div class="view-toggle" *ngIf="applicationAttendanceData.length > 0">
+            <button type="button" [class.active]="resultsView === 'staging'" (click)="setResultsView('staging')">Fetched Preview</button>
+            <button type="button" [class.active]="resultsView === 'application'" (click)="setResultsView('application')">Application DB ({{ applicationAttendanceData.length }})</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-box">
+            <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" placeholder="Search by employee, status, remarks..." [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()">
+          </div>
+
+          <div class="filter-inline">
+            <span>Status</span>
+            <select [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilterChange()" class="control w-90">
+              <option>All</option>
+              <option>Success</option>
+              <option>Error</option>
+              <option>Warning</option>
+              <option>Partial</option>
+            </select>
+          </div>
+
+          <div class="filter-inline">
+            <span>Department</span>
+            <select [(ngModel)]="deptFilter" class="control w-90">
+              <option>All</option>
+            </select>
+          </div>
+
+          <label class="checkbox-inline">
+            <input type="checkbox" [checked]="errorsOnly" (change)="onErrorsOnlyChange($any($event.target).checked)">
+            Errors Only
+          </label>
+          <label class="checkbox-inline">
+            <input type="checkbox" [checked]="warningsOnly" (change)="onWarningsOnlyChange($any($event.target).checked)">
+            Warnings Only
+          </label>
+
+          <div class="spacer"></div>
+
+          <button type="button" class="btn btn-success" [disabled]="parsedRows.length === 0" (click)="handleImportIntoApplicationDb()">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Import to Application DB
+          </button>
+          <button type="button" class="btn btn-outline" (click)="downloadErrorReport()">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export
+          </button>
+        </div>
+      </div>
+
+      <div class="table-card">
+      <div class="table-scroll">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th *ngFor="let col of resultColumns" (click)="handleSort(col.key)">
+                <span class="th-inner">
+                  {{ col.label }}
+                  <span class="sort-arrows">
+                    <svg class="icon icon-xs" [class.active]="sortConfig.key === col.key && sortConfig.direction === 'asc'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    <svg class="icon icon-xs" [class.active]="sortConfig.key === col.key && sortConfig.direction === 'desc'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </span>
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of paginatedResults" [ngClass]="{'row-error': row.status === 'Error', 'row-warning': row.status === 'Warning'}">
+              <td class="mono">{{ row.employeeCode }}</td>
+              <td class="strong">{{ row.employeeName }}</td>
+              <td class="muted nowrap">{{ row.date }}</td>
+              <td class="muted">{{ row.inTime || '—' }}</td>
+              <td class="muted">{{ row.outTime || '—' }}</td>
+              <td class="tabular">{{ row.workHours || '—' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="'status-' + row.status.toLowerCase()">
+                  <svg *ngIf="row.status === 'Success'" class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 11 15 16 9"></polyline></svg>
+                  <svg *ngIf="row.status === 'Error'" class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                  <svg *ngIf="row.status === 'Warning'" class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  <svg *ngIf="row.status === 'Partial'" class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  {{ row.status }}
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="paginatedResults.length === 0">
+              <td [attr.colspan]="resultColumns.length" class="no-match">No records match your filter.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination-footer">
+        <span class="pagination-info">
+          Showing {{ showingFrom }} to {{ showingTo }} of {{ filteredResults.length }} records
+        </span>
+        <div class="pagination-controls">
+          <button type="button" class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+            <svg class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button type="button" class="page-btn" *ngFor="let page of pageNumbers" [class.active]="currentPage === page" (click)="goToPage(page)">
+            {{ page }}
+          </button>
+          <button type="button" class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+            <svg class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+          <select class="control page-size" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+            <option *ngFor="let n of pageSizeOptions" [value]="n">{{ n }} / page</option>
+          </select>
+        </div>
+      </div>
+      </div>
+    </div>
+  </ng-template>
+  <!-- ══════════════════════════════════════════════════════════════
+       [LAYOUT CHANGE] end of .ai-page-bottom
+       ══════════════════════════════════════════════════════════════ -->
+  </div>
+</div>

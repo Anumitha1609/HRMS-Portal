@@ -1,0 +1,323 @@
+// Base classes below are copied 1:1 from attendance-view.scss so this
+// page renders with the exact same card / form / button design.
+// (Angular component styles are view-encapsulated, so these can't be
+// inherited automatically — they're duplicated here on purpose, the
+// same way every other feature in this project defines its own copy.)
+
+.view-container {
+  h2 {
+    margin-bottom: 4px;
+  }
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-actions-card {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  padding: 10px 16px;
+  margin-bottom: 16px;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.section-card {
+  margin-bottom: 16px;
+}
+
+.card-body {
+  padding: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b5563;
+
+    .required {
+      color: #ef4444;
+    }
+  }
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #111827;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  outline: none;
+  background: #f3f4f6;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  }
+
+  &.has-error {
+    border-color: #f87171;
+    background: #fef2f2;
+  }
+
+  &:disabled {
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: not-allowed;
+  }
+}
+
+.error-text {
+  font-size: 11px;
+  color: #dc2626;
+}
+
+.btn-primary,
+.btn-outline {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: 1px solid #2563eb;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-outline {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+
+  &.error {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+
+  &.info {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+}
+
+// --- Page-specific layout additions ---
+
+// Company Information: left (PF address) / right (ESI address) columns.
+.form-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+}
+
+.form-column {
+  flex: 1 1 320px;
+  min-width: 260px;
+}
+
+.subheading {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin: 4px 0 12px;
+}
+
+// Two-up row used for City / District.
+.form-row {
+  display: grid;
+  gap: 16px;
+
+  &.two-col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Reusable responsive field grid for ESI / PF config sections.
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+
+  @media (min-width: 480px) {
+    &.two-col { grid-template-columns: repeat(2, 1fr); }
+    &.three-col { grid-template-columns: repeat(3, 1fr); }
+  }
+}
+
+// Stacks multiple form-grid rows within one card (e.g. Payroll
+// Processing's month-picker row + day-count row) with the same 16px
+// rhythm used between individual fields.
+.field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// ESI Configuration + PF Configuration side by side.
+.config-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.config-half {
+  flex: 1 1 380px;
+  min-width: 300px;
+  margin-bottom: 16px;
+}
+
+// Left-hand vertical stack (ESI Configuration + Payroll Processing),
+// sized identically to config-half so it lines up with the PF
+// Configuration column alongside it. section-card's own margin-bottom
+// gives the two stacked cards the same 16px gap used elsewhere.
+.config-col {
+  display: flex;
+  flex-direction: column;
+}
+
+// Custom expansion panel (no Angular Material in this project, so this
+// is styled by hand to match .card / .card-header exactly). Used
+// uniformly by every section on this page.
+.expansion-panel {
+  overflow: hidden;
+}
+
+.expansion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: left;
+  font-family: inherit;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.header-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.expansion-title {
+  flex: 1;
+}
+
+.chevron {
+  font-size: 11px;
+  color: #6b7280;
+  transition: transform 0.15s ease;
+
+  &.open {
+    transform: rotate(180deg);
+  }
+}
+
+.expansion-body {
+  padding: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+// Payroll & Statutory Details: month pickers on the left,
+// amounts/policy numbers on the right.
+.statutory-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+
+  @media (min-width: 992px) {
+    grid-template-columns: 260px 1fr;
+  }
+}
+
+.statutory-months {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.statutory-amounts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  align-content: start;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+}

@@ -1,0 +1,337 @@
+<div class="view-container">
+  <div class="page-header">
+    
+  </div>
+
+  <div class="header-actions-card">
+    <button type="button" class="btn-outline" *ngIf="!isEditMode" (click)="onEdit()">Edit</button>
+    <button type="button" class="btn-primary" [disabled]="!isEditMode" (click)="onSave()">Save Configuration</button>
+  </div>
+
+  <div *ngIf="error" class="alert error">{{ error }}</div>
+  <div *ngIf="saved && !error" class="alert info">Payroll configuration saved successfully.</div>
+
+  <form [formGroup]="payrollForm">
+
+    <!-- SECTION 1: Company Information (collapsible, expanded by default) -->
+    <div class="card section-card expansion-panel">
+      <button type="button" class="expansion-header" (click)="toggleSection('companyInfo')">
+        <span class="header-icon">🏢</span>
+        <span class="expansion-title">Company Information</span>
+        <span class="chevron" [class.open]="sectionsOpen.companyInfo">&#9662;</span>
+      </button>
+
+      <div class="expansion-body" *ngIf="sectionsOpen.companyInfo">
+        <div class="form-columns">
+
+          <!-- Left: Company + PF Office Address -->
+          <div class="form-column">
+            <div class="form-group">
+              <label>Company Name <span class="required">*</span></label>
+              <input type="text" formControlName="companyName" class="form-control" [class.has-error]="isInvalid('companyName')">
+              <div *ngIf="isInvalid('companyName')" class="error-text">Company Name is mandatory.</div>
+            </div>
+            <div class="form-group">
+              <label>Division</label>
+              <input type="text" formControlName="division" class="form-control">
+            </div>
+
+            <div class="subheading">PF Office Address</div>
+            <div formGroupName="pfInfo">
+              <div class="form-group">
+                <label>Address 1 <span class="required">*</span></label>
+                <input type="text" formControlName="addressLine1" class="form-control" [class.has-error]="isInvalid('pfInfo.addressLine1')">
+              </div>
+              <div class="form-group">
+                <label>Address 2 <span class="required">*</span></label>
+                <input type="text" formControlName="addressLine2" class="form-control" [class.has-error]="isInvalid('pfInfo.addressLine2')">
+              </div>
+              <div class="form-row two-col">
+                <div class="form-group">
+                  <label>City <span class="required">*</span></label>
+                  <input type="text" formControlName="city" class="form-control" [class.has-error]="isInvalid('pfInfo.city')">
+                </div>
+                <div class="form-group">
+                  <label>District <span class="required">*</span></label>
+                  <input type="text" formControlName="district" class="form-control" [class.has-error]="isInvalid('pfInfo.district')">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>PF Code <span class="required">*</span></label>
+                <input type="text" formControlName="pfCode" class="form-control" [class.has-error]="isInvalid('pfInfo.pfCode')">
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: ESI Office Address -->
+          <div class="form-column">
+            <div class="subheading">ESI Office Address</div>
+            <div formGroupName="esiInfo">
+              <div class="form-group">
+                <label>Address 1 <span class="required">*</span></label>
+                <input type="text" formControlName="addressLine1" class="form-control" [class.has-error]="isInvalid('esiInfo.addressLine1')">
+              </div>
+              <div class="form-group">
+                <label>Address 2 <span class="required">*</span></label>
+                <input type="text" formControlName="addressLine2" class="form-control" [class.has-error]="isInvalid('esiInfo.addressLine2')">
+              </div>
+              <div class="form-row two-col">
+                <div class="form-group">
+                  <label>City <span class="required">*</span></label>
+                  <input type="text" formControlName="city" class="form-control" [class.has-error]="isInvalid('esiInfo.city')">
+                </div>
+                <div class="form-group">
+                  <label>District <span class="required">*</span></label>
+                  <input type="text" formControlName="district" class="form-control" [class.has-error]="isInvalid('esiInfo.district')">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>ESI Code <span class="required">*</span></label>
+                <input type="text" formControlName="esiCode" class="form-control" [class.has-error]="isInvalid('esiInfo.esiCode')">
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2 & 3: ESI Configuration + PF Configuration, side by side.
+         ESI Configuration and the new Payroll Processing card share a
+         left-hand vertical stack so they line up under one another,
+         while PF Configuration remains the right-hand column. -->
+    <div class="config-row">
+
+      <div class="config-col config-half">
+
+        <div class="card section-card expansion-panel">
+          <button type="button" class="expansion-header" (click)="toggleSection('esiConfig')">
+            <span class="header-icon icon-esi">🔹</span>
+            <span class="expansion-title">ESI Configuration</span>
+            <span class="chevron" [class.open]="sectionsOpen.esiConfig">&#9662;</span>
+          </button>
+
+          <div class="expansion-body" *ngIf="sectionsOpen.esiConfig" formGroupName="esiConfig">
+            <div class="form-grid two-col">
+              <div class="form-group">
+                <label>Ceiling Amount <span class="required">*</span></label>
+                <input type="number" step="0.01" formControlName="ceilingAmount" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Employer (%) <span class="required">*</span></label>
+                <input type="number" step="0.01" formControlName="employerPercent" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Employee (%) <span class="required">*</span></label>
+                <input type="number" step="0.01" formControlName="employeePercent" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Effective From <span class="required">*</span></label>
+                <input type="date" formControlName="effectiveFrom" class="form-control">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card section-card expansion-panel">
+          <button type="button" class="expansion-header" (click)="toggleSection('payrollProcessing')">
+            <span class="header-icon icon-esi">🗓️</span>
+            <span class="expansion-title">Payroll Processing</span>
+            <span class="chevron" [class.open]="sectionsOpen.payrollProcessing">&#9662;</span>
+          </button>
+
+          <div class="expansion-body" *ngIf="sectionsOpen.payrollProcessing" formGroupName="payrollProcessing">
+            <div class="field-stack">
+              <div class="form-grid two-col">
+                <div class="form-group">
+                  <label>Last Processed Month</label>
+                  <select formControlName="lastProcessedMonth" class="form-control">
+                    <option *ngFor="let m of monthYearOptions" [value]="m">{{ m }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Current Month</label>
+                  <select formControlName="currentMonth" class="form-control">
+                    <option *ngFor="let m of monthYearOptions" [value]="m">{{ m }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-grid three-col">
+                <div class="form-group">
+                  <label>Work Days</label>
+                  <input type="number" formControlName="workDays" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Sundays</label>
+                  <input type="number" formControlName="sundays" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>NFH Days</label>
+                  <input type="number" formControlName="nfhDays" class="form-control">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card section-card expansion-panel config-half">
+        <button type="button" class="expansion-header" (click)="toggleSection('pfConfig')">
+          <span class="header-icon icon-pf">👥</span>
+          <span class="expansion-title">PF Configuration</span>
+          <span class="chevron" [class.open]="sectionsOpen.pfConfig">&#9662;</span>
+        </button>
+
+        <div class="expansion-body" *ngIf="sectionsOpen.pfConfig" formGroupName="pfConfig">
+          <div class="form-grid two-col">
+            <div class="form-group">
+              <label>Ceiling Amount <span class="required">*</span></label>
+              <input type="number" step="0.01" formControlName="ceilingAmount" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Employee Contribution (%) <span class="required">*</span></label>
+              <input type="number" step="0.01" formControlName="employeeContributionPercent" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Employer Contribution (FPF) <span class="required">*</span></label>
+              <input type="number" step="0.01" formControlName="employerEpfPercent" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Employer Contribution (EPF) <span class="required">*</span></label>
+              <input type="number" step="0.01" formControlName="employerFpfPercent" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Effective From <span class="required">*</span></label>
+              <input type="date" formControlName="effectiveFrom" class="form-control">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION 4: Payroll & Statutory Details (collapsible, collapsed by default) -->
+    <div class="card section-card expansion-panel">
+      <button type="button" class="expansion-header" (click)="toggleSection('statutory')">
+        <span class="header-icon">📄</span>
+        <span class="expansion-title">Payroll &amp; Statutory Details</span>
+        <span class="chevron" [class.open]="sectionsOpen.statutory">&#9662;</span>
+      </button>
+
+      <div class="expansion-body" *ngIf="sectionsOpen.statutory" formGroupName="payrollStatutory">
+        <div class="statutory-layout">
+
+          <!-- Left: statutory month pickers -->
+          <div class="statutory-months">
+            <div class="form-group">
+              <label>LWF Remitted Month</label>
+              <select formControlName="lwfRemittedMonth" class="form-control">
+                <option *ngFor="let m of monthYearOptions" [value]="m">{{ m }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Bonus Paid Month</label>
+              <select formControlName="bonusPaidMonth" class="form-control">
+                <option *ngFor="let m of monthYearOptions" [value]="m">{{ m }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Prof. Tax Remitted Month</label>
+              <select formControlName="profTaxRemittedMonth" class="form-control">
+                <option *ngFor="let m of monthYearOptions" [value]="m">{{ m }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Summer Allowance Month</label>
+              <select formControlName="summerAllowanceMonth" class="form-control">
+                <option *ngFor="let m of monthYearOptions" [value]="m">{{ m }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Leave Salary Paid Month</label>
+              <select formControlName="leaveSalaryPaidMonth" class="form-control">
+                <option *ngFor="let m of monthYearOptions" [value]="m">{{ m }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Education Allowance Month</label>
+              <select formControlName="educationAllowanceMonth" class="form-control">
+                <option *ngFor="let m of monthYearOptions" [value]="m">{{ m }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Irregular Category</label>
+              <select formControlName="irregularCategory" class="form-control">
+                <option value="">-- Select --</option>
+                <option *ngFor="let c of irregularCategoryOptions" [value]="c">{{ c }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Right: payroll amounts & policy numbers -->
+          <div class="statutory-amounts">
+            <div class="form-group full-width">
+              <label>Pay Slip Message</label>
+              <input type="text" formControlName="paySlipMessage" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Super Annuation %</label>
+              <input type="number" step="0.01" formControlName="superAnnuationPercent" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Bonus %</label>
+              <input type="number" step="0.01" formControlName="bonusPercent" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Exgratia %</label>
+              <input type="number" step="0.01" formControlName="exgratiaPercent" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Group Insurance %</label>
+              <input type="number" step="0.01" formControlName="groupInsurancePercent" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>EDLI %</label>
+              <input type="number" step="0.01" formControlName="edliPercent" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Good Will %</label>
+              <input type="number" step="0.01" formControlName="goodWillPercent" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Income Limit (M)</label>
+              <input type="number" step="0.01" formControlName="incomeLimitM" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Income Limit (F)</label>
+              <input type="number" step="0.01" formControlName="incomeLimitF" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Gratuity (%)</label>
+              <input type="number" step="0.01" formControlName="gratuityPercent" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Gratuity Policy No.</label>
+              <input type="text" formControlName="gratuityPolicyNo" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>EDLI Policy No.</label>
+              <input type="text" formControlName="edliPolicyNo" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Sup. Ann. Pol. No.</label>
+              <input type="text" formControlName="supAnnPolNo" class="form-control">
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </form>
+</div>

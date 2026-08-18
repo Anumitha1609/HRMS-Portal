@@ -1,0 +1,98 @@
+
+
+<div class="card section">
+  <div class="row">
+    <app-employee-picker label="Name" required="true" placeholder="Search employee to modify" (selected)="onEmployeeSelected($event)"></app-employee-picker>
+    <div class="field">
+      <label for="dept">Department</label>
+      <input id="dept" type="text" [value]="employee()?.department ?? ''" disabled />
+    </div>
+    <div class="field">
+      <label for="effective">Effective From <span class="required">*</span></label>
+      <input id="effective" type="date" [ngModel]="effectiveFrom()" (ngModelChange)="effectiveFrom.set($event)" [disabled]="!employee()" />
+    </div>
+  </div>
+</div>
+
+<ng-container *ngIf="employee() as emp">
+  <div class="card profile-card">
+    <span class="avatar-lg">{{ initials(emp.name) }}</span>
+    <div class="profile-info">
+      <h3>{{ emp.name }}</h3>
+      <p>{{ emp.designation }}</p>
+    </div>
+    <div class="profile-meta">
+      <div><span>Department</span><strong>{{ emp.department }}</strong></div>
+      <div><span>Location</span><strong>{{ emp.location }}</strong></div>
+      <div><span>Date of Joining</span><strong>{{ emp.dateOfJoining }}</strong></div>
+      <div><span>Current CTC</span><strong>₹{{ emp.currentCtc | number }}</strong></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card section">
+      <div class="section-head"><span class="step">1</span><h3>Existing Increment Information</h3></div>
+      <p class="info-banner">Below are the current increment details and salary components.</p>
+      <table class="mini-table">
+        <thead><tr><th>Component</th><th>Current (₹)</th><th>Annual (₹)</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let line of lines()">
+            <td>{{ line.component }}</td>
+            <td>{{ line.current | number }}</td>
+            <td>{{ line.current * 12 | number }}</td>
+          </tr>
+          <tr class="total-row"><td>Gross Salary</td><td>{{ totalCurrent() | number }}</td><td>{{ totalCurrent() * 12 | number }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card section">
+      <div class="section-head"><span class="step">2</span><h3>Modification Section</h3></div>
+      <p class="info-banner">Update the salary components below. Leave unchanged fields blank.</p>
+      <table class="mini-table">
+        <thead><tr><th>Component</th><th>Current (₹)</th><th>New Amount (₹)</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let line of lines(); trackBy: trackByComponent">
+            <td>{{ line.component }}</td>
+            <td class="muted">{{ line.current | number }}</td>
+            <td>
+              <div class="input-with-check">
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  class="cell-input"
+                  [ngModel]="line.newAmount"
+                  (ngModelChange)="setNewAmount(line, $event)"
+                  placeholder="{{ line.current }}"
+                />
+                <span class="check" *ngIf="line.newAmount !== null && isValid(line)">✓</span>
+                <span class="check error" *ngIf="line.newAmount !== null && !isValid(line)">!</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="validation-banner" [class.error]="!allValid()">
+        {{ allValid() ? 'All inputs are valid.' : 'Some amounts are invalid — please check the highlighted fields.' }}
+      </p>
+    </div>
+  </div>
+
+  <div class="card section summary-bar">
+    <div>
+      <span>Total Gross Salary</span>
+      <strong>₹{{ totalCurrent() | number }} → ₹{{ totalNew() | number }}</strong>
+    </div>
+    <div>
+      <span>Change</span>
+      <strong [class.up]="changePct() > 0">{{ changePct() }}%</strong>
+    </div>
+    <p class="hint">This change will be reflected in payroll from the effective date.</p>
+    <div class="actions-row">
+      <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
+      <button type="button" class="btn btn-primary" [disabled]="!allValid() || !hasAnyEdit()" (click)="save()">Save Changes</button>
+    </div>
+    <p class="saved-msg" *ngIf="saved()">✓ Modification saved for {{ emp.name }}, effective {{ effectiveFrom() }}.</p>
+  </div>
+</ng-container>

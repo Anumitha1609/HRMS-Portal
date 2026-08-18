@@ -1,0 +1,270 @@
+<div class="employee-layout-v2">
+  <!-- 1. LIST VIEW (Default Dashboard) -->
+  @if (!selectedRecord() && !isEditingCategory()) {
+    <div class="dashboard-view animated-fade-in">
+      <!-- Consolidated Header & Advanced Search Card -->
+      <div class="card advanced-search-card compact-card">
+        <div class="card-header-row">
+          <div class="header-left-compact">
+            <span class="material-icons text-primary">category</span>
+            <h2>Employee Category Master</h2>
+          </div>
+          <div class="header-right-compact" *ngIf="authService.isExecutive()">
+            <button class="btn btn-primary btn-sm" (click)="onNewCategory()">
+              <span class="material-icons">add</span> New Category
+            </button>
+          </div>
+        </div>
+
+        <div class="search-grid" style="grid-template-columns: 1fr;">
+          <div class="form-group">
+            <label>Category Name</label>
+            <input type="text" placeholder="Search by category name..." (input)="records.set(records())" #searchBox />
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories Directory Table -->
+      <div class="card table-card">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>CATEGORY NAME</th>
+              <th>SUB-CATEGORIES COUNT</th>
+              <th>ACTIVE EMPLOYEES</th>
+              @if (authService.isExecutive() || authService.isAdmin()) {
+                <th style="width: 110px;">ACTIONS</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading()) {
+              <tr>
+                <td colspan="4" class="skeleton-row">Loading categories...</td>
+              </tr>
+            } @else if (records().length === 0) {
+              <tr>
+                <td colspan="4" class="empty-table-msg">No categories found. Configure a new category record to begin.</td>
+              </tr>
+            } @else {
+              @for (rec of records(); track rec.id) {
+                @if (!searchBox.value || rec.name.toLowerCase().includes(searchBox.value.toLowerCase())) {
+                  <tr>
+                    <td>
+                      <div class="profile-cell">
+                        <div class="profile-avatar"><span class="material-icons" style="font-size: 16px;">category</span></div>
+                        <a class="profile-name" (click)="selectRecord(rec)">{{ rec.name }}</a>
+                      </div>
+                    </td>
+                    <td><span class="code-badge">{{ rec.subCategories?.length || 0 }} sub-categories</span></td>
+                    <td>{{ rec.employeeCount || 0 }} employee(s)</td>
+                    @if (authService.isExecutive() || authService.isAdmin()) {
+                      <td (click)="$event.stopPropagation()">
+                        <div class="action-buttons">
+                          @if (authService.isExecutive()) {
+                            <button class="btn-action btn-edit" (click)="editRecord(rec)" title="Edit">
+                              <span class="material-icons">edit</span>
+                            </button>
+                          }
+                          @if (authService.isAdmin()) {
+                            <button
+                              class="btn-action btn-delete"
+                              (click)="onDeleteCategory(rec)"
+                              [title]="(rec.employeeCount || 0) > 0 ? 'This has ' + (rec.employeeCount || 0) + ' employee(s) assigned - you will be asked to confirm' : 'Soft Delete'">
+                              <span class="material-icons">delete</span>
+                            </button>
+                          }
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- 2. DETAIL/EDIT VIEW -->
+  @if (selectedRecord() || isEditingCategory()) {
+    <div class="detail-view animated-fade-in">
+      <!-- Sticky Action Bar -->
+      <div class="action-bar glass-panel card">
+        <div class="action-left">
+          <button class="btn btn-secondary btn-icon-only back-btn" (click)="selectedRecord.set(null); isEditingCategory.set(false); categoryForm.reset()" title="Back to Directory">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          @if (selectedRecord(); as rec) {
+            <h2>Category Profile: {{ rec.name }}</h2>
+          } @else if (isEditingCategory()) {
+            <h2>New Category Details</h2>
+          } @else {
+            <h2>Category Details</h2>
+          }
+        </div>
+        <div class="action-right">
+          @if (authService.isExecutive()) {
+            @if (!isEditingCategory()) {
+              @if (selectedRecord()) {
+                <button class="btn btn-primary" (click)="onEditCategory()">
+                  <span class="material-icons">edit</span> Edit
+                </button>
+              }
+            } @else {
+              <button class="btn btn-primary" (click)="onSaveCategory()">
+                <span class="material-icons">save</span> Save
+              </button>
+              <button class="btn btn-secondary" (click)="onCancelCategory()">
+                <span class="material-icons">close</span> Cancel
+              </button>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Category Name Card -->
+      <div class="card detail-card" style="padding: 24px;">
+        <form [formGroup]="categoryForm" (ngSubmit)="onSaveCategory()" class="master-form">
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label for="cat-name" style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: block;">Category Name *</label>
+            <input
+              id="cat-name"
+              type="text"
+              formControlName="name"
+              class="input-control"
+              placeholder="e.g. Permanent Staff"
+            />
+            @if (categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched) {
+              <span class="error-message" style="color: #ef4444; font-size: 12px; display: flex; align-items: center; gap: 4px; margin-top: 6px;">
+                <span class="material-icons" style="font-size: 16px;">error_outline</span>
+                Category name is required (min 2 characters)
+              </span>
+            }
+          </div>
+        </form>
+
+        @if (selectedRecord(); as rec) {
+          <div class="metadata-section" style="border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 20px;">
+            <div class="meta-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
+              <span class="meta-label" style="color: #64748b; font-weight: 500;">System ID:</span>
+              <span class="meta-val code" style="font-family: monospace; background-color: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ rec.id }}</span>
+            </div>
+            <div class="meta-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
+              <span class="meta-label" style="color: #64748b; font-weight: 500;">Employees Attached:</span>
+              <span class="meta-val" style="font-weight: 600; color: #1e293b;">{{ rec.employeeCount || 0 }} employee(s)</span>
+            </div>
+            <div class="meta-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
+              <span class="meta-label" style="color: #64748b; font-weight: 500;">Created At:</span>
+              <span class="meta-val" style="font-weight: 600; color: #1e293b;">{{ rec.createdAt | date:'medium' }}</span>
+            </div>
+          </div>
+
+          @if (authService.isAdmin() && !isEditingCategory()) {
+            <div class="danger-zone" style="border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 20px;">
+              <h4 style="color: #ef4444; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Danger Zone</h4>
+              <p style="color: #64748b; font-size: 12px; margin-bottom: 12px;">Soft-delete this category. If employees are still assigned, you will get a confirmation warning first.</p>
+              <button class="btn btn-danger" (click)="onDeleteCategory(rec)">
+                <span class="material-icons">delete_forever</span> Soft Delete Category
+              </button>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Sub-Categories Manager Card -->
+      @if (selectedRecord(); as category) {
+        <div class="card detail-card" style="padding: 24px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+            Sub Categories for "{{ category.name }}"
+          </h3>
+          
+          <!-- Add Subcategory Input -->
+          @if (authService.isExecutive()) {
+            <div class="add-subcategory-box" style="display: flex; gap: 12px; margin-bottom: 24px;">
+              <input
+                type="text"
+                placeholder="Add new subcategory..."
+                class="input-control"
+                style="flex-grow: 1; padding: 10px 14px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 8px;"
+                [value]="newSubCategoryName()"
+                (input)="onSubCategoryInput($event)"
+                (keyup.enter)="handleAddSubCategory()"
+              />
+              <button class="btn btn-primary" [disabled]="!newSubCategoryName().trim()" (click)="handleAddSubCategory()">
+                <span class="material-icons">add</span> Add Sub-Category
+              </button>
+            </div>
+          }
+
+          <!-- Subcategories Directory Table -->
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+            <table class="master-table">
+              <thead>
+                <tr>
+                  <th>SUB-CATEGORY NAME</th>
+                  @if (authService.isExecutive()) {
+                    <th style="width: 120px; text-align: right;">ACTIONS</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @if (category.subCategories && category.subCategories.length > 0) {
+                  @for (sub of category.subCategories; track sub.id) {
+                    <tr>
+                      <td>
+                        @if (editingSubCategoryId() === sub.id) {
+                          <input
+                            type="text"
+                            class="input-control"
+                            style="padding: 6px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; max-width: 300px;"
+                            [value]="editingSubCategoryName()"
+                            (input)="onSubCategoryEditInput($event)"
+                            (keyup.enter)="saveSubCategoryEdit(sub)"
+                            (keyup.escape)="cancelSubCategoryEdit()"
+                          />
+                        } @else {
+                          <strong>{{ sub.name }}</strong>
+                        }
+                      </td>
+                      @if (authService.isExecutive()) {
+                        <td style="text-align: right;">
+                          @if (editingSubCategoryId() === sub.id) {
+                            <div style="display: inline-flex; gap: 4px;">
+                              <button class="btn btn-ghost btn-icon" (click)="saveSubCategoryEdit(sub)" title="Save">
+                                <span class="material-icons" style="color: #10b981;">check</span>
+                              </button>
+                              <button class="btn btn-ghost btn-icon" (click)="cancelSubCategoryEdit()" title="Cancel">
+                                <span class="material-icons" style="color: #64748b;">close</span>
+                              </button>
+                            </div>
+                          } @else {
+                            <div style="display: inline-flex; gap: 4px;">
+                              <button class="btn-action btn-edit" (click)="startSubCategoryEdit(sub)" title="Edit">
+                                <span class="material-icons">edit</span>
+                              </button>
+                              @if (authService.isAdmin()) {
+                                <button class="btn-action btn-delete" (click)="deleteSubCategory(sub)" title="Remove">
+                                  <span class="material-icons">delete</span>
+                                </button>
+                              }
+                            </div>
+                          }
+                        </td>
+                      }
+                    </tr>
+                  }
+                } @else {
+                  <tr>
+                    <td colspan="2" class="empty-table-msg">No subcategories defined. Add one above.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

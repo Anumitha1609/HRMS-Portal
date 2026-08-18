@@ -1,0 +1,7 @@
+[
+  { "id": "dept-1", "name": "Human Resources", "employeeCount": 1, "createdAt": "2024-01-10T09:00:00.000Z" },
+  { "id": "dept-2", "name": "Engineering", "employeeCount": 1, "createdAt": "2024-01-10T09:05:00.000Z" },
+  { "id": "dept-3", "name": "Finance & Accounts", "employeeCount": 0, "createdAt": "2024-01-12T10:00:00.000Z" },
+  { "id": "dept-4", "name": "Production", "employeeCount": 0, "createdAt": "2024-01-15T11:00:00.000Z" },
+  { "id": "dept-5", "name": "Sales & Marketing", "employeeCount": 0, "createdAt": "2024-01-18T12:00:00.000Z" }
+]

@@ -1,0 +1,199 @@
+<div class="designation-master animated-fade-in">
+  <!-- Page Header & Actions -->
+  <div class="page-header">
+    <div class="header-left">
+     </div>
+    <div class="header-actions">
+      <button (click)="exportCSV()" class="btn btn-secondary">
+        <span class="material-icons">download</span>
+        <span>Export CSV</span>
+      </button>
+      <button (click)="onOpenAddModal()" class="btn btn-primary">
+        <span class="material-icons">add</span>
+        <span>Add Designation</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search & Filters Area -->
+  <div class="filter-bar card">
+    <div class="search-box">
+      <span class="material-icons search-icon">search</span>
+      <input
+        type="text"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+        placeholder="Filter by name, code, or department..."
+        class="search-input"
+      />
+    </div>
+    <div class="department-filter">
+      <span class="filter-label">Department Focus:</span>
+      <div class="select-wrapper">
+        <select
+          [value]="departmentFilter()"
+          (change)="departmentFilter.set($any($event.target).value)"
+          class="filter-select"
+        >
+          @for (dept of departments(); track dept) {
+            <option [value]="dept">{{ dept === 'All' ? 'All Departments' : dept }}</option>
+          }
+        </select>
+        <span class="material-icons select-arrow">expand_more</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Designation Table -->
+  <div class="table-card">
+    <div class="table-wrapper">
+      <table class="master-table">
+        <thead>
+          <tr>
+            <th>Designation Code</th>
+            <th>Designation Name</th>
+            <th>Department</th>
+            <th>Grade</th>
+            <th>Gender</th>
+            <th>Status</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of filteredDesignations(); track row.id) {
+            <tr>
+              <td class="code-cell">{{ row.code }}</td>
+              <td class="name-cell">{{ row.name }}</td>
+              <td>
+                <span class="dept-badge">{{ row.department }}</span>
+              </td>
+              <td class="text-muted">{{ row.grade }}</td>
+              <td class="text-muted">{{ row.gender_preference }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(row.status)">
+                  <span class="status-dot"></span>
+                  {{ row.status }}
+                </span>
+              </td>
+              <td class="actions-col">
+                <div class="action-buttons">
+                  <button (click)="onOpenEditModal(row)" class="btn-action btn-edit" title="Edit Designation">
+                    <span class="material-icons">edit</span>
+                  </button>
+                  <button (click)="onDelete(row.id!, row.code)" class="btn-action btn-delete" title="Delete">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-table-msg">
+                No designations matching search parameters were found.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dialog -->
+@if (showModal()) {
+  <div class="modal-overlay animated-overlay" (click)="onBackdropClick($event)">
+    <div class="modal-container animated-scale-in">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h3 class="modal-title">{{ editingId() !== null ? 'Modify Designation Specification' : 'Register New Designation' }}</h3>
+        <button (click)="onCloseModal()" class="modal-close-btn">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+          <div class="form-group">
+            <label class="form-label">Designation Code</label>
+            <input type="text" formControlName="code" placeholder="e.g. DES-001" class="input-control" />
+            @if (form.get('code')?.touched && form.get('code')?.hasError('required')) {
+              <span class="error-message">Code is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Designation Name</label>
+            <input type="text" formControlName="name" placeholder="e.g. Associate Technical Lead" class="input-control" />
+            @if (form.get('name')?.touched && form.get('name')?.hasError('required')) {
+              <span class="error-message">Name is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <div class="select-wrapper">
+              <select formControlName="department" class="input-control select-control">
+                <option value="">Select Department</option>
+                <option value="Product">Product</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Analytics">Analytics</option>
+                <option value="Design">Design</option>
+                <option value="Human Resources">Human Resources</option>
+              </select>
+              <span class="material-icons select-arrow">expand_more</span>
+            </div>
+            @if (form.get('department')?.touched && form.get('department')?.hasError('required')) {
+              <span class="error-message">Department is required</span>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Grade Bracket</label>
+              <div class="select-wrapper">
+                <select formControlName="grade" class="input-control select-control">
+                  <option value="Grade A">Grade A</option>
+                  <option value="Grade B">Grade B</option>
+                  <option value="Grade C">Grade C</option>
+                </select>
+                <span class="material-icons select-arrow">expand_more</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <div class="select-wrapper">
+                <select formControlName="gender_preference" class="input-control select-control">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Others">Others</option>
+                </select>
+                <span class="material-icons select-arrow">expand_more</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <div class="select-wrapper">
+              <select formControlName="status" class="input-control select-control">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+              <span class="material-icons select-arrow">expand_more</span>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="onCloseModal()" class="btn btn-secondary modal-btn">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="form.invalid" class="btn btn-primary modal-btn">
+              {{ editingId() !== null ? 'Save Changes' : 'Register Designation' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

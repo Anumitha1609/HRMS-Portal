@@ -1,0 +1,219 @@
+<div class="eh-page">
+  <!-- Toolbar -->
+  <div class="eh-toolbar">
+    <button type="button" class="btn btn-primary" (click)="newChange()"><span>+</span>&nbsp;New</button>
+    <button type="button" class="btn btn-secondary" (click)="editChange()" [disabled]="!employeeCode.trim()">Edit</button>
+    <button type="button" class="btn btn-secondary danger-text" (click)="deleteLatest()" [disabled]="!rows.length">Delete</button>
+    <span class="spacer"></span>
+    <button type="button" class="btn btn-secondary" (click)="print()" [disabled]="!rows.length">Print</button>
+    <button type="button" class="btn btn-primary" (click)="save()" [disabled]="!editing">Save</button>
+  </div>
+
+  <!-- Alerts -->
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <p class="saved-msg" *ngIf="savedMessage">{{ savedMessage }}</p>
+
+  <!-- Search Section -->
+  <div class="card filter-card">
+    <div class="filter-grid">
+      <div class="form-field">
+        <label class="field-label">Employee ID <span class="required">*</span></label>
+        <input
+          type="text"
+          list="employee-code-options"
+          placeholder="Enter Employee ID"
+          [ngModel]="employeeCode"
+          (ngModelChange)="onEmployeeCodeChange($event)"
+          class="text-input"
+          [disabled]="newEmployeeMode"
+        />
+        <datalist id="employee-code-options">
+          <option *ngFor="let emp of directory" [value]="emp.employeeCode"></option>
+        </datalist>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Employee Name</label>
+        <input
+          type="text"
+          list="employee-name-options"
+          placeholder="Enter Employee Name"
+          [ngModel]="employeeName"
+          (ngModelChange)="onEmployeeNameChange($event)"
+          class="text-input"
+        />
+        <datalist id="employee-name-options">
+          <option *ngFor="let emp of directory" [value]="emp.employeeName"></option>
+        </datalist>
+      </div>
+
+      <div class="form-field compact-date">
+        <label class="field-label">WEF Date</label>
+        <input
+          type="date"
+          [ngModel]="effectiveDate"
+          (ngModelChange)="effectiveDate = $event"
+          class="text-input"
+        />
+      </div>
+
+      <button type="button" class="btn btn-primary search-btn" (click)="search()" [disabled]="!employeeCode.trim()">
+        Search
+      </button>
+    </div>
+  </div>
+
+  <!-- Editor -->
+  <div class="card history-editor" *ngIf="showEditor">
+    <div class="employee-identity">
+      <div class="form-field">
+        <label class="field-label">Employee ID <span class="required">*</span></label>
+        <input
+          type="text"
+          placeholder="Enter Employee ID"
+          [ngModel]="employeeCode"
+          (ngModelChange)="onEmployeeCodeChange($event)"
+          class="text-input"
+          [disabled]="!newEmployeeMode"
+        />
+      </div>
+      <div class="form-field">
+        <label class="field-label">Employee Name <span class="required">*</span></label>
+        <input
+          type="text"
+          placeholder="Enter Employee Name"
+          [ngModel]="employeeName"
+          (ngModelChange)="onEmployeeNameChange($event)"
+          class="text-input"
+          [disabled]="!newEmployeeMode"
+        />
+      </div>
+    </div>
+
+    <fieldset class="detail-panel">
+      <legend>From</legend>
+      <div class="detail-grid">
+        <div class="form-field detail-field" *ngFor="let field of fields">
+          <label class="field-label">{{ field.label }}</label>
+          <select
+            *ngIf="field.type === 'select'"
+            [ngModel]="fromSnapshot[field.key]"
+            (ngModelChange)="updateSnapshot('from', field.key, $event)"
+            [disabled]="!editing"
+            class="text-input"
+          >
+            <option value=""></option>
+            <option *ngFor="let option of optionsFor(field)" [value]="option">{{ option }}</option>
+          </select>
+          <input
+            *ngIf="field.type === 'input'"
+            type="text"
+            [ngModel]="fromSnapshot[field.key]"
+            (ngModelChange)="updateSnapshot('from', field.key, $event)"
+            [disabled]="!editing"
+            class="text-input"
+          />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="detail-panel">
+      <legend>To</legend>
+      <div class="detail-grid">
+        <div class="form-field detail-field" *ngFor="let field of fields">
+          <label class="field-label">{{ field.label }}</label>
+          <select
+            *ngIf="field.type === 'select'"
+            [ngModel]="toSnapshot[field.key]"
+            (ngModelChange)="updateSnapshot('to', field.key, $event)"
+            [disabled]="!editing"
+            class="text-input"
+          >
+            <option value=""></option>
+            <option *ngFor="let option of optionsFor(field)" [value]="option">{{ option }}</option>
+          </select>
+          <input
+            *ngIf="field.type === 'input'"
+            type="text"
+            [ngModel]="toSnapshot[field.key]"
+            (ngModelChange)="updateSnapshot('to', field.key, $event)"
+            [disabled]="!editing"
+            class="text-input"
+          />
+        </div>
+        <div class="form-field detail-field remarks-field">
+          <label class="field-label">Remarks</label>
+          <input
+            type="text"
+            placeholder="Reason for change"
+            [ngModel]="remarks"
+            (ngModelChange)="remarks = $event"
+            [disabled]="!editing"
+            class="text-input"
+          />
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="editor-actions">
+      <button type="button" class="btn btn-secondary" (click)="editChange()" [disabled]="!employeeCode.trim()">Edit Details</button>
+      <button type="button" class="btn btn-primary" (click)="save()" [disabled]="!editing">Save Changes</button>
+    </div>
+  </div>
+
+  <!-- History Table -->
+  <div class="table-section">
+    <h3 class="card-title">Employee History ({{ rows.length }})</h3>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Employee Name</th>
+              <th>WEF Date</th>
+              <th>Location</th>
+              <th>SubLocation</th>
+              <th>Category</th>
+              <th>SubCategory</th>
+              <th>Division</th>
+              <th>FunctionalUnit</th>
+              <th>Department</th>
+              <th>Designation</th>
+              <th>Status</th>
+              <th>SalaryType</th>
+              <th>Mode Of Pay</th>
+              <th>BankAccNo</th>
+              <th>Bank</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of rows">
+              <td class="cell-strong">{{ row.employeeCode }}</td>
+              <td>{{ row.employeeName }}</td>
+              <td>{{ row.effectiveFrom }}</td>
+              <td>{{ row.location }}</td>
+              <td>{{ row.subLocation }}</td>
+              <td>{{ row.category }}</td>
+              <td>{{ row.subCategory }}</td>
+              <td>{{ row.division }}</td>
+              <td>{{ row.functionalUnit }}</td>
+              <td>{{ row.department }}</td>
+              <td>{{ row.designation }}</td>
+              <td>{{ row.status }}</td>
+              <td>{{ row.salaryType }}</td>
+              <td>{{ row.modeOfPay }}</td>
+              <td>{{ row.bankAccNo }}</td>
+              <td>{{ row.bank }}</td>
+              <td>{{ row.remarks }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="empty-table-msg" *ngIf="!rows.length">
+          Select an employee and click Search to view their history.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

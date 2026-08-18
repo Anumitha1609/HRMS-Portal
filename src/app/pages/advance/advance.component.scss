@@ -1,0 +1,425 @@
+/* ============================================================
+   Advance component styles (SCSS).
+   Rewritten to match advance_component.html / advance_component.ts
+   exactly — every selector below is referenced by that template.
+   Scoped via :host so it doesn't leak into the rest of the app.
+   ============================================================ */
+
+// -- Palette --
+$navy:        #1a2b4a;
+$navy-dark:   #0f1c32;
+$navy-hover:  #243860;
+$white:       #ffffff;
+$bg:          #f4f6f9;
+$surface:     #ffffff;
+$border:      #dde2ea;
+$text-main:   #1a2b4a;
+$text-muted:  #6b7a99;
+$blue:        #1d6ae5;
+$blue-hover:  #1558c0;
+$green:       #22a06b;
+$green-hover: #1a8057;
+$red:         #e53e3e;
+$red-hover:   #c53030;
+$label-blue:  #1d6ae5;
+
+$radius-sm: 6px;
+$radius-md: 10px;
+$radius-lg: 12px;
+$shadow-card: 0 1px 4px rgba(0, 0, 0, 0.08);
+$shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+// Field tokens — the grey, filled look used by .form-control / .grid-search
+$field-bg:      #f6f7fb;
+$field-border:  #eceff4;
+$placeholder:   #9aa4b8;
+
+:host {
+  --navy:        #{$navy};
+  --navy-dark:   #{$navy-dark};
+  --navy-hover:  #{$navy-hover};
+  --white:       #{$white};
+  --bg:          #{$bg};
+  --surface:     #{$surface};
+  --border:      #{$border};
+  --text-main:   #{$text-main};
+  --text-muted:  #{$text-muted};
+  --blue:        #{$blue};
+  --blue-hover:  #{$blue-hover};
+  --green:       #{$green};
+  --green-hover: #{$green-hover};
+  --red:         #{$red};
+  --red-hover:   #{$red-hover};
+  --label-blue:  #{$label-blue};
+  --radius-sm:   #{$radius-sm};
+  --radius-md:   #{$radius-md};
+  --shadow-card: #{$shadow-card};
+  --field-bg:     #{$field-bg};
+  --field-border: #{$field-border};
+
+  display: block;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: $text-main;
+}
+
+* { box-sizing: border-box; }
+
+input, textarea, select, button { font-family: inherit; font-size: 14px; }
+
+// -- Main area (wraps the whole component: tab bar + tab content) --
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// -- Page content (used inside each ng-container tab) --
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 24px;
+}
+
+// -- Card (Employee & Advance Info, Approval, Attachment, Remarks, History, filters) --
+.card {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: $label-blue;
+  margin-bottom: 16px;
+}
+
+// -- Form grid (cols-2 / cols-3 used in template) --
+.form-row {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  &.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  &.cols-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: $text-main;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+
+  .req { color: $red; margin-left: 2px; }
+}
+
+// -- Inputs: Employee Code, dates, Purpose select, amounts, textarea, SC row inputs --
+// Filled grey style matching the design mock: light grey background at rest,
+// turns white with a blue ring on focus.
+.form-control {
+  border: 1px solid var(--field-border, #{$field-border});
+  border-radius: $radius-lg;
+  padding: 14px 16px;
+  color: $text-main;
+  background: var(--field-bg, #{$field-bg});
+  outline: none;
+  font-size: 14.5px;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+
+  &::placeholder { color: $placeholder; }
+
+  &:focus {
+    background: #fff;
+    border-color: $blue;
+    box-shadow: 0 0 0 3px rgba(29, 106, 229, 0.1);
+  }
+
+  // used on Employee Name + No. of Installments (readonly auto-filled fields)
+  &.readonly { background: #eef0f5; color: $text-muted; cursor: default; }
+
+  // used on empCode / advanceAmount / monthlyDue / SC remarks via [class.error]
+  &.error { border-color: $red; }
+}
+
+textarea.form-control { resize: vertical; min-height: 90px; }
+
+// Remarks char counter ({{remarks.length}} / 500)
+.char-count { font-size: 11px; color: $text-muted; text-align: right; margin-top: 2px; }
+
+// -- Status pill (grid cell, driven by statusCls(): approved/pending/rejected/closed) --
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  line-height: 1.4;
+
+  &.approved { color: #15803d; background: #dcfce7; }
+  &.pending  { color: #b45309; background: #fef3c7; }
+  &.rejected { color: #dc2626; background: #fee2e2; }
+  &.closed   { color: #475569; background: #e2e8f0; }
+}
+
+// -- Grid toolbar: search + filter + export, above Advance History table --
+.grid-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.grid-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--field-border, #{$field-border});
+  border-radius: $radius-lg;
+  padding: 10px 16px;
+  background: var(--field-bg, #{$field-bg});
+  width: 240px;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+
+  input {
+    border: none;
+    outline: none;
+    font-size: 13px;
+    width: 100%;
+    color: $text-main;
+    background: transparent;
+
+    &::placeholder { color: $placeholder; }
+  }
+
+  // matches .form-control:focus behavior so it doesn't feel like an outlier field
+  &:focus-within {
+    background: #fff;
+    border-color: $blue;
+    box-shadow: 0 0 0 3px rgba(29, 106, 229, 0.1);
+  }
+}
+
+// filter + export buttons ("icon-btn ghost" in template)
+.icon-btn.ghost {
+  background: #fff;
+  border: 1px solid $border;
+  color: $text-muted;
+
+  &:hover { border-color: $blue; color: $blue; opacity: 1; }
+}
+
+// -- Pagination footer (Advance History + Short Close tables) --
+.grid-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: $text-muted;
+}
+.table-card .grid-footer {
+  margin-top: 0;
+  padding: 12px 16px;
+  border-top: 1px solid $border;
+  background: #fafbfc;
+}
+
+.pagination { display: flex; align-items: center; gap: 6px; }
+
+.page-btn {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  border: 1px solid $border;
+  background: #fff;
+  color: $text-main;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) { border-color: $blue; color: $blue; }
+  &.active { background: $blue; border-color: $blue; color: #fff; }
+  &:disabled { opacity: 0.4; cursor: default; }
+}
+
+.page-dots { color: $text-muted; padding: 0 2px; }
+
+// -- Action buttons (modal Save/Cancel/Exit/Upload, SC Save/Cancel, Add New Entry) --
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 0 0;
+  border-top: 1px solid $border;
+  margin-top: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: $radius-sm;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+
+  &:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
+  &-outline {
+    border-color: $border;
+    background: #fff;
+    color: $text-main;
+    &:hover { border-color: $blue; color: $blue; }
+  }
+
+  &-primary {
+    background: $blue;
+    color: #fff;
+    border-color: $blue;
+    &:hover { background: $blue-hover; border-color: $blue-hover; }
+  }
+}
+
+// -- Approved checkbox row (template uses .radio-label around a checkbox input) --
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+
+  input[type="checkbox"],
+  input[type="radio"] { accent-color: $blue; width: 16px; height: 16px; }
+}
+
+// -- Data Grid (Advance History + Short Close tables) --
+.data-grid {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 4px;
+
+  th {
+    background: $bg;
+    border: 1px solid $border;
+    padding: 9px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: $text-muted;
+    text-align: left;
+  }
+
+  td {
+    border: 1px solid $border;
+    padding: 9px 12px;
+    font-size: 13px;
+  }
+
+  tr:hover td { background: #f8faff; }
+}
+
+.grid-actions { display: flex; gap: 6px; }
+
+// Edit / Delete row buttons + "Remove file" button
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 0.8; }
+
+  &.edit, &.del {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    margin: 0;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+
+    .material-icons { font-size: 18px; }
+
+    &:hover { opacity: 1; }
+  }
+
+  &.edit {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #dbeafe;
+
+    &:hover { background: #dbeafe; color: #1d4ed8; }
+  }
+
+  &.del {
+    background: #fef2f2;
+    color: #ef4444;
+    border-color: #fecaca;
+
+    &:hover { background: #fee2e2; color: #dc2626; }
+  }
+}
+
+// -- Modal (Add/Edit Advance Entry form) --
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #fff;
+  border-radius: $radius-md;
+  padding: 24px 28px;
+  width: 420px;
+  max-width: 95vw;
+  box-shadow: $shadow-modal;
+
+  h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  p  { color: $text-muted; font-size: 13.5px; margin-bottom: 20px; }
+}
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+// hides visible scrollbar on the modal card, keeps scrolling (used on .card.modal-scroll)
+.modal-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar { display: none; }
+}

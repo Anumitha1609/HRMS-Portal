@@ -1,0 +1,320 @@
+<!-- ============================================================
+     Reusable chart primitives — geometry is pre-computed in the
+     component; these templates only bind to attributes.
+     ============================================================ -->
+<ng-template #lineChartTpl let-data="data" let-color="color" let-unit="unit" let-displayLast="displayLast"
+  let-format="format">
+  <div class="line-chart-block">
+    <svg viewBox="0 0 280 96" preserveAspectRatio="none" class="line-chart">
+      <path [attr.d]="data.areaPath" class="line-area" [style.fill]="color"></path>
+      <polyline [attr.points]="data.points" class="line-stroke" [style.stroke]="color"></polyline>
+    </svg>
+    <div class="line-foot">
+      @if (displayLast) {
+      <span class="line-current">{{ displayLast }}</span>
+      } @else {
+      <span class="line-current">{{ data.last | number:(format || '1.0-0') }}{{ unit }}</span>
+      }
+      <span class="line-delta" [class.up]="data.deltaPct >= 0" [class.down]="data.deltaPct < 0">
+        {{ data.deltaPct >= 0 ? '▲' : '▼' }} {{ (data.deltaPct < 0 ? -data.deltaPct : data.deltaPct) | number:'1.0-1'
+          }}% </span>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #donutTpl let-segments="segments" let-centerLabel="centerLabel" let-centerSub="centerSub">
+  <div class="donut-block">
+    <div class="donut-wrap">
+      <svg viewBox="0 0 100 100" class="donut-chart">
+        <circle cx="50" cy="50" r="42" class="donut-track"></circle>
+        @for (seg of segments; track seg.label) {
+        <circle cx="50" cy="50" r="42" class="donut-seg" [style.stroke]="seg.color"
+          [attr.stroke-dasharray]="seg.dashArray" [attr.stroke-dashoffset]="seg.dashOffset"></circle>
+        }
+      </svg>
+      <div class="donut-center">
+        <span class="donut-center-label">{{ centerLabel }}</span>
+        @if (centerSub) { <span class="donut-center-sub">{{ centerSub }}</span> }
+      </div>
+    </div>
+    <div class="donut-legend">
+      @for (seg of segments; track seg.label) {
+      <div class="legend-item">
+        <span class="legend-dot" [style.background]="seg.color"></span>
+        <span class="legend-label">{{ seg.label }}</span>
+        <span class="legend-value">{{ seg.value }}</span>
+      </div>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #barListTpl let-rows="rows">
+  <div class="bar-list">
+    @for (row of rows; track row.label) {
+    <div class="chart-row">
+      <span class="dept-label">{{ row.label }}</span>
+      <div class="bar-wrapper">
+        <div class="bar-fill" [style.width.%]="row.pct" [style.background]="row.color"></div>
+      </div>
+      <span class="count-label">{{ row.display }}</span>
+    </div>
+    }
+  </div>
+</ng-template>
+
+<ng-template #dualBarTpl let-rows="rows" let-aLabel="aLabel" let-bLabel="bLabel" let-aColor="aColor"
+  let-bColor="bColor">
+  <div class="dual-bar-chart">
+    @for (row of rows; track row.label) {
+    <div class="dual-bar-col">
+      <div class="dual-bar-track">
+        <div class="dual-bar" [style.height.%]="row.aPct" [style.background]="aColor"
+          [attr.title]="aLabel + ': ' + row.aVal"></div>
+        <div class="dual-bar" [style.height.%]="row.bPct" [style.background]="bColor"
+          [attr.title]="bLabel + ': ' + row.bVal"></div>
+      </div>
+      <span class="dual-bar-label">{{ row.label }}</span>
+    </div>
+    }
+  </div>
+  <div class="dual-bar-legend">
+    <span><i [style.background]="aColor"></i>{{ aLabel }}</span>
+    <span><i [style.background]="bColor"></i>{{ bLabel }}</span>
+  </div>
+</ng-template>
+
+<!-- ============================================================
+     Console
+     ============================================================ -->
+<div class="console">
+  <div class="console-header">
+    <div class="header-copy">
+      <span class="role-chip" [attr.data-role]="role()">
+        <span class="role-chip-notch"></span>
+        {{ roleLabel() }}
+      </span>
+      <h1>Welcome back, {{ authService.currentUser()?.name || 'Master Console' }}</h1>
+      <p>Here is an overview of your organization's HR Master Module</p>
+    </div>
+    <span class="meta-date">{{ today | date:'EEEE, d MMM y' }}</span>
+  </div>
+
+  @if (isLoading()) {
+  <div class="skeleton-grid grid-4">
+    @for (i of [1,2,3,4,5,6,7,8]; track i) {
+    <div class="skeleton-card"></div>
+    }
+  </div>
+  <div class="skeleton-body"></div>
+  } @else {
+
+  @switch (role()) {
+
+  <!-- ============================== ADMIN ============================== -->
+  @case ('admin') {
+  <div class="kpi-grid grid-4">
+    @for (tile of adminKpis(); track tile.label) {
+    <div class="card kpi-tile" [attr.data-accent]="tile.accent">
+      <div class="kpi-icon-wrapper"><span class="material-icons">{{ tile.icon }}</span></div>
+      <div class="kpi-content">
+        <span class="kpi-label">{{ tile.label }}</span>
+        <span class="kpi-val">{{ tile.value }}</span>
+        @if (tile.sub) { <span class="kpi-sub">{{ tile.sub }}</span> }
+      </div>
+    </div>
+    }
+  </div>
+
+  <h2 class="section-title">Charts</h2>
+  <div class="details-grid grid-3col">
+    <div class="card chart-card">
+      <h2 class="card-title">Employee Growth Trend</h2>
+      <ng-container [ngTemplateOutlet]="lineChartTpl"
+        [ngTemplateOutletContext]="{ data: adminCharts().employeeGrowth, color: 'var(--amber)', unit: '' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Department-wise Distribution</h2>
+      <ng-container [ngTemplateOutlet]="barListTpl"
+        [ngTemplateOutletContext]="{ rows: adminCharts().departmentDistribution }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Gender Distribution</h2>
+      <ng-container [ngTemplateOutlet]="donutTpl"
+        [ngTemplateOutletContext]="{ segments: adminCharts().genderDistribution, centerLabel: org().totalEmployees, centerSub: 'employees' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Age Distribution</h2>
+      <ng-container [ngTemplateOutlet]="barListTpl"
+        [ngTemplateOutletContext]="{ rows: adminCharts().ageDistribution }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Attrition Trend</h2>
+      <ng-container [ngTemplateOutlet]="lineChartTpl"
+        [ngTemplateOutletContext]="{ data: adminCharts().attritionTrend, color: 'var(--rose)', unit: '%', format: '1.0-1' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Hiring vs Exit</h2>
+      <ng-container [ngTemplateOutlet]="dualBarTpl"
+        [ngTemplateOutletContext]="{ rows: adminCharts().hiringVsExit, aLabel: 'Hires', bLabel: 'Exits', aColor: 'var(--teal)', bColor: 'var(--rose)' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Attendance Trend</h2>
+      <ng-container [ngTemplateOutlet]="lineChartTpl"
+        [ngTemplateOutletContext]="{ data: adminCharts().attendanceTrend, color: 'var(--sky)', unit: '%', format: '1.0-1' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Leave Trend</h2>
+      <ng-container [ngTemplateOutlet]="lineChartTpl"
+        [ngTemplateOutletContext]="{ data: adminCharts().leaveTrend, color: 'var(--violet)', unit: ' days' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Payroll Cost Trend</h2>
+      <ng-container [ngTemplateOutlet]="lineChartTpl"
+        [ngTemplateOutletContext]="{ data: adminCharts().payrollCostTrend, color: 'var(--amber)', displayLast: formatCurrency(adminCharts().payrollCostTrend.last) }"></ng-container>
+    </div>
+  </div>
+
+  <h2 class="section-title">Quick Actions</h2>
+  <div class="quick-actions">
+    @for (action of quickActions; track action.label) {
+    <button type="button" class="quick-action" (click)="onQuickAction(action.label)">
+      <span class="material-icons">{{ action.icon }}</span>
+      {{ action.label }}
+    </button>
+    }
+  </div>
+  }
+
+  <!-- ========================== HR EXECUTIVE =========================== -->
+  @case ('executive') {
+  <div class="kpi-grid grid-4">
+    @for (tile of hrKpis(); track tile.label) {
+    <div class="card kpi-tile" [attr.data-accent]="tile.accent">
+      <div class="kpi-icon-wrapper"><span class="material-icons">{{ tile.icon }}</span></div>
+      <div class="kpi-content">
+        <span class="kpi-label">{{ tile.label }}</span>
+        <span class="kpi-val">{{ tile.value }}</span>
+        @if (tile.sub) { <span class="kpi-sub">{{ tile.sub }}</span> }
+      </div>
+    </div>
+    }
+  </div>
+
+  <h2 class="section-title">My Tasks</h2>
+  <div class="task-grid">
+    @for (task of org().myTasks; track task.label) {
+    <div class="card task-tile">
+      <span class="material-icons">{{ task.icon }}</span>
+      <div class="task-content">
+        <span class="task-label">{{ task.label }}</span>
+        <span class="task-count">{{ task.count }} pending</span>
+      </div>
+    </div>
+    }
+  </div>
+
+  <div class="details-grid grid-2col">
+    <h2 class="section-title full-span">Charts</h2>
+    <div class="card chart-card">
+      <h2 class="card-title">Recruitment Pipeline</h2>
+      <ng-container [ngTemplateOutlet]="barListTpl"
+        [ngTemplateOutletContext]="{ rows: hrCharts().recruitmentPipeline }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Attendance Summary</h2>
+      <ng-container [ngTemplateOutlet]="donutTpl"
+        [ngTemplateOutletContext]="{ segments: hrCharts().attendanceSummary, centerLabel: org().attendanceToday.present, centerSub: 'present today' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Leave Requests</h2>
+      <ng-container [ngTemplateOutlet]="barListTpl"
+        [ngTemplateOutletContext]="{ rows: hrCharts().leaveRequests }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Interview Status</h2>
+      <ng-container [ngTemplateOutlet]="donutTpl"
+        [ngTemplateOutletContext]="{ segments: hrCharts().interviewStatus, centerLabel: org().candidatesInPipeline, centerSub: 'in pipeline' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Employee Joining Trend</h2>
+      <ng-container [ngTemplateOutlet]="lineChartTpl"
+        [ngTemplateOutletContext]="{ data: hrCharts().joiningTrend, color: 'var(--teal)', unit: '' }"></ng-container>
+    </div>
+  </div>
+
+  <h2 class="section-title">Notifications</h2>
+  <div class="card notification-list">
+    @for (n of org().notifications; track n.text) {
+    <div class="notification-item" [attr.data-tone]="n.tone">
+      <span class="material-icons">{{ n.icon }}</span>
+      <p>{{ n.text }}</p>
+      <span class="notification-time">{{ n.time }}</span>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- ============================= VIEWER =============================== -->
+  @default {
+  <div class="kpi-grid grid-4">
+    @for (tile of viewerKpis(); track tile.label) {
+    <div class="card kpi-tile" [attr.data-accent]="tile.accent">
+      <div class="kpi-icon-wrapper"><span class="material-icons">{{ tile.icon }}</span></div>
+      <div class="kpi-content">
+        <span class="kpi-label">{{ tile.label }}</span>
+        <span class="kpi-val">{{ tile.value }}</span>
+        @if (tile.sub) { <span class="kpi-sub">{{ tile.sub }}</span> }
+      </div>
+    </div>
+    }
+  </div>
+
+  <h2 class="section-title">Charts</h2>
+  <div class="details-grid grid-3col">
+    <div class="card chart-card">
+      <h2 class="card-title">Employee Distribution</h2>
+      <ng-container [ngTemplateOutlet]="donutTpl"
+        [ngTemplateOutletContext]="{ segments: viewerCharts().employeeDistribution, centerLabel: org().totalEmployees, centerSub: 'employees' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Attendance Trend</h2>
+      <ng-container [ngTemplateOutlet]="lineChartTpl"
+        [ngTemplateOutletContext]="{ data: viewerCharts().attendanceTrend, color: 'var(--sky)', unit: '%', format: '1.0-1' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Attrition Trend</h2>
+      <ng-container [ngTemplateOutlet]="lineChartTpl"
+        [ngTemplateOutletContext]="{ data: viewerCharts().attritionTrend, color: 'var(--rose)', unit: '%', format: '1.0-1' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Hiring vs Exit</h2>
+      <ng-container [ngTemplateOutlet]="dualBarTpl"
+        [ngTemplateOutletContext]="{ rows: viewerCharts().hiringVsExit, aLabel: 'Hires', bLabel: 'Exits', aColor: 'var(--teal)', bColor: 'var(--rose)' }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Department Headcount</h2>
+      <ng-container [ngTemplateOutlet]="barListTpl"
+        [ngTemplateOutletContext]="{ rows: viewerCharts().departmentHeadcount }"></ng-container>
+    </div>
+    <div class="card chart-card">
+      <h2 class="card-title">Payroll Cost by Department</h2>
+      <ng-container [ngTemplateOutlet]="barListTpl"
+        [ngTemplateOutletContext]="{ rows: viewerCharts().payrollByDepartment }"></ng-container>
+    </div>
+  </div>
+
+  <h2 class="section-title">Reports</h2>
+  <div class="report-grid">
+    @for (report of viewerReports; track report.label) {
+    <button type="button" class="report-tile" (click)="onReportRequest(report.label)">
+      <span class="material-icons">{{ report.icon }}</span>
+      {{ report.label }}
+      <span class="material-icons report-arrow">arrow_forward</span>
+    </button>
+    }
+  </div>
+  }
+  }
+  }
+</div>

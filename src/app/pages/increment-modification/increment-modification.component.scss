@@ -1,0 +1,346 @@
+.section {
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--space-2);
+
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+  }
+}
+
+.step {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 200px;
+
+  label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #8a94a6;
+    margin-bottom: 6px;
+  }
+
+  .required {
+    color: var(--color-danger);
+  }
+
+  input,
+  select {
+    height: 44px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font-size: 14px;
+    background: #f3f4f7;
+    color: var(--color-text);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+    &::placeholder {
+      color: #9aa3b2;
+    }
+
+    &:focus {
+      background: #ffffff;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    &[disabled] {
+      background: #f3f4f7;
+      color: #9ca3af;
+      border-color: transparent;
+    }
+  }
+}
+
+// Pierce view encapsulation to restyle the child <app-employee-picker>'s
+// internal input/select, since it has its own template/stylesheet and
+// isn't reachable via a normal selector from this component.
+::ng-deep app-employee-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #8a94a6;
+  }
+
+  input,
+  select,
+  .picker-input,
+  .search-input {
+    width: 100%;
+    height: 44px;
+    padding: 8px 14px;
+    border: 1px solid transparent !important;
+    border-radius: 12px !important;
+    background: #f3f4f7 !important;
+    color: var(--color-text);
+    font-size: 14px;
+
+    &::placeholder {
+      color: #9aa3b2;
+    }
+
+    &:focus,
+    &:focus-visible,
+    &:focus-within {
+      outline: none !important;
+      background: #fff !important;
+      border-color: var(--color-primary) !important;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    }
+  }
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.avatar-lg {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-primary-100);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.profile-info {
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  p {
+    font-size: 13px;
+    color: var(--color-text-muted);
+  }
+}
+
+.profile-meta {
+  display: flex;
+  gap: var(--space-5);
+  margin-left: auto;
+  flex-wrap: wrap;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+  }
+
+  span {
+    color: var(--color-text-faint);
+    margin-bottom: 2px;
+  }
+
+  strong {
+    font-size: 13px;
+  }
+
+  @media (max-width: 1000px) {
+    margin-left: 0;
+  }
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+
+  @media (max-width: 1000px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-banner {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  background: var(--color-primary-100);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-2);
+}
+
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    background-color: #1a2b4a;
+    color: #ffffff;
+    font-size: 11px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #1a2b4a;
+  }
+
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+
+  tbody tr:hover {
+    background-color: #eef2ff;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  .muted {
+    color: var(--color-text-faint);
+  }
+
+  .total-row td {
+    font-weight: 700;
+    border-top: 2px solid var(--color-border-strong);
+    color: var(--color-primary);
+  }
+}
+
+.input-with-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cell-input {
+  width: 100px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--color-bg);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+
+  &:focus {
+    outline: none;
+    background: var(--color-surface);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-100);
+  }
+}
+
+.check {
+  font-weight: 700;
+  color: var(--color-success);
+
+  &.error {
+    color: var(--color-danger);
+  }
+}
+
+.validation-banner {
+  margin-top: var(--space-2);
+  font-size: 12px;
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+
+  &.error {
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+  }
+}
+
+.summary-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  span {
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+
+  strong {
+    font-size: 16px;
+
+    &.up {
+      color: var(--color-success);
+    }
+  }
+
+  .hint {
+    flex: 1;
+    font-size: 12px;
+    color: var(--color-text-faint);
+    margin: 0;
+  }
+
+  .actions-row {
+    display: flex;
+    gap: 10px;
+  }
+}
+
+.saved-msg {
+  width: 100%;
+  color: var(--color-success);
+  font-size: 13px;
+}

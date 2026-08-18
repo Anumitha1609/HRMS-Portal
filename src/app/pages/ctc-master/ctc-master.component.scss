@@ -1,0 +1,209 @@
+// CTC Master Stylesheet - Work@Eaze HRMS
+
+.employee-layout-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+// Drawer Sidebar Overlays
+.stepper-drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.stepper-drawer {
+  width: 460px;
+  background: #ffffff;
+  box-shadow: -10px 0 25px -5px rgba(0, 0, 0, 0.1), -4px 0 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 0 !important; // Flush to the right side of the screen
+  border: none !important;
+  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (max-width: 480px) {
+    width: 100%;
+  }
+
+  .drawer-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h4 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .btn-close-drawer {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      transition: background 0.15s;
+
+      &:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+      }
+    }
+  }
+
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .drawer-actions {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+}
+
+// Badge Colors
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badge-gray {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.action-buttons-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rotating {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+// Validation Error Message
+.error-msg {
+  color: #ef4444;
+  font-size: 11px;
+  margin-top: 4px;
+  font-weight: 500;
+  display: block;
+}
+
+// Table row action buttons (view/edit/delete)
+.btn-action {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  .material-icons {
+    font-size: 18px;
+  }
+
+  &.btn-view {
+    background-color: #f8fafc;
+    color: #64748b;
+    border-color: #e2e8f0;
+
+    &:hover {
+      background-color: #f1f5f9;
+      color: #475569;
+    }
+  }
+
+  &.btn-edit {
+    background-color: #eff6ff;
+    color: #2563eb;
+    border-color: #dbeafe;
+
+    &:hover {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+    }
+  }
+
+  &.btn-delete {
+    background-color: #fef2f2;
+    color: #ef4444;
+    border-color: #fecaca;
+
+    &:hover {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

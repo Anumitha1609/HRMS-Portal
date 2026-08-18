@@ -1,0 +1,412 @@
+<div class="email-config-page animated-fade-in">
+
+  <!-- Page Header & Actions -->
+  <div class="page-header">
+    <div class="header-left">
+      </div>
+    <div class="header-actions">
+      <label class="active-only-toggle">
+        <span>Active Only</span>
+        <span class="switch">
+          <input type="checkbox" [checked]="activeOnly()" (change)="activeOnly.set($any($event.target).checked)" />
+          <span class="switch-track"></span>
+        </span>
+      </label>
+      <button type="button" class="btn btn-primary" (click)="onShowCreateConfig()">
+        <span class="material-icons">add</span>
+        <span>Add New</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters & Import Toolbar -->
+  <div class="filter-bar card">
+    <div class="import-filters">
+      <div class="filter-field">
+        <label class="filter-label">Import Type</label>
+        <div class="select-wrapper">
+          <select
+            [value]="selectedImportType()"
+            (change)="selectedImportType.set($any($event.target).value)"
+            class="input-control select-control"
+          >
+            <option value="">Select import type</option>
+            <option value="Monthly Import">Monthly Import</option>
+            <option value="Weekly Import">Weekly Import</option>
+            <option value="Daily Import">Daily Import</option>
+            <option value="Bulk Import">Bulk Import</option>
+          </select>
+          <span class="material-icons select-arrow">expand_more</span>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label">Month</label>
+        <div class="select-wrapper">
+          <select
+            [value]="selectedMonth()"
+            (change)="selectedMonth.set($any($event.target).value)"
+            class="input-control select-control"
+          >
+            <option value="">Select month</option>
+            <option value="January">January</option>
+            <option value="February">February</option>
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
+          </select>
+          <span class="material-icons select-arrow">expand_more</span>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label">Year</label>
+        <div class="select-wrapper">
+          <select
+            [value]="selectedYear()"
+            (change)="selectedYear.set($any($event.target).value)"
+            class="input-control select-control"
+          >
+            <option value="">Select year</option>
+            @for (yr of years; track yr) {
+              <option [value]="yr">{{ yr }}</option>
+            }
+          </select>
+          <span class="material-icons select-arrow">expand_more</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="import-actions">
+      <button type="button" class="btn btn-outline" (click)="onResetFilters()">
+        <span>Reset</span>
+      </button>
+      <button type="button" class="btn btn-outline" (click)="triggerFileInput()">
+        <span class="material-icons">upload</span>
+        <span>Choose File</span>
+      </button>
+      <button type="button" class="btn btn-outline" (click)="downloadTemplate()">
+        <span class="material-icons">file_download</span>
+        <span>Template</span>
+      </button>
+      <input
+        accept=".xlsx, .xls, .csv"
+        class="hidden-file-input"
+        id="excel-import-input-table"
+        type="file"
+        (change)="onFileSelected($event)"
+      />
+      <button type="button" class="btn btn-primary" (click)="onImportFile()">
+        <span class="material-icons">publish</span>
+        <span>Import</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- File Chosen Banner -->
+  @if (selectedFileName()) {
+    <div class="file-selected-banner">
+      <div class="file-selected-info">
+        <span class="material-icons">description</span>
+        <span>Selected file: <strong>{{ selectedFileName() }}</strong></span>
+      </div>
+      <button type="button" class="file-remove-btn" (click)="clearSelectedFile()">Remove</button>
+    </div>
+  }
+
+  <!-- Employee Email Configuration Table -->
+  <div class="table-card">
+    <div class="card-toolbar">
+      <div class="toolbar-title">
+        <span class="material-icons title-icon">mail</span>
+        <h2>Employee Email Configurations</h2>
+      </div>
+      <div class="toolbar-search">
+        <span class="material-icons search-icon">search</span>
+        <input
+          type="text"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value); currentPage.set(1)"
+          placeholder="Search emp code, name, email..."
+          class="search-input"
+        />
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="master-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Emp Code</th>
+            <th>Employee Name</th>
+            <th>Email Address</th>
+            <th>SMTP Status</th>
+            <th>Date Configured</th>
+            <th>Last Used</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of pagedEmployeeEmails(); track row.id; let i = $index) {
+            <tr>
+              <td class="text-muted">{{ pageStart() + i }}</td>
+              <td class="code-cell">{{ row.emp_code }}</td>
+              <td class="name-cell">{{ row.employee_name }}</td>
+              <td class="text-muted">{{ row.email_address }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="row.status === 'Active' ? 'status-active' : 'status-inactive'">
+                  <span class="status-dot"></span>
+                  {{ row.status }}
+                </span>
+              </td>
+              <td class="mono-cell">{{ row.date_configured }}</td>
+              <td class="text-muted">{{ row.last_used }}</td>
+              <td class="actions-col">
+                <div class="action-buttons">
+                  <button class="btn-action btn-edit" title="Edit" (click)="onShowCreateConfig()">
+                    <span class="material-icons">edit</span>
+                  </button>
+                  <button class="btn-action btn-delete" title="Delete" (click)="onDeleteEmployee(row.id!, row.emp_code)">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="empty-table-msg">No matching employee email configurations were found.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-footer">
+      <span>
+        {{ filteredEmployeeEmails().length === 0 ? 'No employee configurations' : 'Showing ' + pageStart() + ' to ' + pageEnd() + ' of ' + filteredEmployeeEmails().length + ' configurations' }}
+      </span>
+      <div class="pagination">
+        <button class="page-btn" [disabled]="currentPage() === 1" (click)="goPrevPage()">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <button class="page-btn active">{{ currentPage() }}</button>
+        <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="goNextPage()">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SMTP HANDSHAKE TEST MODAL ============ -->
+@if (showTestModal()) {
+  <div class="modal-overlay animated-overlay" (click)="$event.target === $event.currentTarget && onCloseTestModal()">
+    <div class="modal-container animated-scale-in modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">SMTP Gateway Handshake Tester</h3>
+        <button class="modal-close-btn" (click)="onCloseTestModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-form">
+          <div class="form-group">
+            <label class="form-label">Recipient Validation Address</label>
+            <input
+              type="email"
+              [formControl]="testEmailRecipient"
+              placeholder="admin@example.com"
+              class="input-control"
+            />
+          </div>
+
+          @if (testEmailStatusMessage()) {
+            <div
+              class="test-status-banner"
+              [ngClass]="testEmailSuccess() === true ? 'status-success' : testEmailSuccess() === false ? 'status-error' : 'status-neutral'"
+            >
+              @if (testEmailSuccess() === true) {
+                <span class="material-icons">check_circle</span>
+              } @else if (testEmailSuccess() === false) {
+                <span class="material-icons">error</span>
+              } @else {
+                <span class="material-icons">info</span>
+              }
+              <span>{{ testEmailStatusMessage() }}</span>
+            </div>
+          }
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary modal-btn" (click)="onCloseTestModal()">Cancel</button>
+            <button type="button" class="btn btn-primary modal-btn" [disabled]="testEmailRecipient.invalid" (click)="onTriggerTestEmail()">Trigger Relay</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ============ ADD / EDIT SMTP CONFIGURATION MODAL ============ -->
+@if (showSmtpConfig()) {
+  <div class="modal-overlay animated-overlay" (click)="$event.target === $event.currentTarget && onExit()">
+    <div class="modal-container animated-scale-in modal-lg">
+      <form [formGroup]="smtpForm" (ngSubmit)="onSaveSmtp()" class="smtp-modal-form">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">Global Outgoing Mail Server</h3>
+            <p class="modal-subtitle">Manage server settings, authentication and security variables.</p>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="onExit()">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="smtp-grid">
+            <!-- Server Settings -->
+            <section class="config-section server-settings">
+              <div class="config-section-head">
+                <span class="material-icons">dns</span>
+                <h4>Server Settings</h4>
+              </div>
+              <div class="form-row form-row-3">
+                <div class="form-group">
+                  <label class="form-label">SMTP Server Host</label>
+                  <input class="input-control" type="text" formControlName="smtp_host" placeholder="smtp.office365.com" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">SMTP Port</label>
+                  <input class="input-control" type="number" formControlName="port" placeholder="587" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">System Email Address</label>
+                  <input class="input-control" type="email" formControlName="email" placeholder="notifications@hatrix-hr.com" />
+                </div>
+              </div>
+            </section>
+
+            <!-- Security -->
+            <section class="config-section security-settings">
+              <div class="config-section-head">
+                <span class="material-icons">shield</span>
+                <h4>Security</h4>
+              </div>
+              <div class="security-row">
+                <div>
+                  <p class="security-row-title">SSL Connection</p>
+                  <p class="security-row-subtitle">Encryption for port 465</p>
+                </div>
+                <span class="switch switch-sm">
+                  <input type="checkbox" [checked]="useSsl()" (change)="useSsl.set($any($event.target).checked)" />
+                  <span class="switch-track"></span>
+                </span>
+              </div>
+              <div class="security-row">
+                <div>
+                  <p class="security-row-title">TLS / STARTTLS</p>
+                  <p class="security-row-subtitle">Encryption for port 587</p>
+                </div>
+                <span class="switch switch-sm">
+                  <input type="checkbox" [checked]="useTls()" (change)="useTls.set($any($event.target).checked)" />
+                  <span class="switch-track"></span>
+                </span>
+              </div>
+            </section>
+          </div>
+
+          <!-- Authentication -->
+          <section class="config-section auth-settings">
+            <div class="config-section-head">
+              <span class="material-icons">key</span>
+              <h4>Authentication</h4>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Username</label>
+                <input class="input-control" type="text" formControlName="username" placeholder="hatrix_admin_svc" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="password-field-wrapper">
+                  <input
+                    class="input-control password-input"
+                    [type]="showPassword() ? 'text' : 'password'"
+                    formControlName="password"
+                    (input)="onPasswordInput($event)"
+                    placeholder="Enter password"
+                  />
+                  <button
+                    type="button"
+                    (click)="toggleShowPassword()"
+                    class="password-eye-btn"
+                    [title]="showPassword() ? 'Hide Password' : 'Show Password'"
+                  >
+                    @if (showPassword()) {
+                      <span class="material-icons">visibility_off</span>
+                    } @else {
+                      <span class="material-icons">visibility</span>
+                    }
+                  </button>
+                </div>
+
+                <!-- Password Strength -->
+                <div class="pw-strength-card">
+                  <div class="pw-strength-header">
+                    <span class="pw-strength-label">Password Strength:</span>
+                    <span
+                      class="pw-strength-badge"
+                      [style.color]="passwordStrength().textClass"
+                      [style.background-color]="passwordStrength().bgClass"
+                      [style.border-color]="passwordStrength().barColor"
+                    >
+                      {{ passwordStrength().label }}
+                    </span>
+                  </div>
+
+                  <div class="pw-progress-track">
+                    <div
+                      class="pw-progress-fill"
+                      [style.background-color]="passwordStrength().barColor"
+                      [style.width.%]="passwordStrength().score"
+                    ></div>
+                  </div>
+
+                  <div class="pw-checklist-grid">
+                    @for (req of passwordRequirements(); track req.id) {
+                      <div class="pw-checklist-item" [class.is-met]="req.met">
+                        <span class="pw-checklist-dot">
+                          <span class="material-icons pw-check-icon">check</span>
+                        </span>
+                        <span class="pw-checklist-text">{{ req.label }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="modal-actions smtp-modal-actions">
+          <button type="button" class="btn btn-secondary modal-btn" (click)="onOpenTestModal()">
+            <span class="material-icons">send</span>
+            <span>Send Test Email</span>
+          </button>
+          <button type="submit" class="btn btn-primary modal-btn" [disabled]="smtpForm.invalid">
+            <span class="material-icons">save</span>
+            <span>Save Changes</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

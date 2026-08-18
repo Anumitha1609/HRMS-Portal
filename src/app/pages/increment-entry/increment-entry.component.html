@@ -1,0 +1,349 @@
+
+<!-- Increment Type Selection -->
+<div class="card section">
+  <div class="section-head"><span class="step">1</span><h3>Increment Type</h3></div>
+  <div class="increment-type-row">
+    <label class="type-option">
+      <input type="radio" name="incrementType" value="single" [ngModel]="incrementType()" (ngModelChange)="onIncrementTypeChange('single')" />
+      <span class="type-label">Single Employee</span>
+    </label>
+    <label class="type-option">
+      <input type="radio" name="incrementType" value="bulk" [ngModel]="incrementType()" (ngModelChange)="onIncrementTypeChange('bulk')" />
+      <span class="type-label">Bulk Employee Mapping</span>
+    </label>
+    <label class="type-option">
+      <input type="radio" name="incrementType" value="excel" [ngModel]="incrementType()" (ngModelChange)="onIncrementTypeChange('excel')" />
+      <span class="type-label">Excel Upload</span>
+    </label>
+  </div>
+</div>
+
+<!-- Single Employee Mode -->
+<ng-container *ngIf="incrementType() === 'single'">
+  <div class="card section">
+    <div class="section-head"><span class="step">2</span><h3>Employee Selection</h3></div>
+    <div class="row">
+      <app-employee-picker label="Employee" required="true" (selected)="onEmployeeSelected($event)"></app-employee-picker>
+      <div class="field">
+        <label for="eff-date">Effective Date <span class="required">*</span></label>
+        <input id="eff-date" type="date" [ngModel]="effectiveDate()" (ngModelChange)="effectiveDate.set($event)" [disabled]="!employee()" />
+      </div>
+      <div class="field" *ngIf="employee()">
+        <label>Apply Flat Increase</label>
+        <div class="quick-pct">
+          <button type="button" class="btn btn-secondary" (click)="applyPercentToAll(5)">+5%</button>
+          <button type="button" class="btn btn-secondary" (click)="applyPercentToAll(10)">+10%</button>
+          <button type="button" class="btn btn-secondary" (click)="applyPercentToAll(15)">+15%</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="employee()">
+    <div class="grid-2">
+      <div class="card section">
+        <div class="section-head"><span class="step">3</span><h3>Current Salary <small>(as on today)</small></h3></div>
+        <div class="table-card">
+          <table class="master-table mini-table">
+            <thead><tr><th>Component</th><th>Amount (₹)</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let line of lines(); trackBy: trackByComponent">
+                <td>{{ line.component }}</td>
+                <td>{{ line.current | number }}</td>
+              </tr>
+              <tr class="total-row"><td>Total Gross Salary</td><td>{{ totalCurrent() | number }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card section">
+        <div class="section-head"><span class="step">4</span><h3>Increment Details <small>(revised components)</small></h3></div>
+        <div class="table-card">
+          <table class="master-table mini-table">
+            <thead><tr><th>Component</th><th>Current (₹)</th><th>Revised (₹)</th><th>Increase</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let line of lines(); trackBy: trackByComponent">
+                <td>{{ line.component }}</td>
+                <td class="muted">{{ line.current | number }}</td>
+                <td>
+                  <div class="input-with-check">
+                    <input type="text" class="cell-input" [value]="line.revised" (input)="onRevisedInput(line, $event)" />
+                    <span class="check" *ngIf="compareNumbers(line.revised, line.current)">✓</span>
+                  </div>
+                </td>
+                <td [class.up]="increase(line) > 0">{{ increase(line) >= 0 ? '+' : '' }}{{ increase(line) | number }} ({{ increasePct(line) }}%)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card section">
+      <div class="section-head"><span class="step">5</span><h3>Revised Salary <small>(effective {{ effectiveDate() }})</small></h3></div>
+      <div class="summary-cards">
+        <div class="summary-tile"><span>Total Gross Salary</span><strong>₹{{ totalRevised() | number }}</strong></div>
+        <div class="summary-tile"><span>Change</span><strong class="up">{{ totalChangePct() }}%</strong></div>
+        <div class="summary-tile"><span>Net Monthly Salary</span><strong>₹{{ netMonthly() | number }}</strong></div>
+        <div class="summary-tile"><span>Total Annual CTC</span><strong>₹{{ annualCtc() | number }}</strong></div>
+      </div>
+      <p class="hint">This change will be reflected in payroll from the effective date.</p>
+      <div class="actions-row">
+        <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
+        <button type="button" class="btn btn-primary" (click)="save()">Save Changes</button>
+      </div>
+      <p class="saved-msg" *ngIf="saved()">✓ Increment saved for {{ employee()?.name }}, effective {{ effectiveDate() }}.</p>
+      <p class="error-msg" *ngIf="saveError()">{{ saveError() }}</p>
+    </div>
+  </ng-container>
+</ng-container>
+
+<!-- Bulk Employee Mapping Mode -->
+<ng-container *ngIf="incrementType() === 'bulk'">
+  <!-- Increment Information Section -->
+  <div class="card section">
+    <div class="section-head"><span class="step">2</span><h3>Increment Information</h3></div>
+    <div class="bulk-info-grid">
+      <div class="field">
+        <label for="bulk-eff-date">Effective Date <span class="required">*</span></label>
+        <input id="bulk-eff-date" type="date" [ngModel]="effectiveDate()" (ngModelChange)="effectiveDate.set($event)" />
+      </div>
+      <div class="field">
+        <label for="bulk-increment">Increment Amount (₹) <span class="required">*</span></label>
+        <input id="bulk-increment" type="number" min="1" [ngModel]="bulkIncrementAmount()" (ngModelChange)="bulkIncrementAmount.set($event)" placeholder="Enter increment amount" />
+      </div>
+      <div class="field">
+        <label for="bulk-percent">Increment Percentage (%) <small>(Optional)</small></label>
+        <input id="bulk-percent" type="number" [ngModel]="bulkIncrementPercent()" (ngModelChange)="bulkIncrementPercent.set($event)" placeholder="Enter percentage (optional)" />
+      </div>
+      <div class="field">
+        <label for="bulk-remarks">Remarks</label>
+        <input id="bulk-remarks" type="text" [ngModel]="bulkRemarks()" (ngModelChange)="bulkRemarks.set($event)" placeholder="Enter remarks (optional)" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Mapping Grid Section -->
+  <div class="card section">
+    <div class="section-head"><span class="step">3</span><h3>Map Employees</h3></div>
+
+    <!-- Search and Filter Controls -->
+    <div class="bulk-controls">
+      <div class="field compact">
+        <label for="bulk-search">Search Employee</label>
+        <input id="bulk-search" type="text" [ngModel]="bulkSearch()" (ngModelChange)="bulkSearch.set($event)" placeholder="Search by code, name, department..." />
+      </div>
+      <div class="field compact">
+        <label for="bulk-department">Filter by Department</label>
+        <select id="bulk-department" [ngModel]="bulkDepartment()" (ngModelChange)="bulkDepartment.set($event)">
+          <option value="">All Departments</option>
+          <option *ngFor="let dept of incrementDepartmentOptions()" [value]="dept">{{ dept }}</option>
+        </select>
+      </div>
+      <div class="field compact">
+        <label for="bulk-designation">Filter by Designation</label>
+        <select id="bulk-designation" [ngModel]="bulkDesignation()" (ngModelChange)="bulkDesignation.set($event)">
+          <option value="">All Designations</option>
+          <option *ngFor="let desig of incrementDesignationOptions()" [value]="desig">{{ desig }}</option>
+        </select>
+      </div>
+      <div class="bulk-selection-count">
+        <span class="selected-badge">{{ totalSelected() }} employee(s) selected</span>
+      </div>
+    </div>
+
+    <!-- Employee Grid Table -->
+    <div class="table-card">
+      <div class="bulk-table-wrap">
+        <table class="master-table bulk-table">
+          <thead>
+            <tr>
+              <th class="col-checkbox">
+                <input type="checkbox" 
+                  [checked]="filteredEmployees().length > 0 && totalSelected() === filteredEmployees().length" 
+                  (change)="toggleSelectAll($event)" 
+                  [indeterminate]="totalSelected() > 0 && totalSelected() < filteredEmployees().length" />
+              </th>
+              <th>Employee Code</th>
+              <th>Employee Name</th>
+              <th>Department</th>
+              <th>Designation</th>
+              <th class="col-number">Current Salary</th>
+              <th class="col-number">Increment Amount</th>
+              <th class="col-number">Revised Salary</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of bulkEmployeeRows(); trackBy: trackByBulkEmployeeRow">
+              <td class="col-checkbox">
+                <input type="checkbox" [checked]="isSelected(row.employee)" (change)="toggleEmployeeSelection(row.employee, $event)" />
+              </td>
+              <td>{{ row.employee.empCode }}</td>
+              <td>{{ row.employee.name }}</td>
+              <td>{{ row.employee.department }}</td>
+              <td>{{ row.employee.designation }}</td>
+              <td class="col-number">₹{{ row.employee.currentCtc | number }}</td>
+              <td class="col-number increment-col">₹{{ getBulkIncrementAmount() | number }}</td>
+              <td class="col-number revised-col">₹{{ calculateRevisedSalary(row.employee.currentCtc) | number }}</td>
+            </tr>
+            <tr *ngIf="filteredEmployees().length === 0">
+              <td colspan="8" class="no-data">No employees found matching your criteria.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Panel -->
+  <div class="card section" *ngIf="totalSelected() > 0">
+    <div class="section-head"><span class="step">4</span><h3>Summary</h3></div>
+    <div class="summary-cards bulk-summary">
+      <div class="summary-tile"><span>Total Employees Selected</span><strong>{{ totalSelected() }}</strong></div>
+      <div class="summary-tile"><span>Average Current Salary</span><strong>₹{{ bulkAverageCurrentSalary() | number }}</strong></div>
+      <div class="summary-tile"><span>Increment Amount</span><strong>₹{{ getBulkIncrementAmount() | number }}</strong></div>
+      <div class="summary-tile"><span>Average Revised Salary</span><strong>₹{{ bulkAverageRevisedSalary() | number }}</strong></div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="card section">
+    <div class="actions-row">
+      <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
+      <button type="button" class="btn btn-primary" (click)="save()">Save Bulk Increment</button>
+    </div>
+    <p class="saved-msg" *ngIf="saved()">✓ Bulk increment saved for {{ totalSelected() }} employee(s), effective {{ effectiveDate() }}.</p>
+    <p class="error-msg" *ngIf="saveError()">{{ saveError() }}</p>
+  </div>
+</ng-container>
+
+<!-- Excel Upload Mode -->
+<ng-container *ngIf="incrementType() === 'excel'">
+  <!-- Upload Section -->
+  <div class="card section">
+    <div class="section-head"><span class="step">2</span><h3>Upload Excel File</h3></div>
+    <div class="excel-upload-controls">
+      <div class="upload-actions">
+        <button type="button" class="btn btn-secondary" (click)="downloadTemplate()">
+          <span class="btn-icon">📥</span> Download Excel Template
+        </button>
+        <div class="file-input-wrapper">
+          <input 
+            type="file" 
+            id="excelFile" 
+            accept=".xlsx,.xls" 
+            (change)="onFileSelected($event)"
+            #fileInput
+          />
+          <label for="excelFile" class="btn btn-secondary">
+            <span class="btn-icon">📂</span> Choose File
+          </label>
+          <span class="file-name" *ngIf="excelFile()">{{ excelFile()?.name }}</span>
+        </div>
+        <button type="button" class="btn btn-primary" (click)="uploadAndPreview()" [disabled]="!excelFile()">
+          <span class="btn-icon">📤</span> Upload & Preview
+        </button>
+      </div>
+    </div>
+    <p class="hint" style="margin-top: var(--space-2);">
+      Download the template, fill in employee details, and upload the file to preview before saving.
+    </p>
+    <p class="error-msg" *ngIf="excelError()">{{ excelError() }}</p>
+  </div>
+
+  <!-- Preview Grid -->
+  <div class="card section" *ngIf="excelUploaded()">
+    <div class="section-head"><span class="step">3</span><h3>Preview Data</h3></div>
+    
+    <!-- Summary Section -->
+    <div class="summary-cards excel-summary">
+      <div class="summary-tile">
+        <span>Total Records</span>
+        <strong>{{ getExcelSummary().total }}</strong>
+      </div>
+      <div class="summary-tile">
+        <span style="color: var(--color-success);">Valid Records</span>
+        <strong style="color: var(--color-success);">{{ getExcelSummary().valid }}</strong>
+      </div>
+      <div class="summary-tile">
+        <span style="color: #dc2626;">Invalid Records</span>
+        <strong style="color: #dc2626;">{{ getExcelSummary().invalid }}</strong>
+      </div>
+    </div>
+
+    <!-- Preview Table -->
+    <div class="table-card" *ngIf="previewRows().length > 0">
+      <div class="bulk-table-wrap">
+        <table class="master-table bulk-table excel-preview-table">
+          <thead>
+            <tr>
+              <th>Employee Code</th>
+              <th>Employee Name</th>
+              <th>Department</th>
+              <th class="col-number">Current Salary</th>
+              <th class="col-number">Increment Amount</th>
+              <th class="col-number">Revised Salary</th>
+              <th>Effective Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of previewRows(); trackBy: trackByPreviewRow" 
+                [class.invalid-row]="row.status === 'invalid'"
+                [title]="row.status === 'invalid' ? row.errors.join('\n') : ''">
+              <td>{{ row.employeeCode }}</td>
+              <td>{{ row.employeeName }}</td>
+              <td>{{ row.department }}</td>
+              <td class="col-number">₹{{ row.currentSalary | number }}</td>
+              <td class="col-number increment-col">₹{{ row.incrementAmount | number }}</td>
+              <td class="col-number revised-col">₹{{ row.revisedSalary | number }}</td>
+              <td>{{ row.effectiveDate }}</td>
+              <td>
+                <span class="status-badge" [class.valid]="row.status === 'valid'" [class.invalid]="row.status === 'invalid'">
+                  {{ row.status === 'valid' ? '✓ Valid' : '✗ Invalid' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Error Details for Invalid Rows -->
+    <div class="error-details" *ngIf="getExcelSummary().invalid > 0">
+      <div class="error-details-header">
+        <h4>Validation Errors</h4>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="downloadErrorReport()">
+          <span class="btn-icon">📥</span> Download Error Report
+        </button>
+      </div>
+      <div class="error-list">
+        <ng-container *ngFor="let row of previewRows()">
+          <div class="error-item" *ngIf="row.status === 'invalid'">
+            <strong>{{ row.employeeCode }}</strong> - {{ row.employeeName }}:
+            <span class="error-text">{{ row.errors.join(', ') }}</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="card section" *ngIf="excelUploaded()">
+    <div class="actions-row">
+      <button type="button" class="btn btn-secondary" (click)="resetExcelUpload()">Reset</button>
+      <button type="button" class="btn btn-primary" (click)="saveBulkExcelIncrement()" 
+              [disabled]="getExcelSummary().valid === 0">
+        Save Bulk Increment
+      </button>
+    </div>
+    <p class="saved-msg" *ngIf="excelSuccess()">
+      ✓ Bulk Increment Upload Completed Successfully - {{ getExcelSummary().valid }} record(s) saved.
+    </p>
+    <p class="saved-msg" *ngIf="saved() && !excelSuccess()">
+      ✓ Increment records saved successfully.
+    </p>
+    <p class="error-msg" *ngIf="saveError()">{{ saveError() }}</p>
+  </div>
+</ng-container>

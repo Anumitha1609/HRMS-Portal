@@ -1,0 +1,44 @@
+[
+  {
+    "id": "subloc-1",
+    "name": "Coimbatore - Block A",
+    "latitude": 11.0180,
+    "longitude": 76.9600,
+    "address": "Block A, Avinashi Road, Peelamedu, Coimbatore",
+    "city": "Coimbatore",
+    "state": "Tamil Nadu",
+    "country": "India",
+    "pinCode": "641004",
+    "timezone": "Asia/Kolkata",
+    "employeeCount": 1,
+    "createdAt": "2024-01-11T09:00:00.000Z"
+  },
+  {
+    "id": "subloc-2",
+    "name": "Coimbatore - Block B",
+    "latitude": 11.0190,
+    "longitude": 76.9612,
+    "address": "Block B, Avinashi Road, Peelamedu, Coimbatore",
+    "city": "Coimbatore",
+    "state": "Tamil Nadu",
+    "country": "India",
+    "pinCode": "641004",
+    "timezone": "Asia/Kolkata",
+    "employeeCount": 1,
+    "createdAt": "2024-01-16T09:00:00.000Z"
+  },
+  {
+    "id": "subloc-3",
+    "name": "Chennai - Ground Floor",
+    "latitude": 13.0835,
+    "longitude": 80.2715,
+    "address": "Ground Floor, Anna Salai, Chennai",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "country": "India",
+    "pinCode": "600002",
+    "timezone": "Asia/Kolkata",
+    "employeeCount": 0,
+    "createdAt": "2024-01-22T09:00:00.000Z"
+  }
+]

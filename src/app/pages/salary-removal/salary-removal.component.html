@@ -1,0 +1,176 @@
+<div class="sr-page">
+  <div class="page-title-row">
+  </div>
+
+  <div class="card section">
+    <div class="section-head"><span class="icon-badge">S</span><h3>Selection Panel</h3></div>
+    <div class="grid-4">
+      <div class="field">
+        <label for="category">Category <span class="required">*</span></label>
+        <select id="category" [ngModel]="category" (ngModelChange)="category = $event">
+          <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="location">Location <span class="required">*</span></label>
+        <select id="location" [ngModel]="location" (ngModelChange)="location = $event">
+          <option *ngFor="let l of locations" [value]="l">{{ l }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="start">Start Date <span class="required">*</span></label>
+        <input id="start" type="date" [ngModel]="startDate" (ngModelChange)="startDate = $event" />
+      </div>
+      <div class="field">
+        <label for="end">End Date <span class="required">*</span></label>
+        <input id="end" type="date" [ngModel]="endDate" (ngModelChange)="endDate = $event" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card section">
+    <div class="section-head"><span class="icon-badge">E</span><h3>Employee Filter <small>(Optional)</small></h3></div>
+    <div class="grid-2">
+      <div class="field">
+        <label for="emp-id">Employee ID</label>
+        <input id="emp-id" type="text" placeholder="Enter Employee ID" [ngModel]="employeeId" (ngModelChange)="employeeId = $event" />
+      </div>
+      <div class="field">
+        <label for="emp-name">Employee Name</label>
+        <input id="emp-name" type="text" placeholder="Enter Employee Name" [ngModel]="employeeName" (ngModelChange)="employeeName = $event" />
+      </div>
+    </div>
+  </div>
+
+  <div class="actions-bar">
+    <button type="button" class="btn btn-secondary" (click)="clearFilter()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 4v6h6M20 20v-6h-6M5.5 9A7 7 0 0 1 19 12M18.5 15A7 7 0 0 1 5 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Clear Filter
+    </button>
+    <button type="button" class="btn btn-primary" (click)="reviewSalary()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Review Salary
+    </button>
+    <button type="button" class="btn btn-danger" (click)="openConfirm()" [disabled]="!selectedRows.length">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V4h6v3m-9 0 1 13a2 2 0 0 0 2 1.8h4a2 2 0 0 0 2-1.8l1-13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Remove Checked Salary
+    </button>
+  </div>
+
+  <div class="card section review-section" *ngIf="reviewed">
+    <div class="section-head">
+      <span class="icon-badge">Rs</span>
+      <h3>Salary Review <small>Check records before removal</small></h3>
+    </div>
+
+    <div class="review-controls">
+      <div class="review-meta">
+        <span class="total-emps">Total Employees: {{ totalRecords }}</span>
+      </div>
+      <div class="page-size">
+        <label>Page size</label>
+        <select [ngModel]="pageSize" (ngModelChange)="setPageSize($event)">
+          <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="review-summary">
+      <span>{{ totalRecords }} salary record(s) found</span>
+      <span>Total Net Pay: {{ formatCurrency(totalNetPay) }}</span>
+      <span>Checked: {{ selectedRows.length }}</span>
+      <span>Checked Net Pay: {{ formatCurrency(selectedNetPay) }}</span>
+    </div>
+
+    <div class="table-card">
+      <div class="salary-table-scroll">
+        <table class="master-table salary-table">
+          <thead>
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  aria-label="Select all salary records"
+                  [checked]="allSelected()"
+                  (change)="toggleAll($any($event.target).checked)"
+                />
+              </th>
+              <th>Emp ID</th>
+              <th>Employee</th>
+              <th>Department</th>
+              <th>Designation</th>
+              <th>Monthly CTC</th>
+              <th>Basic</th>
+              <th>HRA</th>
+              <th>Allowance</th>
+              <th>Deductions</th>
+              <th>Net Pay</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of pagedRows">
+              <td>
+                <input
+                  type="checkbox"
+                  [attr.aria-label]="'Select salary for ' + row.name"
+                  [checked]="isSelected(row.empCode)"
+                  (change)="toggleSelection(row.empCode, $any($event.target).checked)"
+                />
+              </td>
+              <td>{{ row.empCode }}</td>
+              <td>
+                <strong>{{ row.name }}</strong>
+                <small>{{ row.location }} / {{ row.category }}</small>
+              </td>
+              <td>{{ row.department }}</td>
+              <td>{{ row.designation }}</td>
+              <td>{{ formatCurrency(row.monthlyCtc) }}</td>
+              <td>{{ formatCurrency(row.basic) }}</td>
+              <td>{{ formatCurrency(row.hra) }}</td>
+              <td>{{ formatCurrency(row.allowance) }}</td>
+              <td>{{ formatCurrency(row.deductions) }}</td>
+              <td>{{ formatCurrency(row.netPay) }}</td>
+            </tr>
+            <tr *ngIf="!reviewRows.length">
+              <td colspan="11" class="empty-state">No salary records match the selected filters.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="pagination-row" *ngIf="reviewRows.length">
+      <div class="pager">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="gotoPage(pageNumber - 1)" [disabled]="pageNumber === 1">Prev</button>
+        <span>Page {{ pageNumber }} of {{ pagesCount }}</span>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="gotoPage(pageNumber + 1)" [disabled]="pageNumber >= pagesCount">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="removed-msg" *ngIf="removed">Salary removed for the checked record(s). Review again to see the remaining salary records.</p>
+
+  <!-- Confirm Removal Modal -->
+  <div
+    class="modal-backdrop"
+    *ngIf="confirmOpen"
+    (click)="cancelConfirm()"
+    style="position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 100;"
+  >
+    <div class="card confirm-card" style="width: 480px; max-width: 92vw; margin: 0;" (click)="$event.stopPropagation()">
+      <h3 class="confirm-title">Confirm Salary Removal</h3>
+      <p class="confirm-message">
+        You are about to remove only the checked salary records. Please verify the reviewed salary values before confirming.
+      </p>
+      <div class="confirm-summary">
+        <div class="confirm-row" *ngFor="let item of summary">
+          <span class="confirm-label">{{ item.label }}</span>
+          <span class="confirm-value">{{ item.value }}</span>
+        </div>
+      </div>
+      <div class="confirm-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancelConfirm()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="confirmRemoval()">Confirm Removal</button>
+      </div>
+    </div>
+  </div>
+</div>

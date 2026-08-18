@@ -1,0 +1,458 @@
+<div class="main-area">
+  <div class="page-content">
+    <!-- Viewer switcher -->
+    <div style="display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; margin-bottom: 18px;">
+      <lucide-icon [name]="'shield-check'" [size]="16" style="color: var(--blue);"></lucide-icon>
+      <span style="font-size: 12.5px; font-weight: 600; color: var(--text-muted);">Viewing as:</span>
+      <div style="display: flex; gap: 6px;">
+        <button *ngFor="let role of VIEW_ROLES" (click)="viewerRole = role; closeAll()" style="font-size: 12px; font-weight: 600; padding: 5px 13px; border-radius: 7px; cursor: pointer; border: 1px solid;"
+          [style.border-color]="viewerRole === role ? 'var(--blue)' : 'var(--border)'"
+          [style.background]="viewerRole === role ? 'var(--blue)' : '#fff'"
+          [style.color]="viewerRole === role ? '#fff' : 'var(--text-muted)'">
+          {{role}}
+        </button>
+      </div>
+      <span style="font-size: 11.5px; color: #94a3b8; margin-left: 4px;">(demo control — switches which buttons are enabled)</span>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 20px;">
+      <button *ngFor="let tab of TABS" (click)="activeTab = tab" style="padding: 10px 28px; font-size: 14px; background: none; border: none; marginBottom: -2px; cursor: pointer;"
+        [style.font-weight]="activeTab === tab ? 700 : 500"
+        [style.color]="activeTab === tab ? 'var(--blue)' : 'var(--text-muted)'"
+        [style.border-bottom]="activeTab === tab ? '2px solid var(--blue)' : '2px solid transparent'">
+        {{tab}}
+      </button>
+    </div>
+
+    <!-- Tab contents -->
+    <ng-container *ngIf="activeTab === 'Leave Approval'">
+      <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div class="card-title" style="margin-bottom: 0;">
+            {{leaveShowPending ? 'Pending Leave Approval Requests' : 'Leave Approval History'}}
+          </div>
+          <!-- Toggle pending vs history -->
+          <div style="display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px;">
+            <button (click)="leaveShowPending = false; closeAll()" style="display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; padding: 5px 14px; border-radius: 6px; cursor: pointer; border: 1px solid;"
+              [style.border-color]="!leaveShowPending ? '#a3e635' : 'var(--border)'"
+              [style.background]="!leaveShowPending ? '#f0fdf4' : 'transparent'"
+              [style.color]="!leaveShowPending ? '#15803d' : 'var(--text-muted)'">
+              <lucide-icon [name]="'check-circle-2'" [size]="13"></lucide-icon> History
+            </button>
+            <span (click)="leaveShowPending = !leaveShowPending; closeAll()" style="width: 42px; height: 22px; border-radius: 999px; position: relative; cursor: pointer; display: inline-block;"
+              [style.background]="leaveShowPending ? 'var(--blue)' : '#cbd5e1'">
+              <span style="position: absolute; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left 0.2s;"
+                [style.left]="leaveShowPending ? '22px' : '3px'"></span>
+            </span>
+            <button (click)="leaveShowPending = true; closeAll()" style="display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; padding: 5px 14px; border-radius: 6px; cursor: pointer; border: 1px solid;"
+              [style.border-color]="leaveShowPending ? '#fde68a' : 'var(--border)'"
+              [style.background]="leaveShowPending ? '#fffbeb' : 'transparent'"
+              [style.color]="leaveShowPending ? '#b45309' : 'var(--text-muted)'">
+              <lucide-icon [name]="'clock'" [size]="13"></lucide-icon> Pending
+            </button>
+          </div>
+        </div>
+
+        <div class="table-card">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>Emp Code</th><th>Employee Name</th><th>Applied By</th><th>Leave Type</th>
+              <th>From</th><th>To</th><th style="text-align: center;">Days</th>
+              <th style="text-align: center;">Attachment</th><th style="text-align: center;">Status</th>
+              <th>Approver(s)</th><th style="text-align: center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="leavePageRows.length === 0">
+              <td colSpan="11" style="text-align: center; color: var(--text-muted); padding: 28px;">
+                {{leaveShowPending ? 'No pending requests.' : 'No approved / rejected records found.'}}
+              </td>
+            </tr>
+            <ng-container *ngFor="let r of leavePageRows">
+              <tr [style.background]="leaveRejectId === r.id ? '#fff8f8' : leaveChangeActionId === r.id ? '#f8f9ff' : isExpired(r) ? '#fafafa' : ''">
+                <td>{{r.empCode}}</td>
+                <td style="font-weight: 500;">{{r.empName}}</td>
+                <td>
+                  <span style="font-size: 11.5px; padding: 3px 11px; border-radius: 12px; display: inline-block; font-weight: 600;"
+                    [style.color]="getAppliedByColor(r.appliedBy).color" [style.background]="getAppliedByColor(r.appliedBy).bg">
+                    {{r.appliedBy}}
+                  </span>
+                </td>
+                <td>{{r.leaveType}}</td><td>{{r.fromDate}}</td><td>{{r.toDate}}</td>
+                <td style="text-align: center;">{{r.days ? r.days.toFixed(1) : ''}}</td>
+                <td style="text-align: center;">
+                  <button *ngIf="r.attachments > 0" (click)="$event.stopPropagation(); attachModal = r" style="display: inline-flex; align-items: center; gap: 4px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 3px 10px; cursor: pointer; font-size: 12px; color: #2563eb; font-weight: 500;">
+                    <lucide-icon [name]="'paperclip'" [size]="12"></lucide-icon> {{r.attachments}}
+                  </button>
+                  <span *ngIf="!r.attachments || r.attachments === 0" style="color: var(--text-muted); font-size: 12px;">—</span>
+                </td>
+                <td style="text-align: center;">
+                  <span style="font-size: 12px; padding: 3px 12px; border-radius: 12px; display: inline-block; font-weight: 600;"
+                    [style.color]="STATUS_COLOR[isExpired(r) ? 'Expired' : r.status]" [style.background]="STATUS_BG[isExpired(r) ? 'Expired' : r.status]">
+                    {{isExpired(r) ? 'Expired' : r.status}}
+                  </span>
+                </td>
+                <td>
+                  <div style="display: flex; flex-direction: column; gap: 3px;">
+                    <div *ngFor="let role of getApprovers(r.appliedBy)" style="font-size: 12.5px; line-height: 1.3;">
+                      <span style="font-weight: 700; color: var(--text-main);">{{role}}</span>
+                      <div style="color: var(--text-muted); font-size: 11.5px;">{{getApproverName(role)}}</div>
+                    </div>
+                    <span *ngIf="getApprovers(r.appliedBy).length > 1" style="font-size: 10.5px; color: #94a3b8; font-style: italic;">(either can approve)</span>
+                  </div>
+                </td>
+                <td style="text-align: center;">
+                  <ng-container *ngIf="leaveShowPending">
+                    <div *ngIf="isExpired(r)" style="display: inline-flex; align-items: center; gap: 5px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 7px; padding: 5px 14px; font-size: 12px; color: #6b7280; font-weight: 600;">
+                      <lucide-icon [name]="'clock'" [size]="13"></lucide-icon> Expired
+                    </div>
+                    <div *ngIf="!isExpired(r) && !canAct(r.appliedBy)" style="display: flex; align-items: center; gap: 6px; justify-content: center; color: #94a3b8; font-size: 11.5px;">
+                      <lucide-icon [name]="'lock'" [size]="12"></lucide-icon> Not your approval
+                    </div>
+                    <div *ngIf="!isExpired(r) && canAct(r.appliedBy)" style="display: flex; gap: 6px; justify-content: center;">
+                      <button (click)="handleLeaveApprove(r, $event)" style="display: inline-flex; align-items: center; gap: 5px; background: #dcfce7; border: 1px solid #86efac; border-radius: 7px; padding: 4px 12px; cursor: pointer; font-size: 12px; color: #16a34a; font-weight: 600;">
+                        <lucide-icon [name]="'thumbs-up'" [size]="13"></lucide-icon> Approve
+                      </button>
+                      <button (click)="handleLeaveRejectClick(r, $event)" style="display: inline-flex; align-items: center; gap: 5px; background: #fff; border: 1px solid #fca5a5; border-radius: 7px; padding: 4px 12px; cursor: pointer; font-size: 12px; color: #dc2626; font-weight: 600;"
+                        [style.background]="leaveRejectId === r.id ? '#fee2e2' : '#fff'">
+                        <lucide-icon [name]="'thumbs-down'" [size]="13"></lucide-icon> Reject
+                      </button>
+                    </div>
+                  </ng-container>
+                  <ng-container *ngIf="!leaveShowPending">
+                    <div *ngIf="!canAct(r.appliedBy)" style="display: flex; align-items: center; gap: 6px; justify-content: center; color: #94a3b8; font-size: 11.5px;">
+                      <lucide-icon [name]="'lock'" [size]="12"></lucide-icon> Not your approval
+                    </div>
+                    <div *ngIf="canAct(r.appliedBy)" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                      <span style="display: inline-flex; align-items: center; gap: 5px; border-radius: 7px; padding: 4px 12px; font-size: 12px; font-weight: 600; border: 1px solid;"
+                        [style.background]="STATUS_BG[r.status]" [style.border-color]="STATUS_COLOR[r.status]" [style.color]="STATUS_COLOR[r.status]">
+                        <lucide-icon [name]="r.status === 'Approved' ? 'thumbs-up' : 'thumbs-down'" [size]="12"></lucide-icon> {{r.status}}
+                      </span>
+                      <div style="position: relative;">
+                        <button (click)="handleLeaveChangeAction(r, $event)" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: transparent; border: 1px solid transparent; cursor: pointer; color: #64748b;">
+                          <lucide-icon [name]="'more-vertical'" [size]="14"></lucide-icon>
+                        </button>
+                        <div *ngIf="leaveChangeActionId === r.id" style="position: absolute; right: 0; top: 34px; z-index: 50; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 160px; overflow: hidden;">
+                          <button (click)="handleLeaveTriggerChange(r, $event)"
+                            style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 14px; background: none; border: none; font-size: 13px; fontWeight: 500; cursor: pointer; color: #374151;">
+                            <lucide-icon [name]="'rotate-ccw'" [size]="13" style="color: #6366f1;"></lucide-icon>
+                            {{r.status === 'Approved' ? 'Change to Rejected' : 'Change to Approved'}}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </ng-container>
+                </td>
+              </tr>
+
+              <!-- Pending leave reject panel -->
+              <tr *ngIf="leaveShowPending && leaveRejectId === r.id" style="background: #fff8f8;">
+                <td colSpan="11" style="padding: 10px 16px; border-top: 1px dashed #fca5a5;">
+                  <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <div style="flex: 1;">
+                      <div style="font-size: 12px; font-weight: 600; color: #dc2626; margin-bottom: 6px;">
+                        Rejection Remarks <span style="color: #dc2626;">*</span>
+                        <span style="font-weight: 400; color: var(--text-muted); margin-left: 6px;">(mandatory — visible to employee)</span>
+                      </div>
+                      <textarea #remarksInput rows="2" maxLength="250" placeholder="Enter reason for rejection…" [value]="leaveRejectText"
+                        (input)="updateLeaveRejectText(remarksInput.value)"
+                        style="width: 100%; border-radius: 7px; padding: 8px 12px; font-size: 13px; outline: none; resize: vertical; box-sizing: border-box; border: 1px solid;"
+                        [style.border-color]="leaveRejectErr ? '#dc2626' : '#fca5a5'" [style.background]="leaveRejectErr ? '#fff5f5' : '#fff'"></textarea>
+                      <div *ngIf="leaveRejectErr" style="font-size: 12px; color: #dc2626; margin-top: 3px;">Remarks are mandatory.</div>
+                      <div style="font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px;">{{leaveRejectText.length}} / 250</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 20px;">
+                      <button (click)="handleLeaveRejectConfirm(r, $event)" style="background: #dc2626; color: #fff; border: none; border-radius: 7px; padding: 6px 18px; cursor: pointer; font-size: 13px; font-weight: 600;">Confirm Reject</button>
+                      <button (click)="$event.stopPropagation(); closeAll()" style="background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 7px; padding: 6px 18px; cursor: pointer; font-size: 13px;">Cancel</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- History Change Action panel (with reject option) -->
+              <tr *ngIf="!leaveShowPending && leaveChangeActionId === r.id && leaveCaRejectActive" style="background: #f8f9ff;">
+                <td colSpan="11" style="padding: 12px 20px; border-top: 2px solid #c7d2fe;">
+                  <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <div style="flex: 1;">
+                      <div style="font-size: 12px; font-weight: 600; color: #dc2626; margin-bottom: 6px;">
+                        Rejection Remarks (Changing from Approved to Rejected) <span style="color: #dc2626;">*</span>
+                      </div>
+                      <textarea #caRemarksInput rows="2" maxLength="250" placeholder="Enter reason for rejection…" [value]="leaveCaRejectText"
+                        (input)="updateLeaveCaRejectText(caRemarksInput.value)"
+                        style="width: 100%; border-radius: 7px; padding: 8px 12px; font-size: 13px; outline: none; resize: vertical; box-sizing: border-box; border: 1px solid;"
+                        [style.border-color]="leaveCaRejectErr ? '#dc2626' : '#fca5a5'" [style.background]="leaveCaRejectErr ? '#fff5f5' : '#fff'"></textarea>
+                      <div *ngIf="leaveCaRejectErr" style="font-size: 12px; color: #dc2626; margin-top: 3px;">Remarks are mandatory.</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 20px;">
+                      <button (click)="handleLeaveCARejectConfirm(r, $event)" style="background: #dc2626; color: #fff; border: none; border-radius: 7px; padding: 6px 18px; cursor: pointer; font-size: 13px; font-weight: 600;">Confirm Reject</button>
+                      <button (click)="$event.stopPropagation(); closeAll()" style="background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 7px; padding: 6px 18px; cursor: pointer; font-size: 13px;">Cancel</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+
+        <!-- Leave Pagination -->
+        <div class="grid-footer" *ngIf="getPaginationDetails('leave') as p">
+          <span>{{p.total === 0 ? 'No entries' : 'Showing ' + p.startEntry + ' to ' + p.endEntry + ' of ' + p.total + ' entries'}}</span>
+          <div class="pagination">
+            <button class="page-btn" [disabled]="leavePage === 1" (click)="leavePage = leavePage - 1; closeAll()"><lucide-icon [name]="'chevron-left'" [size]="14"></lucide-icon></button>
+            <ng-container *ngFor="let n of p.pageNumbers">
+              <span *ngIf="n === '…'" class="page-dots">…</span>
+              <button *ngIf="n !== '…'" class="page-btn" [class.active]="n === leavePage" (click)="leavePage = +n; closeAll()">{{n}}</button>
+            </ng-container>
+            <button class="page-btn" [disabled]="leavePage === leaveTotalPages" (click)="leavePage = leavePage + 1; closeAll()"><lucide-icon [name]="'chevron-right'" [size]="14"></lucide-icon></button>
+          </div>
+        </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Compensation approval tab content -->
+    <ng-container *ngIf="activeTab === 'Compensation Approval'">
+      <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div class="card-title" style="margin-bottom: 0;">
+            {{compShowPending ? 'Pending Compensation Approval Requests' : 'Compensation Approval History'}}
+          </div>
+          <!-- Toggle pending vs history -->
+          <div style="display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px;">
+            <button (click)="compShowPending = false; closeAll()" style="display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; padding: 5px 14px; border-radius: 6px; cursor: pointer; border: 1px solid;"
+              [style.border-color]="!compShowPending ? '#a3e635' : 'var(--border)'"
+              [style.background]="!compShowPending ? '#f0fdf4' : 'transparent'"
+              [style.color]="!compShowPending ? '#15803d' : 'var(--text-muted)'">
+              <lucide-icon [name]="'check-circle-2'" [size]="13"></lucide-icon> History
+            </button>
+            <span (click)="compShowPending = !compShowPending; closeAll()" style="width: 42px; height: 22px; border-radius: 999px; position: relative; cursor: pointer; display: inline-block;"
+              [style.background]="compShowPending ? 'var(--blue)' : '#cbd5e1'">
+              <span style="position: absolute; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left 0.2s;"
+                [style.left]="compShowPending ? '22px' : '3px'"></span>
+            </span>
+            <button (click)="compShowPending = true; closeAll()" style="display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; padding: 5px 14px; border-radius: 6px; cursor: pointer; border: 1px solid;"
+              [style.border-color]="compShowPending ? '#fde68a' : 'var(--border)'"
+              [style.background]="compShowPending ? '#fffbeb' : 'transparent'"
+              [style.color]="compShowPending ? '#b45309' : 'var(--text-muted)'">
+              <lucide-icon [name]="'clock'" [size]="13"></lucide-icon> Pending
+            </button>
+          </div>
+        </div>
+
+        <div class="table-card">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>Emp Code</th><th>Employee Name</th><th>Applied By</th><th>Compensation Type</th>
+              <th style="text-align: center;">Worked On</th>
+              <th style="text-align: center;">Comp Off Date</th>
+              <th style="text-align: center;">Hours Worked</th>
+              <th style="text-align: center;">Attachment</th><th style="text-align: center;">Status</th>
+              <th>Approver(s)</th><th style="text-align: center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="compPageRows.length === 0">
+              <td colSpan="11" style="text-align: center; color: var(--text-muted); padding: 28px;">
+                {{compShowPending ? 'No pending requests.' : 'No approved / rejected records found.'}}
+              </td>
+            </tr>
+            <ng-container *ngFor="let r of compPageRows">
+              <tr [style.background]="compRejectId === r.id ? '#fff8f8' : compChangeActionId === r.id ? '#f8f9ff' : isExpired(r) ? '#fafafa' : ''">
+                <td>{{r.empCode}}</td>
+                <td style="font-weight: 500;">{{r.empName}}</td>
+                <td>
+                  <span style="font-size: 11.5px; padding: 3px 11px; border-radius: 12px; display: inline-block; font-weight: 600;"
+                    [style.color]="getAppliedByColor(r.appliedBy).color" [style.background]="getAppliedByColor(r.appliedBy).bg">
+                    {{r.appliedBy}}
+                  </span>
+                </td>
+                <td>{{r.compType}}</td>
+                <td style="text-align: center;">{{r.workedOn}}</td>
+                <td style="text-align: center;">{{r.compOffDate}}</td>
+                <td style="text-align: center;">{{r.hoursWorked ? r.hoursWorked.toFixed(1) : ''}}</td>
+                <td style="text-align: center;">
+                  <button *ngIf="r.attachments > 0" (click)="$event.stopPropagation(); attachModal = r" style="display: inline-flex; align-items: center; gap: 4px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 3px 10px; cursor: pointer; font-size: 12px; color: #2563eb; font-weight: 500;">
+                    <lucide-icon [name]="'paperclip'" [size]="12"></lucide-icon> {{r.attachments}}
+                  </button>
+                  <span *ngIf="!r.attachments || r.attachments === 0" style="color: var(--text-muted); font-size: 12px;">—</span>
+                </td>
+                <td style="text-align: center;">
+                  <span style="font-size: 12px; padding: 3px 12px; border-radius: 12px; display: inline-block; font-weight: 600;"
+                    [style.color]="STATUS_COLOR[isExpired(r) ? 'Expired' : r.status]" [style.background]="STATUS_BG[isExpired(r) ? 'Expired' : r.status]">
+                    {{isExpired(r) ? 'Expired' : r.status}}
+                  </span>
+                </td>
+                <td>
+                  <div style="display: flex; flex-direction: column; gap: 3px;">
+                    <div *ngFor="let role of getApprovers(r.appliedBy)" style="font-size: 12.5px; line-height: 1.3;">
+                      <span style="font-weight: 700; color: var(--text-main);">{{role}}</span>
+                      <div style="color: var(--text-muted); font-size: 11.5px;">{{getApproverName(role)}}</div>
+                    </div>
+                    <span *ngIf="getApprovers(r.appliedBy).length > 1" style="font-size: 10.5px; color: #94a3b8; font-style: italic;">(either can approve)</span>
+                  </div>
+                </td>
+                <td style="text-align: center;">
+                  <ng-container *ngIf="compShowPending">
+                    <div *ngIf="isExpired(r)" style="display: inline-flex; align-items: center; gap: 5px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 7px; padding: 5px 14px; font-size: 12px; color: #6b7280; font-weight: 600;">
+                      <lucide-icon [name]="'clock'" [size]="13"></lucide-icon> Expired
+                    </div>
+                    <div *ngIf="!isExpired(r) && !canAct(r.appliedBy)" style="display: flex; align-items: center; gap: 6px; justify-content: center; color: #94a3b8; font-size: 11.5px;">
+                      <lucide-icon [name]="'lock'" [size]="12"></lucide-icon> Not your approval
+                    </div>
+                    <div *ngIf="!isExpired(r) && canAct(r.appliedBy)" style="display: flex; gap: 6px; justify-content: center;">
+                      <button (click)="handleCompApprove(r, $event)" style="display: inline-flex; align-items: center; gap: 5px; background: #dcfce7; border: 1px solid #86efac; border-radius: 7px; padding: 4px 12px; cursor: pointer; font-size: 12px; color: #16a34a; font-weight: 600;">
+                        <lucide-icon [name]="'thumbs-up'" [size]="13"></lucide-icon> Approve
+                      </button>
+                      <button (click)="handleCompRejectClick(r, $event)" style="display: inline-flex; align-items: center; gap: 5px; background: #fff; border: 1px solid #fca5a5; border-radius: 7px; padding: 4px 12px; cursor: pointer; font-size: 12px; color: #dc2626; font-weight: 600;"
+                        [style.background]="compRejectId === r.id ? '#fee2e2' : '#fff'">
+                        <lucide-icon [name]="'thumbs-down'" [size]="13"></lucide-icon> Reject
+                      </button>
+                    </div>
+                  </ng-container>
+                  <ng-container *ngIf="!compShowPending">
+                    <div *ngIf="!canAct(r.appliedBy)" style="display: flex; align-items: center; gap: 6px; justify-content: center; color: #94a3b8; font-size: 11.5px;">
+                      <lucide-icon [name]="'lock'" [size]="12"></lucide-icon> Not your approval
+                    </div>
+                    <div *ngIf="canAct(r.appliedBy)" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                      <span style="display: inline-flex; align-items: center; gap: 5px; border-radius: 7px; padding: 4px 12px; font-size: 12px; font-weight: 600; border: 1px solid;"
+                        [style.background]="STATUS_BG[r.status]" [style.border-color]="STATUS_COLOR[r.status]" [style.color]="STATUS_COLOR[r.status]">
+                        <lucide-icon [name]="r.status === 'Approved' ? 'thumbs-up' : 'thumbs-down'" [size]="12"></lucide-icon> {{r.status}}
+                      </span>
+                      <div style="position: relative;">
+                        <button (click)="handleCompChangeAction(r, $event)" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: transparent; border: 1px solid transparent; cursor: pointer; color: #64748b;">
+                          <lucide-icon [name]="'more-vertical'" [size]="14"></lucide-icon>
+                        </button>
+                        <div *ngIf="compChangeActionId === r.id" style="position: absolute; right: 0; top: 34px; z-index: 50; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 160px; overflow: hidden;">
+                          <button (click)="handleCompTriggerChange(r, $event)"
+                            style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 14px; background: none; border: none; font-size: 13px; fontWeight: 500; cursor: pointer; color: #374151;">
+                            <lucide-icon [name]="'rotate-ccw'" [size]="13" style="color: #6366f1;"></lucide-icon>
+                            {{r.status === 'Approved' ? 'Change to Rejected' : 'Change to Approved'}}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </ng-container>
+                </td>
+              </tr>
+
+              <!-- Pending comp reject panel -->
+              <tr *ngIf="compShowPending && compRejectId === r.id" style="background: #fff8f8;">
+                <td colSpan="11" style="padding: 10px 16px; border-top: 1px dashed #fca5a5;">
+                  <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <div style="flex: 1;">
+                      <div style="font-size: 12px; font-weight: 600; color: #dc2626; margin-bottom: 6px;">
+                        Rejection Remarks <span style="color: #dc2626;">*</span>
+                        <span style="font-weight: 400; color: var(--text-muted); margin-left: 6px;">(mandatory — visible to employee)</span>
+                      </div>
+                      <textarea #remarksInputComp rows="2" maxLength="250" placeholder="Enter reason for rejection…" [value]="compRejectText"
+                        (input)="updateCompRejectText(remarksInputComp.value)"
+                        style="width: 100%; border-radius: 7px; padding: 8px 12px; font-size: 13px; outline: none; resize: vertical; box-sizing: border-box; border: 1px solid;"
+                        [style.border-color]="compRejectErr ? '#dc2626' : '#fca5a5'" [style.background]="compRejectErr ? '#fff5f5' : '#fff'"></textarea>
+                      <div *ngIf="compRejectErr" style="font-size: 12px; color: #dc2626; margin-top: 3px;">Remarks are mandatory.</div>
+                      <div style="font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px;">{{compRejectText.length}} / 250</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 20px;">
+                      <button (click)="handleCompRejectConfirm(r, $event)" style="background: #dc2626; color: #fff; border: none; border-radius: 7px; padding: 6px 18px; cursor: pointer; font-size: 13px; font-weight: 600;">Confirm Reject</button>
+                      <button (click)="$event.stopPropagation(); closeAll()" style="background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 7px; padding: 6px 18px; cursor: pointer; font-size: 13px;">Cancel</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- History Change Action panel (comp reject) -->
+              <tr *ngIf="!compShowPending && compChangeActionId === r.id && compCaRejectActive" style="background: #f8f9ff;">
+                <td colSpan="11" style="padding: 12px 20px; border-top: 2px solid #c7d2fe;">
+                  <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <div style="flex: 1;">
+                      <div style="font-size: 12px; font-weight: 600; color: #dc2626; margin-bottom: 6px;">
+                        Rejection Remarks (Changing from Approved to Rejected) <span style="color: #dc2626;">*</span>
+                      </div>
+                      <textarea #compCaRemarksInput rows="2" maxLength="250" placeholder="Enter reason for rejection…" [value]="compCaRejectText"
+                        (input)="updateCompCaRejectText(compCaRemarksInput.value)"
+                        style="width: 100%; border-radius: 7px; padding: 8px 12px; font-size: 13px; outline: none; resize: vertical; box-sizing: border-box; border: 1px solid;"
+                        [style.border-color]="compCaRejectErr ? '#dc2626' : '#fca5a5'" [style.background]="compCaRejectErr ? '#fff5f5' : '#fff'"></textarea>
+                      <div *ngIf="compCaRejectErr" style="font-size: 12px; color: #dc2626; margin-top: 3px;">Remarks are mandatory.</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 20px;">
+                      <button (click)="handleCompCARejectConfirm(r, $event)" style="background: #dc2626; color: #fff; border: none; border-radius: 7px; padding: 6px 18px; cursor: pointer; font-size: 13px; font-weight: 600;">Confirm Reject</button>
+                      <button (click)="$event.stopPropagation(); closeAll()" style="background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 7px; padding: 6px 18px; cursor: pointer; font-size: 13px;">Cancel</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+
+        <!-- Comp Pagination -->
+        <div class="grid-footer" *ngIf="getPaginationDetails('comp') as p">
+          <span>{{p.total === 0 ? 'No entries' : 'Showing ' + p.startEntry + ' to ' + p.endEntry + ' of ' + p.total + ' entries'}}</span>
+          <div class="pagination">
+            <button class="page-btn" [disabled]="compPage === 1" (click)="compPage = compPage - 1; closeAll()"><lucide-icon [name]="'chevron-left'" [size]="14"></lucide-icon></button>
+            <ng-container *ngFor="let n of p.pageNumbers">
+              <span *ngIf="n === '…'" class="page-dots">…</span>
+              <button *ngIf="n !== '…'" class="page-btn" [class.active]="n === compPage" (click)="compPage = +n; closeAll()">{{n}}</button>
+            </ng-container>
+            <button class="page-btn" [disabled]="compPage === compTotalPages" (click)="compPage = compPage + 1; closeAll()"><lucide-icon [name]="'chevron-right'" [size]="14"></lucide-icon></button>
+          </div>
+        </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Rule Legend -->
+    <div style="margin-top: 16px; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+      <div *ngFor="let entry of APPROVAL_RULES | keyvalue" style="display: flex; align-items: flex-start; gap: 10px; min-width: 220px;">
+        <span style="font-size: 11.5px; padding: 3px 11px; border-radius: 12px; display: inline-block; font-weight: 600;"
+          [style.color]="getAppliedByColor(entry.key).color" [style.background]="getAppliedByColor(entry.key).bg">
+          {{entry.key}}
+        </span>
+        <span style="font-size: 12.5px; color: var(--text-muted); line-height: 1.4;">{{entry.value.label}}</span>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-left: auto;">
+        <div><strong style="color: var(--text-main);">HR:</strong> {{APPROVER_NAMES['HR']}}</div>
+        <div><strong style="color: var(--text-main);">Manager:</strong> {{APPROVER_NAMES['Manager']}}</div>
+        <div><strong style="color: var(--text-main);">Team Leader:</strong> {{APPROVER_NAMES['Team Leader']}}</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-bar" style="background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 24px; margin-top: 18px;">
+      <button class="btn btn-outline" (click)="goBack()">
+        <lucide-icon [name]="'log-out'" [size]="15"></lucide-icon> Exit
+      </button>
+    </div>
+  </div>
+
+  <!-- Attachment modal -->
+  <div *ngIf="attachModal" (click)="attachModal = null" class="modal-backdrop"
+    style="position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 999;">
+    <div (click)="$event.stopPropagation()" style="background: #fff; border-radius: 12px; padding: 28px; min-width: 360px; max-width: 480px; box-shadow: 0 8px 32px rgba(0,0,0,0.18);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <div style="font-weight: 700; font-size: 15px;">Attachments</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">{{attachModal.empName}}</div>
+        </div>
+        <button (click)="attachModal = null" style="background: none; border: none; cursor: pointer; color: var(--text-muted);"><lucide-icon [name]="'x'" [size]="18"></lucide-icon></button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div *ngFor="let item of attachmentArray; let i = index" style="display: flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px;">
+          <lucide-icon [name]="'paperclip'" [size]="16" style="color: #2563eb;"></lucide-icon>
+          <div style="flex: 1;">
+            <div style="font-size: 13px; font-weight: 500;">{{activeTab === 'Leave Approval' ? 'leave_document' : 'comp_document'}}_{{i + 1}}.pdf</div>
+            <div style="font-size: 11px; color: var(--text-muted);">PDF · 142 KB</div>
+          </div>
+          <button style="display: inline-flex; align-items: center; gap: 4px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: #2563eb; font-weight: 500;">
+            <lucide-icon [name]="'eye'" [size]="12"></lucide-icon> View
+          </button>
+        </div>
+      </div>
+      <div style="margin-top: 18px; text-align: right;">
+        <button (click)="attachModal = null" style="background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 7px; padding: 7px 20px; cursor: pointer; font-size: 13px; font-weight: 500;">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

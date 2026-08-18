@@ -1,0 +1,180 @@
+// Professional HR Document Print Stylesheet
+
+// Page Setup: Size is A4 portrait. Setting margin to 0 removes browser-default header/footers (URL, title, page no, date)
+@page {
+  size: A4 portrait;
+  margin: 0 !important;
+}
+
+// Reset styles to force clean black & white paper formatting
+body {
+  background-color: white !important;
+  color: black !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  counter-reset: page;
+  margin: 0;
+  padding: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+// Standard table header group repeating behavior
+thead {
+  display: table-header-group !important;
+}
+
+tfoot {
+  display: table-footer-group !important;
+}
+
+// Table formatting
+table.print-report-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-top: 10px;
+  font-size: 10px;
+
+  th, td {
+    border: 1px solid #cbd5e1 !important; // Standard light gray grid lines
+    padding: 7px 9px !important; // Comfortable vertical and horizontal cell padding
+    vertical-align: middle !important; // Vertically center all cell values
+    line-height: 1.4 !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important; // Soft professional gray background
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+  }
+
+  tbody tr {
+    page-break-inside: avoid !important; // Prevent mid-row page splits
+    
+    &:nth-child(even) {
+      background-color: #f8fafc !important; // Alternate row colors
+    }
+  }
+}
+
+// Alignment helper classes
+.text-center-align {
+  text-align: center !important;
+}
+
+.text-right-align {
+  text-align: right !important;
+}
+
+.text-left-align {
+  text-align: left !important;
+}
+
+// Fixed position footer styling removed as requested
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  // Set page padding to replace browser margins while preventing content from touching the edges
+  body {
+    padding: 15mm 15mm 15mm 15mm !important; // Uniform comfortable page padding
+  }
+
+  // Page numbering counter
+  .page-number::after {
+    counter-increment: page;
+    content: counter(page);
+  }
+
+  // Avoid dividing critical sections
+  .page-break-avoid {
+    page-break-inside: avoid !important;
+  }
+}
+
+// Layout styles for screen view (fallback and manual trigger button)
+.no-print-bar {
+  background-color: #1e293b;
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+
+  button {
+    background-color: #3b82f6;
+    color: white;
+    font-weight: bold;
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #2563eb;
+    }
+  }
+}
+
+// Custom badges for statuses in print - Centered and padded without shifting
+.badge-print {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 78px !important; // Fixed width to prevent misalignment
+  height: 18px !important; // Fixed height
+  padding: 0 8px !important;
+  border-radius: 4px !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  text-align: center !important;
+  border: 1px solid transparent !important;
+  white-space: nowrap !important; // Prevent line wrapping within the badge
+  box-sizing: border-box !important;
+  vertical-align: middle !important;
+
+  &.success {
+    background-color: #f0fdf4 !important;
+    color: #166534 !important;
+    border-color: #bbf7d0 !important;
+  }
+  &.pending {
+    background-color: #fef3c7 !important;
+    color: #d97706 !important;
+    border-color: #fde68a !important;
+  }
+  &.danger {
+    background-color: #fef2f2 !important;
+    color: #dc2626 !important;
+    border-color: #fecaca !important;
+  }
+}
+
+// Custom layouts for special documents (Payslip, ID Card, Claim Form)
+.payslip-box, .claim-box {
+  border: 2px solid #0f172a !important;
+  padding: 20px !important;
+  background-color: white !important;
+  border-radius: 8px;
+}
+
+.id-card-box {
+  width: 80mm;
+  height: 120mm;
+  border: 1px solid #475569;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  background: linear-gradient(135deg, #0b1a30 0%, #1e293b 100%);
+  color: white;
+  margin: 10px auto;
+  page-break-inside: avoid;
+}

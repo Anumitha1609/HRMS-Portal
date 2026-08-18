@@ -1,0 +1,311 @@
+<div class="main-area">
+  <!-- Tab strip -->
+  <div style="display: flex; gap: 0; border-bottom: 2px solid var(--border); padding: 0 24px; background: #fff;">
+    <button (click)="activeTab = 'Earning Group'" style="padding: 10px 24px; font-size: 13.5px; background: none; border: none; cursor: pointer; transition: color 0.15s; letter-spacing: 0.1px;"
+      [style.font-weight]="activeTab === 'Earning Group' ? 700 : 500"
+      [style.color]="activeTab === 'Earning Group' ? 'var(--blue)' : 'var(--text-muted)'"
+      [style.border-bottom]="activeTab === 'Earning Group' ? '2px solid var(--blue)' : '2px solid transparent'">
+      Earning Group
+    </button>
+    <button (click)="activeTab = 'Earning Arrears'" style="padding: 10px 24px; font-size: 13.5px; background: none; border: none; cursor: pointer; transition: color 0.15s; letter-spacing: 0.1px;"
+      [style.font-weight]="activeTab === 'Earning Arrears' ? 700 : 500"
+      [style.color]="activeTab === 'Earning Arrears' ? 'var(--blue)' : 'var(--text-muted)'"
+      [style.border-bottom]="activeTab === 'Earning Arrears' ? '2px solid var(--blue)' : '2px solid transparent'">
+      Earning Arrears
+    </button>
+  </div>
+
+  <!-- Tab Content: Earning Group -->
+  <ng-container *ngIf="activeTab === 'Earning Group'">
+    <div class="page-content">
+      <div class="card">
+        <!-- Row 1 – Mode / Group / Month -->
+        <div class="form-row cols-3" style="align-items: flex-end;">
+          <div class="form-group">
+            <label class="form-label">Transaction Mode</label>
+            <div style="margin-top: 6px;">
+              <span style="display: inline-block; padding: 4px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; background: #dcfce7; color: #16a34a; border: 1px solid #86efac;">
+                {{mode}}
+              </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Group <span class="req">*</span></label>
+            <select class="form-control" [class.error]="errors['group']" [(ngModel)]="group" (change)="page = 1">
+              <option value="">— Select Group —</option>
+              <option *ngFor="let g of GROUPS[mode]" [value]="g">{{g}}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Effective Month <span class="req">*</span></label>
+            <input type="month" class="form-control" [(ngModel)]="month" />
+          </div>
+        </div>
+
+        <!-- Row 2 – Emp Code / Name / Location -->
+        <div class="form-row cols-3">
+          <div class="form-group">
+            <label class="form-label">Employee Code <span class="req">*</span></label>
+            <div style="display: flex; gap: 6px;">
+              <input class="form-control" [class.error]="errors['empCode']" style="flex: 1;" placeholder="e.g. EMP001"
+                [ngModel]="empCode" (ngModelChange)="lookupEmployee($event, 'group')" />
+              <button class="btn btn-outline" style="padding: 8px 10px;" (click)="lookupEmployee(empCode, 'group')">
+                <lucide-icon [name]="'search'" [size]="14"></lucide-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Employee Name</label>
+            <input class="form-control readonly" readonly [value]="empName" placeholder="Auto-filled" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <select class="form-control" [(ngModel)]="location">
+              <option value="">— Select —</option>
+              <option *ngFor="let l of LOCATIONS" [value]="l">{{l}}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 3 – Amount -->
+        <div class="form-row cols-3">
+          <div class="form-group">
+            <label class="form-label">Amount (₹) <span class="req">*</span></label>
+            <input type="number" step="0.01" class="form-control" [class.error]="errors['amount']" [(ngModel)]="amount" placeholder="0.00" />
+          </div>
+          <div class="form-group"></div>
+          <div class="form-group"></div>
+        </div>
+      </div>
+
+      <!-- Action bar -->
+      <div class="action-bar" style="background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 24px;">
+        <button class="btn btn-outline" (click)="handleGroupFind()">
+          <lucide-icon [name]="'search'" [size]="15"></lucide-icon> Find
+        </button>
+        <button class="btn btn-primary" (click)="handleGroupSave()">
+          <lucide-icon [name]="'save'" [size]="15"></lucide-icon> {{editId ? 'Update' : 'Save'}}
+        </button>
+        <button class="btn btn-outline" (click)="handleGroupCancel()">
+          <lucide-icon [name]="'x-circle'" [size]="15"></lucide-icon> Cancel
+        </button>
+        <button class="btn btn-outline" (click)="goBack()">
+          <lucide-icon [name]="'log-out'" [size]="15"></lucide-icon> Exit
+        </button>
+      </div>
+
+      <!-- Grid -->
+      <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div class="card-title" style="margin-bottom: 0;">
+            {{mode}} Records{{group ? ' — ' + group : ''}}
+          </div>
+          <label *ngIf="group" class="radio-label" style="cursor: pointer; user-select: none;">
+            <span style="font-size: 12.5px; font-weight: 600; color: var(--text-muted);">Show All Employees</span>
+            <span (click)="showAllEmployees = !showAllEmployees" style="width: 38px; height: 20px; border-radius: 999px; position: relative; transition: background 0.15s; flex-shrink: 0; display: inline-block;"
+              [style.background]="showAllEmployees ? 'var(--blue)' : '#cbd2de'">
+              <span style="position: absolute; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left 0.15s;"
+                [style.left]="showAllEmployees ? '20px' : '2px'"></span>
+            </span>
+          </label>
+        </div>
+
+        <div class="table-card">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Emp Code</th><th>Employee Name</th><th>Group</th><th>Amount (₹)</th><th>Location</th><th>Effective Month</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="!group">
+              <td colSpan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Select a Group above to view records.</td>
+            </tr>
+            <tr *ngIf="group && pageRows.length === 0">
+              <td colSpan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No records. Click Find to load or enter details and Save.</td>
+            </tr>
+            <tr *ngFor="let r of pageRows; let i = index" [style.opacity]="!r.hasRecord ? 0.6 : 1">
+              <td>{{(currentPage - 1) * PAGE_SIZE + i + 1}}</td>
+              <td>{{r.empCode}}</td><td>{{r.empName}}</td><td>{{r.group}}</td>
+              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                {{r.amount | number:'1.2-2'}}
+              </td>
+              <td>{{r.location}}</td><td>{{r.month}}</td>
+              <td>
+                <div *ngIf="r.hasRecord" class="grid-actions">
+                  <button class="icon-btn edit" (click)="handleGroupEdit(r)" title="Edit"><span class="material-icons">edit</span></button>
+                  <button class="icon-btn del" (click)="handleGroupDelete(r.id)" title="Delete"><span class="material-icons">delete</span></button>
+                </div>
+                <span *ngIf="!r.hasRecord" style="font-size: 12px; color: var(--text-muted);">No record</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="grid-footer" *ngIf="group && displayRows.length > 0">
+          <span>Showing {{startEntry}} to {{endEntry}} of {{displayRows.length}} entries</span>
+          <div class="pagination">
+            <button class="page-btn" [disabled]="currentPage === 1" (click)="prevPage()"><lucide-icon [name]="'chevron-left'" [size]="14"></lucide-icon></button>
+            <ng-container *ngFor="let n of pageNumbers">
+              <span *ngIf="n === '…'" class="page-dots">…</span>
+              <button *ngIf="n !== '…'" class="page-btn" [class.active]="n === currentPage" (click)="setPage(n)">{{n}}</button>
+            </ng-container>
+            <button class="page-btn" [disabled]="currentPage === totalPages" (click)="nextPage()"><lucide-icon [name]="'chevron-right'" [size]="14"></lucide-icon></button>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Tab Content: Earning Arrears -->
+  <ng-container *ngIf="activeTab === 'Earning Arrears'">
+    <div class="page-content">
+      <div class="card">
+        <!-- Row 1 – Mode / Category / Effective Month -->
+        <div class="form-row cols-3" style="align-items: flex-end;">
+          <div class="form-group">
+            <label class="form-label">Transaction Mode</label>
+            <div style="margin-top: 6px;">
+              <span style="display: inline-block; padding: 4px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; background: #dcfce7; color: #16a34a; border: 1px solid #86efac;">
+                {{mode}}
+              </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Arrear Category <span class="req">*</span></label>
+            <select class="form-control" [(ngModel)]="arrCategory" (change)="arrPage = 1">
+              <option *ngFor="let c of ARR_CATEGORIES" [value]="c">{{c}}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Effective Month <span class="req">*</span></label>
+            <input type="month" class="form-control" [(ngModel)]="arrMonth" />
+          </div>
+        </div>
+
+        <!-- Row 2 – Emp Code / Name / Location -->
+        <div class="form-row cols-3">
+          <div class="form-group">
+            <label class="form-label">Employee Code <span class="req">*</span></label>
+            <div style="display: flex; gap: 6px;">
+              <input class="form-control" [class.error]="arrErrors['empCode']" style="flex: 1;" placeholder="e.g. EMP001"
+                [ngModel]="arrEmpCode" (ngModelChange)="lookupEmployee($event, 'arrears')" />
+              <button class="btn btn-outline" style="padding: 8px 10px;" (click)="lookupEmployee(arrEmpCode, 'arrears')">
+                <lucide-icon [name]="'search'" [size]="14"></lucide-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Employee Name</label>
+            <input class="form-control readonly" readonly [value]="arrEmpName" placeholder="Auto-filled" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input class="form-control readonly" readonly [value]="arrLocation" placeholder="Auto-filled" />
+          </div>
+        </div>
+
+        <!-- Row 3 – Amount / Remarks -->
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label class="form-label">Amount (₹) <span class="req">*</span></label>
+            <input type="number" step="0.01" class="form-control" [class.error]="arrErrors['amount']" [(ngModel)]="arrAmount" placeholder="0.00" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Remarks <span class="req">*</span></label>
+            <textarea class="form-control" [class.error]="arrErrors['remarks']" [(ngModel)]="arrRemarks" maxLength="250" placeholder="Reason for the arrear adjustment"></textarea>
+            <div class="char-count">{{arrRemarks.length}} / 250</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action bar -->
+      <div class="action-bar" style="background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 24px;">
+        <button class="btn btn-outline" (click)="handleArrFind()">
+          <lucide-icon [name]="'search'" [size]="15"></lucide-icon> Find
+        </button>
+        <button class="btn btn-primary" (click)="handleArrSave()">
+          <lucide-icon [name]="'save'" [size]="15"></lucide-icon> {{arrEditId ? 'Update' : 'Save'}}
+        </button>
+        <button class="btn btn-outline" (click)="handleArrCancel()">
+          <lucide-icon [name]="'x-circle'" [size]="15"></lucide-icon> Cancel
+        </button>
+        <button class="btn btn-outline" (click)="goBack()">
+          <lucide-icon [name]="'log-out'" [size]="15"></lucide-icon> Exit
+        </button>
+      </div>
+
+      <!-- Grid -->
+      <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div class="card-title" style="margin-bottom: 0;">
+            {{mode}} Records — {{arrCategory}}
+          </div>
+          <label class="radio-label" style="cursor: pointer; user-select: none;">
+            <span style="font-size: 12.5px; font-weight: 600; color: var(--text-muted);">Show All Employees</span>
+            <span (click)="arrShowAllEmployees = !arrShowAllEmployees" style="width: 38px; height: 20px; border-radius: 999px; position: relative; transition: background 0.15s; flex-shrink: 0; display: inline-block;"
+              [style.background]="arrShowAllEmployees ? 'var(--blue)' : '#cbd2de'">
+              <span style="position: absolute; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left 0.15s;"
+                [style.left]="arrShowAllEmployees ? '20px' : '2px'"></span>
+            </span>
+          </label>
+        </div>
+
+        <div class="table-card">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Emp Code</th><th>Employee Name</th><th>Amount (₹)</th><th>Location</th><th>Effective Month</th><th>Remarks</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="arrPageRows.length === 0">
+              <td colSpan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No records. Click Find to load or enter details and Save.</td>
+            </tr>
+            <tr *ngFor="let r of arrPageRows; let i = index" [style.opacity]="!r.hasRecord ? 0.6 : 1">
+              <td>{{(arrCurrentPage - 1) * PAGE_SIZE + i + 1}}</td>
+              <td>{{r.empCode}}</td><td>{{r.empName}}</td>
+              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                {{r.amount | number:'1.2-2'}}
+              </td>
+              <td>{{r.location}}</td><td>{{r.month}}</td>
+              <td style="max-width: 220px;">{{r.remarks}}</td>
+              <td>
+                <div *ngIf="r.hasRecord" class="grid-actions">
+                  <button class="icon-btn edit" (click)="handleArrEdit(r)" title="Edit"><span class="material-icons">edit</span></button>
+                  <button class="icon-btn del" (click)="handleArrDelete(r.id)" title="Delete"><span class="material-icons">delete</span></button>
+                </div>
+                <span *ngIf="!r.hasRecord" style="font-size: 12px; color: var(--text-muted);">No record</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="grid-footer" *ngIf="arrDisplayRows.length > 0">
+          <span>Showing {{arrStartEntry}} to {{arrEndEntry}} of {{arrDisplayRows.length}} entries</span>
+          <div class="pagination">
+            <button class="page-btn" [disabled]="arrCurrentPage === 1" (click)="arrPage = arrPage - 1"><lucide-icon [name]="'chevron-left'" [size]="14"></lucide-icon></button>
+            <ng-container *ngFor="let n of arrPageNumbers">
+              <span *ngIf="n === '…'" class="page-dots">…</span>
+              <button *ngIf="n !== '…'" class="page-btn" [class.active]="n === arrCurrentPage" (click)="arrPage = +n">{{n}}</button>
+            </ng-container>
+            <button class="page-btn" [disabled]="arrCurrentPage === arrTotalPages" (click)="arrPage = arrPage + 1"><lucide-icon [name]="'chevron-right'" [size]="14"></lucide-icon></button>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,18 @@
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+  <div 
+    *ngFor="let card of cards" 
+    class="bg-white border border-[#E5E7EB] rounded-[16px] py-4 px-5 shadow-[0_2px_8px_rgba(0,0,0,0.015),0_1px_2px_rgba(0,0,0,0.02)] flex items-center justify-between hover:shadow-md hover:-translate-y-1 hover:border-[#2563EB]/15 transition-all duration-300 ease-out"
+  >
+    <div class="space-y-1 min-w-0 pr-2">
+      <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">{{ card.label }}</p>
+      <h3 class="text-2xl font-bold text-slate-900 leading-tight mt-1.5 tracking-tight truncate">{{ card.value }}</h3>
+      <p *ngIf="card.subtitle" class="text-[10px] font-semibold text-slate-500 mt-1 block leading-tight truncate">{{ card.subtitle }}</p>
+    </div>
+    <div 
+      [ngClass]="card.color" 
+      class="w-10 h-10 rounded-full flex items-center justify-center text-sm shadow-xs border border-white/50 flex-shrink-0"
+    >
+      <i class="fa-solid" [ngClass]="card.icon"></i>
+    </div>
+  </div>
+</div>

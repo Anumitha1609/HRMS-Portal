@@ -1,0 +1,359 @@
+:host {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #1e293b;
+}
+
+.sr-page {
+  padding: 16px;
+}
+
+.page-title-row {
+  margin-bottom: 16px;
+}
+
+.page-title-row h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.page-desc {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ---------- Card / section ---------- */
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.section-head h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+}
+
+.section-head h3 small {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.icon-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ---------- Form grids / fields ---------- */
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 1000px) {
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a94a6;
+  margin-bottom: 6px;
+}
+
+.field .required {
+  color: #ef4444;
+}
+
+.field select,
+.field input[type='text'],
+.field input[type='date'] {
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 14px;
+  background: #f3f4f7;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.field select::placeholder,
+.field input::placeholder {
+  color: #9aa3b2;
+}
+
+.field select:focus,
+.field input:focus {
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-sm {
+  font-size: 12.5px;
+  padding: 7px 14px;
+}
+
+.actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.removed-msg {
+  color: #15803d;
+  font-size: 13px;
+  text-align: right;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+/* ---------- Review controls / summary ---------- */
+
+.review-controls {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.review-controls .review-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 8px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.review-controls .review-meta .total-emps {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.review-controls .page-size {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.review-controls .page-size select {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.review-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.review-summary span {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: #f9fafb;
+}
+
+/* ---------- Table ---------- */
+
+.salary-table-scroll {
+  overflow-x: auto;
+}
+
+// Header/stripe colors now come from the shared .master-table styles
+.salary-table td:nth-child(n + 6),
+.salary-table th:nth-child(n + 6) {
+  text-align: right;
+}
+
+.salary-table td:first-child,
+.salary-table th:first-child {
+  width: 42px;
+  text-align: center;
+}
+
+.salary-table strong,
+.salary-table small {
+  display: block;
+}
+
+.salary-table small {
+  color: #9ca3af;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.empty-state {
+  color: #9ca3af;
+  text-align: center !important;
+  padding: 32px !important;
+}
+
+.pagination-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12.5px;
+  color: #4b5563;
+}
+
+/* ---------- Confirm modal ---------- */
+
+.confirm-card {
+  padding: 22px;
+}
+
+.confirm-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 10px;
+}
+
+.confirm-message {
+  font-size: 13px;
+  color: #4b5563;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.confirm-summary {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+}
+
+.confirm-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.confirm-label {
+  color: #6b7280;
+}
+
+.confirm-value {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

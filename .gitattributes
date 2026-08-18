@@ -1,0 +1,20 @@
+# Normalize all text files to LF in the repo, regardless of what
+# line endings your editor/OS saved them with locally.
+# This stops unrelated files (like email-config) from showing up
+# as "changed" in git status/diff/push just because of CRLF vs LF.
+* text=auto eol=lf
+
+# Keep Windows-specific scripts as CRLF if you ever add any
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Don't touch binaries
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

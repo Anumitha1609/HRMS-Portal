@@ -1,0 +1,290 @@
+<div class="main-area">
+  <!-- Tab bar -->
+  <div style="display: flex; gap: 0; border-bottom: 2px solid var(--border); padding: 0 24px; background: #fff;">
+    <button *ngFor="let tab of TABS; let idx = index" (click)="activeTab = idx" style="padding: 12px 28px; border: none; marginBottom: -2px; background: none; cursor: pointer; fontSize: 14px; transition: color 0.15s;"
+      [style.border-bottom]="activeTab === idx ? '2px solid var(--blue)' : '2px solid transparent'"
+      [style.font-weight]="activeTab === idx ? 700 : 500"
+      [style.color]="activeTab === idx ? 'var(--blue)' : 'var(--text-muted)'">
+      {{tab}}
+    </button>
+  </div>
+
+  <!-- Tab Content: Advance Entry -->
+  <ng-container *ngIf="activeTab === 0">
+    <div class="page-content">
+      <!-- Modal Form -->
+      <div class="modal-backdrop" *ngIf="showForm" (click)="handleCancel()" style="position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 100;">
+        <div class="card modal-scroll" style="width: 920px; max-width: 95vw; max-height: 88vh; overflow-y: auto; overflow-x: hidden; margin: 0; position: relative;" (click)="$event.stopPropagation()">
+          <button class="icon-btn ghost" (click)="handleCancel()" title="Close" style="position: absolute; top: 16px; right: 16px; z-index: 1;">
+            <lucide-icon [name]="'x'" [size]="16"></lucide-icon>
+          </button>
+          <div style="font-size: 16px; font-weight: 700; margin-bottom: 18px;">
+            {{editingId ? 'Edit Advance — ADV' + String(editingId).padStart(6, '0') : 'Add New Advance Entry'}}
+          </div>
+
+          <!-- Employee & Advance Information -->
+          <div class="card" style="box-shadow: none; border: 1px solid var(--border);">
+            <div class="card-title">Employee &amp; Advance Information</div>
+            <div class="form-row cols-3">
+              <div class="form-group">
+                <label class="form-label">Employee Code <span class="req">*</span></label>
+                <div style="display: flex; gap: 8px;">
+                  <input class="form-control" [class.error]="errors['empCode']" placeholder="e.g. EMP001" [ngModel]="empCode" (ngModelChange)="handleEmpCodeChange($event)" style="flex: 1;" />
+                  <button class="icon-btn ghost" style="width: 38px; height: 38px;" (click)="handleLookup()" title="Search"><lucide-icon [name]="'search'" [size]="15"></lucide-icon></button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Employee Name</label>
+                <input class="form-control readonly" readonly [value]="empName" placeholder="Auto-filled" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Advance Date <span class="req">*</span></label>
+                <input type="date" class="form-control" [(ngModel)]="advanceDate" />
+              </div>
+            </div>
+            <div class="form-row cols-3">
+              <div class="form-group">
+                <label class="form-label">Purpose Code <span class="req">*</span></label>
+                <select class="form-control" [(ngModel)]="purpose">
+                  <option *ngFor="let p of PURPOSE_CODES" [value]="p.code">{{p.label}}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Advance Amount (₹) <span class="req">*</span></label>
+                <input type="number" step="0.01" [min]="MIN_ADVANCE" [max]="MAX_ADVANCE" class="form-control" [class.error]="errors['advanceAmount']" [(ngModel)]="advanceAmount" placeholder="0.00" />
+                <div *ngIf="errors['advanceAmount']" style="color: var(--red); font-size: 12px; margin-top: 4px;">{{errors['advanceAmount']}}</div>
+                <div *ngIf="!errors['advanceAmount']" style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">Min ₹{{MIN_ADVANCE.toLocaleString('en-IN')}} · Max ₹{{MAX_ADVANCE.toLocaleString('en-IN')}}</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Monthly Due Amount (₹) <span class="req">*</span></label>
+                <input type="number" step="0.01" class="form-control" [class.error]="errors['monthlyDue']" [(ngModel)]="monthlyDue" placeholder="0.00" />
+              </div>
+            </div>
+            <div class="form-row cols-3" style="margin-bottom: 0;">
+              <div class="form-group">
+                <label class="form-label">Start Month <span class="req">*</span></label>
+                <input type="month" class="form-control" [(ngModel)]="startMonth" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">No. of Installments</label>
+                <input class="form-control readonly" readonly [value]="installments" placeholder="Auto-calculated" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Approval / Attachment / Remarks -->
+          <div class="form-row cols-3" style="align-items: stretch;">
+            <div class="card" style="margin-bottom: 0; box-shadow: none; border: 1px solid var(--border);">
+              <div class="card-title">Approval Information</div>
+              <label class="radio-label" style="margin-bottom: 14px;">
+                <input type="checkbox" [checked]="approved" (change)="toggleApproved($any($event.target).checked)" /> Approved
+              </label>
+              <div class="form-group">
+                <label class="form-label">Approval Date</label>
+                <input type="date" class="form-control" [(ngModel)]="approvalDate" />
+              </div>
+            </div>
+            <div class="card" style="margin-bottom: 0; box-shadow: none; border: 1px solid var(--border);">
+              <div class="card-title">Attachment</div>
+              <div class="form-group">
+                <label class="form-label">Photo / Document</label>
+                <input #fileInput type="file" accept=".pdf,.png,.jpg,.jpeg" style="display: none;" (change)="handleFileSelect($event)" />
+                <button class="btn btn-outline" (click)="fileInput.click()"><lucide-icon [name]="'upload'" [size]="14"></lucide-icon> Choose File</button>
+                <div *ngIf="file" style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                  <lucide-icon [name]="'file-text'" [size]="15" style="color: var(--blue);"></lucide-icon>
+                  <span style="font-size: 13px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{file.name}}</span>
+                  <button class="icon-btn del" (click)="removeFile()" title="Remove"><lucide-icon [name]="'trash-2'" [size]="13"></lucide-icon></button>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom: 0; box-shadow: none; border: 1px solid var(--border);">
+              <div class="card-title">Remarks</div>
+              <div class="form-group">
+                <textarea class="form-control" maxLength="500" placeholder="Optional details" [(ngModel)]="remarks" style="min-height: 86px;"></textarea>
+                <div class="char-count">{{remarks.length}} / 500</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action bar inside form -->
+          <div class="action-bar" style="background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 24px; margin-top: 8px;">
+            <button class="btn btn-outline" (click)="fileInput.click()"><lucide-icon [name]="'upload'" [size]="15"></lucide-icon> Upload</button>
+            <button class="btn btn-primary" (click)="handleSave()"><lucide-icon [name]="'save'" [size]="15"></lucide-icon> Save</button>
+            <button class="btn btn-outline" (click)="handleCancel()"><lucide-icon [name]="'x-circle'" [size]="15"></lucide-icon> Cancel</button>
+            <button class="btn btn-outline" (click)="handleCancel()"><lucide-icon [name]="'log-out'" [size]="15"></lucide-icon> Exit</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advance History List -->
+      <div class="card">
+        <div class="card-title" style="display: flex; align-items: center; justify-content: space-between;">
+          <span>Advance History</span>
+          <button class="btn btn-primary" (click)="handleAddNew()"><lucide-icon [name]="'plus'" [size]="15"></lucide-icon> Add New Entry</button>
+        </div>
+        <div class="grid-toolbar" style="position: relative;">
+          <div class="grid-search">
+            <lucide-icon [name]="'search'" [size]="14" style="color: var(--text-muted);"></lucide-icon>
+            <input placeholder="Search..." [(ngModel)]="searchTerm" (ngModelChange)="page = 1" />
+          </div>
+          <button class="icon-btn ghost" title="Filter" (click)="toggleFilterPanel()" style="position: relative;">
+            <lucide-icon [name]="'filter'" [size]="15"></lucide-icon>
+            <span *ngIf="activeFilterCount > 0" style="position: absolute; top: -6px; right: -6px; background: var(--blue); color: #fff; font-size: 10px; font-weight: 700; border-radius: 999px; min-width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; padding: 0 3px;">{{activeFilterCount}}</span>
+          </button>
+          <button class="icon-btn ghost" title="Export" (click)="triggerExport()"><lucide-icon [name]="'download'" [size]="15"></lucide-icon></button>
+
+          <!-- Filter Panel -->
+          <div *ngIf="showFilterPanel" style="position: absolute; top: 44px; right: 90px; width: 280px; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 16px; z-index: 50;">
+            <div style="font-size: 13px; font-weight: 700; margin-bottom: 12px;">Filter Advance Records</div>
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label class="form-label">Status</label>
+              <select class="form-control" [(ngModel)]="filterStatus">
+                <option value="">All</option>
+                <option *ngFor="let s of STATUS_OPTIONS" [value]="s">{{s}}</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label class="form-label">Purpose</label>
+              <select class="form-control" [(ngModel)]="filterPurpose">
+                <option value="">All</option>
+                <option *ngFor="let p of PURPOSE_CODES" [value]="p.code">{{p.label}}</option>
+              </select>
+            </div>
+            <div class="form-row cols-2" style="margin-bottom: 4px;">
+              <div class="form-group">
+                <label class="form-label">From Date</label>
+                <input type="date" class="form-control" [(ngModel)]="filterDateFrom" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">To Date</label>
+                <input type="date" class="form-control" [(ngModel)]="filterDateTo" />
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+              <button class="btn btn-primary" style="flex: 1; justify-content: center;" (click)="applyFilters()">Apply</button>
+              <button class="btn btn-outline" style="flex: 1; justify-content: center;" (click)="clearFilters()">Clear</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-card">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th style="width: 32px; text-align: center;"><input type="checkbox" disabled /></th>
+              <th>Adv No.</th><th>Employee Code</th><th>Employee Name</th><th>Advance Date</th>
+              <th>Purpose</th><th style="text-align: right;">Advance Amount (₹)</th>
+              <th style="text-align: right;">Monthly Due (₹)</th><th>Start Month</th>
+              <th style="text-align: center; width: 100px;">Installments</th>
+              <th style="text-align: center; width: 100px;">Status</th>
+              <th style="text-align: center; width: 90px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="pageRows.length === 0">
+              <td colSpan="12" style="text-align: center; color: var(--text-muted); padding: 24px;">No advance records found.</td>
+            </tr>
+            <tr *ngFor="let r of pageRows">
+              <td style="text-align: center;"><input type="checkbox" /></td>
+              <td>ADV{{ String(r.id).padStart(6, '0') }}</td>
+              <td>{{r.empCode}}</td><td>{{r.empName}}</td><td>{{formatDateStr(r.date)}}</td>
+              <td>{{PURPOSE_LABELS[r.purpose]}}</td>
+              <td style="text-align: right; font-variant-numeric: tabular-nums;">{{fmtCur(r.amount)}}</td>
+              <td style="text-align: right; font-variant-numeric: tabular-nums;">{{fmtCur(r.monthlyDue)}}</td>
+              <td>{{formatMonthStr(r.startMonth)}}</td>
+              <td style="text-align: center;">{{r.installments}}</td>
+              <td style="text-align: center;"><span [class]="'badge-pill ' + statusCls(r.status)">{{r.status}}</span></td>
+              <td>
+                <div class="grid-actions" style="justify-content: center;">
+                  <button class="icon-btn edit" title="Edit" (click)="handleEdit(r)"><span class="material-icons">edit</span></button>
+                  <button class="icon-btn del" title="Delete" (click)="handleDelete(r.id)"><span class="material-icons">delete</span></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- Pagination footer -->
+        <div class="grid-footer" *ngIf="filteredHistory.length > 0">
+          <span>Showing {{startEntry}} to {{endEntry}} of {{filteredHistory.length}} entries</span>
+          <div class="pagination">
+            <button class="page-btn" [disabled]="currentPage === 1" (click)="page = page - 1"><lucide-icon [name]="'chevron-left'" [size]="14"></lucide-icon></button>
+            <ng-container *ngFor="let n of pageNumbers">
+              <span *ngIf="n === '…'" class="page-dots">…</span>
+              <button *ngIf="n !== '…'" class="page-btn" [class.active]="n === currentPage" (click)="page = +n">{{n}}</button>
+            </ng-container>
+            <button class="page-btn" [disabled]="currentPage === totalPages" (click)="page = page + 1"><lucide-icon [name]="'chevron-right'" [size]="14"></lucide-icon></button>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Tab Content: Short Close -->
+  <ng-container *ngIf="activeTab === 1">
+    <div class="page-content">
+      <div class="card">
+        <div class="form-row cols-3">
+          <div class="form-group">
+            <label class="form-label">Advance Type <span class="req">*</span></label>
+            <select class="form-control" [(ngModel)]="advanceType" (change)="scPage = 1">
+              <option *ngFor="let t of ADVANCE_TYPES" [value]="t.code">{{t.label}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-card">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Employee Code</th><th>Employee Name</th><th>Date</th>
+              <th>Location</th><th>Balance (₹)</th><th>Is Close</th><th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="scPageRows.length === 0">
+              <td colSpan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No active advances found.</td>
+            </tr>
+            <tr *ngFor="let r of scPageRows; let i = index; trackBy: trackBySCRowId">
+              <td>{{(scCurrentPage - 1) * PAGE_SIZE + i + 1}}</td>
+              <td>{{r.empCode}}</td><td>{{r.empName}}</td><td>{{formatDateStr(r.date)}}</td>
+              <td>{{r.location}}</td>
+              <td style="text-align: right; font-variant-numeric: tabular-nums;">{{r.balance | number:'1.2-2'}}</td>
+              <td style="text-align: center;">
+                <input type="checkbox" [checked]="r.isClosed" [disabled]="committedClosed.has(r.id)"
+                  (change)="handleToggleClose(r.id, $any($event.target).checked)"
+                  style="width: 16px; height: 16px; cursor: pointer;" />
+              </td>
+              <td>
+                <input class="form-control" [class.error]="rowErrors[r.id]" style="padding: 6px 10px; font-size: 13px;"
+                  placeholder="Required: e.g. Full Settlement"
+                  [ngModel]="r.remarks" [disabled]="!r.isClosed || committedClosed.has(r.id)"
+                  (ngModelChange)="updateSCRow(r.id, {remarks: $event})" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- Short Close Footer -->
+        <div class="grid-footer" *ngIf="visibleSCRows.length > 0">
+          <span>Showing {{scStartEntry}} to {{scEndEntry}} of {{visibleSCRows.length}} entries</span>
+          <div class="pagination">
+            <button class="page-btn" [disabled]="scCurrentPage === 1" (click)="scPage = scPage - 1"><lucide-icon [name]="'chevron-left'" [size]="14"></lucide-icon></button>
+            <ng-container *ngFor="let n of scPageNumbers">
+              <span *ngIf="n === '…'" class="page-dots">…</span>
+              <button *ngIf="n !== '…'" class="page-btn" [class.active]="n === scCurrentPage" (click)="scPage = +n">{{n}}</button>
+            </ng-container>
+            <button class="page-btn" [disabled]="scCurrentPage === scTotalPages" (click)="scPage = scPage + 1"><lucide-icon [name]="'chevron-right'" [size]="14"></lucide-icon></button>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- Action bar for Short Close -->
+      <div class="action-bar" style="background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 24px;">
+        <button class="btn btn-primary" (click)="handleSCSave()"><lucide-icon [name]="'save'" [size]="15"></lucide-icon> Save</button>
+        <button class="btn btn-outline" (click)="handleSCCancel()"><lucide-icon [name]="'x-circle'" [size]="15"></lucide-icon> Cancel</button>
+      </div>
+    </div>
+  </ng-container>
+</div>

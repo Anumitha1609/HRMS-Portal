@@ -1,0 +1,790 @@
+/* Work @ Eaze HRMS - Global Styles & Design System */
+@use "sass:color";
+@import "leaflet/dist/leaflet.css";
+
+/* Tailwind CSS - scoped for the integrated Reports module only.
+   Preflight (base reset) is disabled in tailwind.config.js so these layers
+   only ever add the specific utility classes referenced inside
+   src/app/pages/reports and src/app/shared/reports; nothing here resets or
+   overrides styling for the rest of the application. */
+@tailwind components;
+@tailwind utilities;
+
+
+// 1. Color Palette Tokens
+$primary: #2563EB;
+$primary-hover: #1D4ED8;
+$success: #10B981;
+$success-hover: #059669;
+$warning: #F59E0B;
+$warning-hover: #D97706;
+$error: #EF4444;
+$error-hover: #DC2626;
+$text: #111827;
+$text-secondary: #6B7280;
+$border: #E5E7EB;
+$bg-main: #F8FAFC;
+$card-bg: #FFFFFF;
+
+// 2. Shadows & Glassmorphism
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$glass-bg: rgba(255, 255, 255, 0.7);
+$glass-border: rgba(255, 255, 255, 0.4);
+$glass-blur: blur(12px);
+
+// 3. Spacing & Borders
+$radius-lg: 12px;
+$radius-md: 8px;
+$transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+// CSS custom properties (bridges SCSS tokens above for components that use var(--...))
+:root {
+  --color-primary: #{$primary};
+  --color-primary-dark: #{$primary-hover};
+  --color-primary-light: #60a5fa;
+  --color-primary-100: #dbeafe;
+  --color-success: #{$success};
+  --color-success-bg: #d1fae5;
+  --color-danger: #{$error};
+  --color-danger-bg: #fee2e2;
+  --color-text: #{$text};
+  --color-text-muted: #{$text-secondary};
+  --color-text-faint: #94a3b8;
+  --color-border: #{$border};
+  --color-border-strong: #cbd5e1;
+  --color-bg: #{$bg-main};
+  --color-surface: #{$card-bg};
+  --radius-sm: 6px;
+  --radius-md: #{$radius-md};
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+}
+
+// Global Reset
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: $text;
+  background-color: $bg-main;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Enterprise SCSS Components
+.glass-panel {
+  background: $glass-bg;
+  backdrop-filter: $glass-blur;
+  -webkit-backdrop-filter: $glass-blur;
+  border: 1px solid $glass-border;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-md;
+}
+
+.card {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+  padding: 16px;
+  transition: $transition-fast;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+}
+
+// Reusable Button styles
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: $radius-md;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: $transition-fast;
+  user-select: none;
+  text-decoration: none;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.btn-primary {
+    background-color: $primary;
+    color: #ffffff;
+    &:hover:not(:disabled) {
+      background-color: $primary-hover;
+    }
+  }
+
+  &.btn-secondary {
+    background-color: #ffffff;
+    color: $text;
+    border-color: $border;
+    &:hover:not(:disabled) {
+      background-color: $bg-main;
+      border-color: color.adjust($border, $lightness: -5%);
+    }
+  }
+
+  &.btn-danger {
+    background-color: $error;
+    color: #ffffff;
+    &:hover:not(:disabled) {
+      background-color: $error-hover;
+    }
+  }
+
+  &.btn-ghost {
+    background-color: transparent;
+    color: $text-secondary;
+    &:hover:not(:disabled) {
+      background-color: rgba(0, 0, 0, 0.04);
+      color: $text;
+    }
+  }
+
+  &.btn-icon {
+    padding: 8px;
+    border-radius: 50%;
+  }
+}
+
+// Reusable Form inputs
+.form-group {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 11px;
+    font-weight: 700;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .input-control {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 14px 16px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    outline: none;
+    transition: $transition-fast;
+    background-color: #f4f6fa;
+    color: #334155;
+
+    &:focus {
+      background-color: #ffffff;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+
+    &[readonly], &:disabled {
+      background-color: #f8fafc;
+      color: #64748b;
+      cursor: default;
+    }
+
+    &.ng-invalid.ng-touched {
+      border-color: $error;
+      &:focus {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+      }
+    }
+  }
+
+  .error-message {
+    color: $error;
+    font-size: 12px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+// Master Layout grid utility
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .grid-3, .grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Custom animations
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// Note: no "forwards" fill-mode here on purpose. "forwards" would leave
+// "transform: translateY(0)" permanently applied after the animation ends.
+// Even a no-op transform like that makes this element a new "containing block"
+// for any position:fixed descendants (e.g. the Family/Nominee edit drawers),
+// which breaks their positioning relative to the actual browser viewport and
+// makes them render off to the side, needing to be scrolled into view.
+.animated-fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+/* --- Shared Master Screens & Dashboard Layout V2 Styles --- */
+.employee-layout-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; // reduced from 24px
+  width: 100%;
+  padding: 4px 0; // reduced from 8px
+}
+
+.dashboard-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; // reduced from 24px
+  width: 100%;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px; // reduced from 20px 24px
+  
+  .header-left {
+    h2 {
+      font-size: 16px; // reduced from 20px
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0;
+    }
+    p {
+      font-size: 12px; // reduced from 13px
+      color: #64748b;
+      margin: 2px 0 0 0; // reduced from 4px
+    }
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.compact-card {
+  padding: 12px 16px !important; // reduced card padding
+  border-radius: 8px !important;
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 8px;
+
+  .header-left-compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .material-icons {
+      font-size: 20px;
+      color: #2563eb;
+    }
+
+    h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0;
+    }
+  }
+
+  .header-right-compact {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.btn-sm {
+  padding: 6px 12px !important; // compact button padding
+  font-size: 12px !important;
+  gap: 4px !important;
+  height: 32px !important;
+  
+  .material-icons {
+    font-size: 16px !important;
+  }
+}
+
+.advanced-search-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 16px; // reduced from 20px 24px
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px; // reduced from 16px
+    border-bottom: none;
+    padding: 0;
+
+    h3 {
+      font-size: 12px; // reduced from 14px
+      font-weight: 600;
+      color: #334155;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .text-primary {
+      color: #2563eb;
+    }
+  }
+
+  .search-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px; // reduced from 16px
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group {
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px; // reduced from 6px
+
+      label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      input, select {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 14px;
+        height: auto;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background-color: #f4f6fa;
+        color: #334155;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+
+        &::placeholder {
+          color: #94a3b8;
+        }
+
+        &:focus {
+          background-color: #ffffff;
+          border-color: #2563eb;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+      }
+    }
+  }
+}
+
+.table-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  /* thin, unobtrusive horizontal scrollbar so wide tables stay usable
+     on smaller screens instead of clipping their last columns off */
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+.master-table {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+  white-space: nowrap;
+
+  thead {
+    background-color: #1a2b4a;
+    border-bottom: 1px solid #1a2b4a;
+
+    th {
+      padding: 12px 16px;
+      font-weight: 600;
+      color: #ffffff;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+
+      &:first-child {
+        border-top-left-radius: 12px;
+      }
+
+      &:last-child {
+        border-top-right-radius: 12px;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.2s;
+      cursor: pointer;
+
+      &:nth-child(even) {
+        background-color: #f8fafc;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: #eef2ff;
+      }
+    }
+
+    td {
+      padding: 12px 16px;
+      color: #334155;
+      vertical-align: middle;
+    }
+  }
+
+  .selection-circle {
+    width: 14px; // reduced from 18px
+    height: 14px; // reduced from 18px
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    margin: 0 auto;
+    transition: border-color 0.2s, background-color 0.2s;
+    cursor: pointer;
+
+    &:hover {
+      border-color: #2563eb;
+      background-color: rgba(37, 99, 235, 0.05);
+    }
+  }
+
+  .profile-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px; // reduced from 12px
+
+    .profile-avatar {
+      width: 26px; // reduced from 32px
+      height: 26px; // reduced from 32px
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 11px; // reduced from 13px
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .profile-name {
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #2563eb;
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .code-badge {
+    font-family: monospace;
+    font-size: 10px; // reduced from 11px
+    font-weight: 600;
+    color: #475569;
+    background-color: #f1f5f9;
+    padding: 1px 4px; // reduced from 2px 6px
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .skeleton-row, .empty-table-msg {
+    text-align: center;
+    color: #64748b;
+    padding: 20px; // reduced from 32px
+    font-size: 13px;
+  }
+}
+
+.table-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px; // reduced from 14px 24px
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+
+  .pagination-text {
+    font-size: 10px; // reduced from 11px
+    font-weight: 600;
+    color: #64748b;
+    letter-spacing: 0.05em;
+  }
+
+  .pagination-actions {
+    display: flex;
+    gap: 6px; // reduced from 8px
+    
+    .btn-icon {
+      padding: 4px; // reduced padding
+    }
+  }
+}
+
+.detail-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+// Enterprise Action Bar Layout for Master Screens
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  .action-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .emp-code-pill {
+      font-family: monospace;
+      font-size: 12px;
+      font-weight: 600;
+      background-color: #F1F5F9;
+      color: #334155;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0;
+    }
+  }
+
+  .action-right {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+// Icon-Only Square Buttons
+.btn-icon-only {
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  flex-shrink: 0;
+  
+  span.material-icons {
+    font-size: 18px !important;
+    margin: 0 !important;
+  }
+}
+
+body.modal-open, html.modal-open {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+// Modal animations
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animated-scale-in {
+  animation: scaleIn 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    background-color: rgba(15, 23, 42, 0);
+    backdrop-filter: blur(0px);
+  }
+  to {
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+  }
+}
+
+.drawer-overlay.animated-overlay {
+  animation: overlayFadeIn 200ms ease-out forwards;
+}
+
+
+// ==================================================
+// Reports Module — Unified Modern Input Field Style
+// Reusable ".reports-input" class applied to all
+// text/date/number inputs, selects, and textareas
+// inside the Reports module (pages/reports,
+// shared/reports) so every report page shares one
+// consistent, modern field design.
+// ==================================================
+.reports-input {
+  height: 48px;
+  padding: 0 16px;
+  background-color: #F5F7FA;
+  border: 1px solid #E2E5EA;
+  border-radius: 12px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1F2937;
+  line-height: 1.2;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.reports-input::placeholder {
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+.reports-input:focus {
+  border-color: #2563EB;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.reports-input:disabled {
+  background-color: #EEF1F4;
+  color: #9CA3AF;
+  cursor: not-allowed;
+}
+
+select.reports-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2364748B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+
+textarea.reports-input {
+  height: auto;
+  min-height: 96px;
+  padding: 12px 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+// Extra padding for fields with an inline icon (search / calendar glyph)
+input.reports-input.icon-left {
+  padding-left: 44px;
+}
+
+input.reports-input.icon-right {
+  padding-right: 44px;
+}
+
+// Keep the custom calendar glyph clickable and centered over the field
+.reports-input.date-input {
+  padding-right: 44px;
+}

@@ -1,0 +1,5 @@
+[
+  { "id": "fu-1", "name": "Corporate", "employeeCount": 1, "createdAt": "2024-01-10T09:00:00.000Z" },
+  { "id": "fu-2", "name": "Plant Operations", "employeeCount": 1, "createdAt": "2024-01-12T09:00:00.000Z" },
+  { "id": "fu-3", "name": "Shared Services", "employeeCount": 0, "createdAt": "2024-01-15T09:00:00.000Z" }
+]

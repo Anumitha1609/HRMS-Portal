@@ -1,0 +1,272 @@
+<div class="aa-page">
+  <!-- Toolbar -->
+  <div class="aa-toolbar">
+    <button type="button" class="btn btn-primary" [disabled]="loading" (click)="handleFetch()">
+      <span *ngIf="loading" class="spinner"></span>
+      Fetch
+    </button>
+    <button type="button" class="btn btn-secondary" (click)="handleReset()">Reset</button>
+  </div>
+
+  <!-- Alerts -->
+  <div class="alert alert-error" *ngIf="fieldError">{{ fieldError }}</div>
+  <div class="alert alert-error" *ngIf="error">{{ error }}</div>
+  <div class="alert alert-info" *ngIf="infoMessage && !error">{{ infoMessage }}</div>
+
+  <!-- Attendance Month / Search Section -->
+  <div class="card filter-card">
+    <div class="filter-grid">
+      <div class="form-field">
+        <label class="field-label">
+          Attendance Month <span class="required">*</span>
+        </label>
+        <input
+          type="month"
+          [ngModel]="month"
+          (ngModelChange)="onMonthChange($event)"
+          class="text-input"
+          [class.input-error]="fieldError"
+        />
+        <div class="field-error-text" *ngIf="fieldError">{{ fieldError }}</div>
+      </div>
+
+      <div class="search-row">
+        <input
+          type="text"
+          placeholder="Search employee code or name"
+          [ngModel]="search"
+          (ngModelChange)="onSearchChange($event)"
+          class="text-input search-input"
+        />
+        <div class="record-count">
+          Showing {{ filteredRecords.length }} of {{ records.length }} records
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leave Summary Cards -->
+  <div class="summary-grid" *ngIf="showSummaryCards && summaryMetrics as metrics">
+    <div class="summary-box summary-blue">
+      <div class="summary-label">Eligible Leave</div>
+      <div class="summary-value">{{ metrics.eligible.toFixed(2) }}</div>
+    </div>
+    <div class="summary-box summary-orange">
+      <div class="summary-label">Used Leave</div>
+      <div class="summary-value">{{ metrics.used.toFixed(2) }}</div>
+    </div>
+    <div class="summary-box summary-green">
+      <div class="summary-label">Remaining Leave</div>
+      <div class="summary-value">{{ metrics.remaining.toFixed(2) }}</div>
+    </div>
+    <div class="summary-box summary-purple">
+      <div class="summary-label">Adjustment Req.</div>
+      <div class="summary-value">{{ editForm.adjDays.toFixed(2) }}</div>
+    </div>
+  </div>
+
+  <!-- Loading / Empty / Data -->
+  <div *ngIf="loading; else notLoading" class="loading-state">
+    <span class="spinner spinner-dark"></span>
+    Retrieving attendance adjustment records...
+  </div>
+
+  <ng-template #notLoading>
+    <ng-container *ngIf="records.length === 0; else recordsBlock">
+      <div class="card empty-state" *ngIf="infoMessage">{{ infoMessage }}</div>
+    </ng-container>
+
+    <ng-template #recordsBlock>
+      <div class="content-grid">
+        <!-- Left Column: Table + Adjustment Details -->
+        <div class="left-column">
+          <div class="card">
+            <h3 class="card-title">Attendance Adjustment ({{ records.length }})</h3>
+            <div class="table-card">
+            <div class="table-scroll">
+              <table class="master-table">
+                <thead>
+                  <tr>
+                    <th>Emp Code</th>
+                    <th>Employee Name</th>
+                    <th class="align-right">T.L Days</th>
+                    <th class="align-right">ALOP Days</th>
+                    <th class="align-right">Adj Days</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let record of pagedRecords; let idx = index; trackBy: trackByRecordId"
+                    (click)="handleRowClick(record)"
+                    class="data-row"
+                    [class.row-selected]="selectedRecord?.id === record.id"
+                    [class.row-odd]="idx % 2 !== 0"
+                  >
+                    <td class="cell-strong">{{ record.employeeCode }}</td>
+                    <td>{{ record.employeeName }}</td>
+                    <td class="align-right">{{ record.tLDays.toFixed(2) }}</td>
+                    <td class="align-right">{{ record.alopDays.toFixed(2) }}</td>
+                    <td class="align-right">{{ record.adjDays.toFixed(2) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="grid-footer">
+              <span>
+                {{ filteredRecords.length === 0 ? 'No entries' : 'Showing ' + startEntry + ' to ' + endEntry + ' of ' + filteredRecords.length + ' entries' }}
+              </span>
+              <div class="pagination">
+                <button type="button" class="page-btn" [disabled]="page === 1" (click)="goToPrevPage()">
+                  <lucide-icon [name]="'chevron-left'" [size]="14"></lucide-icon>
+                </button>
+                <ng-container *ngFor="let n of pageNumbers">
+                  <span *ngIf="n === '…'" class="page-dots">…</span>
+                  <button
+                    *ngIf="n !== '…'"
+                    type="button"
+                    class="page-btn"
+                    [class.active]="n === page"
+                    (click)="setPage(n)"
+                  >
+                    {{ n }}
+                  </button>
+                </ng-container>
+                <button type="button" class="page-btn" [disabled]="page === totalPages" (click)="goToNextPage()">
+                  <lucide-icon [name]="'chevron-right'" [size]="14"></lucide-icon>
+                </button>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <!-- Adjustment Details -->
+          <div class="card" *ngIf="selectedRecord">
+            <h3 class="card-title">Adjustment Details</h3>
+            <div class="details-grid">
+              <div class="form-field">
+                <label class="field-label">
+                  T.L Days <span class="required">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  [ngModel]="editForm.tLDays"
+                  (ngModelChange)="onTLDaysChange($event)"
+                  [disabled]="!isEditing"
+                  class="text-input"
+                  [class.input-disabled]="!isEditing"
+                />
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">
+                  ALOP Days <span class="required">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  [ngModel]="editForm.alopDays"
+                  (ngModelChange)="onAlopDaysChange($event)"
+                  [disabled]="!isEditing"
+                  class="text-input"
+                  [class.input-disabled]="!isEditing"
+                />
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">
+                  Adj Days <span class="required">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  [ngModel]="editForm.adjDays"
+                  (ngModelChange)="onAdjDaysChange($event)"
+                  [disabled]="!isEditing"
+                  class="text-input"
+                  [class.input-disabled]="!isEditing"
+                />
+              </div>
+            </div>
+
+            <div class="details-actions">
+              <ng-container *ngIf="isEditing; else editButtonTpl">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="handleCancel()">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" [disabled]="isUnchanged" (click)="handleSave()">
+                  Save
+                </button>
+              </ng-container>
+              <ng-template #editButtonTpl>
+                <button type="button" class="btn btn-primary btn-sm" (click)="handleEdit()">Edit</button>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Employee Profile -->
+        <div class="right-column">
+          <div class="card" *ngIf="selectedRecord; else noSelectionTpl">
+            <h3 class="card-title">Employee Profile</h3>
+
+            <div class="profile-header">
+              <div class="avatar">
+                <img *ngIf="selectedRecord.photo; else noPhotoTpl" [src]="selectedRecord.photo" [alt]="selectedRecord.employeeName" />
+                <ng-template #noPhotoTpl>
+                  <svg viewBox="0 0 24 24" class="avatar-icon" fill="currentColor">
+                    <path
+                      d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12Zm0 2.5c-3.3 0-9.8 1.6-9.8 4.9v2.4h19.6v-2.4c0-3.3-6.5-4.9-9.8-4.9Z"
+                    />
+                  </svg>
+                </ng-template>
+              </div>
+              <div class="profile-name-block">
+                <div class="profile-name">{{ selectedRecord.employeeName }}</div>
+                <div class="profile-code">{{ selectedRecord.employeeCode }}</div>
+              </div>
+            </div>
+
+            <div class="profile-rows">
+              <div class="profile-row">
+                <span class="profile-label">Location</span>
+                <span class="profile-value">{{ selectedRecord.location || '—' }}</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label">Department</span>
+                <span class="profile-value">{{ selectedRecord.department || '—' }}</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label">Division</span>
+                <span class="profile-value">{{ selectedRecord.division || '—' }}</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label">Employee Type</span>
+                <span
+                  class="profile-value"
+                  [class.type-new]="selectedRecord.employeeType === 'NEW'"
+                  [class.type-existing]="selectedRecord.employeeType !== 'NEW'"
+                >
+                  {{ selectedRecord.employeeType === 'NEW' ? 'New Employee' : 'Existing Employee' }}
+                </span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label">Eligibility</span>
+                <span class="profile-value">{{ getEligibleLeave(selectedRecord).label }}</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label">Date of Joining</span>
+                <span class="profile-value">{{ selectedRecord.dateOfJoining || '—' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noSelectionTpl>
+            <div class="card empty-profile">
+              Select an employee from the table to view and manage adjustments
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </ng-template>
+  </ng-template>
+</div>

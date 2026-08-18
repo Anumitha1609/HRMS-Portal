@@ -1,0 +1,438 @@
+<div class="leave-request-page">
+
+  <!-- Profile incomplete alert -->
+  <div class="profile-alert" *ngIf="genderMissing">
+    <span class="alert-icon">⚠</span>
+    <div>
+      <p class="alert-title">Profile Incomplete</p>
+      <p class="alert-text">Employee profile is incomplete. Gender information is required to determine leave eligibility.</p>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!genderMissing">
+
+    <!-- ================= LEAVE SUMMARY DASHBOARD ================= -->
+    <div class="dashboard-strip">
+      <div class="dashboard-item" *ngFor="let item of dashboardItems">
+        <div class="dashboard-icon" [ngClass]="typeColorClass(item.type)">
+          <span>{{ leaveTypeShort(item.type) }}</span>
+        </div>
+        <div class="dashboard-info">
+          <div class="dashboard-count">
+            {{ item.remaining }} <span class="dashboard-total">/ {{ item.total }}</span>
+          </div>
+          <span class="dashboard-label">{{ item.type }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MAIN LAYOUT ================= -->
+    <div class="layout-grid">
+
+      <!-- LEFT: Leave History -->
+      <div class="history-col">
+        <div class="history-card">
+          <div class="history-header">
+            <h2>Leave History</h2>
+            <div class="history-header-actions">
+              <button type="button" class="link-btn" (click)="toggleShowAll()">
+                {{ showAll ? '↑ Show less' : '↓ Show all' }}
+              </button>
+              <button type="button" class="btn-primary btn-sm" (click)="openAddNewLeave()">
+                <span class="btn-icon">+</span> Add New Leave
+              </button>
+            </div>
+          </div>
+
+          <div class="history-tabs">
+            <button
+              type="button"
+              class="history-tab"
+              *ngFor="let tab of historyTabs"
+              [class.active]="historyTab === tab"
+              (click)="setHistoryTab(tab)">
+              {{ tab }} <span class="tab-count">({{ countFor(tab) }})</span>
+            </button>
+          </div>
+
+          <div class="table-card">
+          <div class="history-table-wrap hrms-scroll">
+            <table class="master-table">
+              <thead>
+                <tr>
+                  <th>Ref #</th>
+                  <th>Leave Type</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>Days</th>
+                  <th>Reason</th>
+                  <th>Applied</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let r of pageRecords">
+                  <td class="mono ref-cell">{{ r.requestId }}</td>
+                  <td>{{ r.leaveType }}</td>
+                  <td>{{ fmtDate(r.fromDate) }}</td>
+                  <td>{{ fmtDate(r.toDate) }}</td>
+                  <td class="center">{{ r.days }}</td>
+                  <td class="truncate">{{ r.reason }}</td>
+                  <td>{{ fmtDate(r.appliedDate) }}</td>
+                  <td><span class="status-badge" [ngClass]="requestStatusClass(r.status)">{{ r.status }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="empty-row" *ngIf="pageRecords.length === 0">No matching leave records.</div>
+          </div>
+
+          <div class="history-footer" *ngIf="!showAll">
+            <span class="footer-count">
+              Showing {{ filteredHistory.length === 0 ? 0 : (pageSafe - 1) * pageSize + 1 }}–{{ minVal(pageSafe * pageSize, filteredHistory.length) }} of {{ filteredHistory.length }} entries
+            </span>
+            <div class="pagination">
+              <button type="button" class="page-nav" (click)="prevPage()" [disabled]="pageSafe === 1">‹</button>
+              <button
+                type="button"
+                class="page-num"
+                *ngFor="let n of pageNumbers"
+                [class.active]="n === pageSafe"
+                (click)="goToPage(n)">
+                {{ n }}
+              </button>
+              <button type="button" class="page-nav" (click)="nextPage()" [disabled]="pageSafe === totalPages">›</button>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Sidebar -->
+      <div class="sidebar-col">
+
+        <!-- Comp Off summary card -->
+        <div class="sidebar-card sidebar-compoff-card">
+          <div class="sidebar-compoff-head">
+            <div class="sidebar-title">
+              <span class="sidebar-title-icon">🗓</span>
+              <span>Compensatory Off</span>
+            </div>
+            <span class="status-badge sm" [ngClass]="compOffCardStatusClass()">{{ compOffCardStatus() }}</span>
+          </div>
+
+          <div class="sidebar-count-row">
+            <span class="sidebar-count">{{ activeCredits.length }}</span>
+            <span class="sidebar-count-label">Available Credit{{ activeCredits.length !== 1 ? 's' : '' }}</span>
+          </div>
+
+          <ng-container *ngIf="firstActiveCredit as fc; else noCredit">
+            <div class="sidebar-next">
+              <div class="sidebar-next-row"><span>Next Expiry</span><span class="value">{{ fmtDate(fc.validUntil) }}</span></div>
+              <div class="sidebar-next-row"><span>Days Left</span><span class="value" [class.warn]="daysRemaining(fc.validUntil) <= 14">{{ daysRemaining(fc.validUntil) }} days</span></div>
+            </div>
+          </ng-container>
+          <ng-template #noCredit>
+            <p class="sidebar-empty">No active comp off balance.</p>
+          </ng-template>
+
+          <button type="button" class="btn-apply" [disabled]="activeCredits.length === 0" (click)="applyCompOff()">
+            Apply Comp Off
+          </button>
+        </div>
+
+        <!-- Comp Off Credits table -->
+        <div class="sidebar-card sidebar-credits-card">
+          <div class="sidebar-credits-head"><h3>Compensatory Off Credits</h3></div>
+          <div class="sidebar-credits-list hrms-scroll">
+            <div class="credit-row" *ngFor="let c of sortedCredits">
+              <div class="credit-info">
+                <div class="credit-line">Worked: <span class="value">{{ fmtDate(c.workedDate) }}</span></div>
+                <div class="credit-line">Expires: <span class="value">{{ fmtDate(c.validUntil) }}</span></div>
+                <div class="credit-remaining" *ngIf="!c.used && !c.reserved && getCreditStatus(c) !== 'Expired'">
+                  {{ daysRemaining(c.validUntil) }} day{{ daysRemaining(c.validUntil) !== 1 ? 's' : '' }} remaining
+                </div>
+              </div>
+              <span class="status-badge sm" [ngClass]="statusBadgeClass(getCreditStatus(c))">{{ statusLabel(getCreditStatus(c)) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini Leave Calendar -->
+        <div class="sidebar-card sidebar-calendar-card">
+          <div class="calendar-head">
+            <h3>Leave Calendar</h3>
+            <div class="calendar-nav">
+              <button type="button" (click)="prevMonth()">‹</button>
+              <span class="cal-label">{{ calMonthLabel }}</span>
+              <button type="button" (click)="nextMonth()">›</button>
+            </div>
+          </div>
+
+          <div class="calendar-weekdays">
+            <div class="weekday" *ngFor="let d of weekDays">{{ d }}</div>
+          </div>
+
+          <div class="calendar-grid-wrap">
+            <div class="calendar-grid">
+              <ng-container *ngFor="let day of calCells">
+                <div *ngIf="day === null" class="cal-cell empty"></div>
+                <button
+                  type="button"
+                  *ngIf="day !== null"
+                  class="cal-cell"
+                  [class.today]="isToday(day)"
+                  [class.has-event]="eventsForDay(day).length > 0"
+                  (click)="onDayClick(day)">
+                  {{ day }}
+                  <span class="cal-dots" *ngIf="eventsForDay(day).length > 0">
+                    <span class="cal-dot" [ngClass]="dotColorClass(e.dot)" *ngFor="let e of eventsForDay(day)"></span>
+                  </span>
+                </button>
+              </ng-container>
+            </div>
+
+            <div class="cal-tooltip" *ngIf="activeEvent">
+              <div class="cal-tooltip-head">
+                <span class="cal-tooltip-title">
+                  <span class="dot" [ngClass]="dotColorClass(activeEvent.dot)"></span>
+                  {{ activeEvent.dot === 'earned' ? 'Compensatory Off Earned' : 'Compensatory Off Expiry' }}
+                </span>
+                <button type="button" class="cal-tooltip-close" (click)="closeTooltip()">✕</button>
+              </div>
+              <div class="cal-tooltip-body" *ngIf="activeEvent.dot === 'earned'; else expiryInfo">
+                <p>Worked On: <span class="value">{{ fmtDate(activeEvent.credit.workedDate) }}</span></p>
+                <p>Expires On: <span class="value">{{ fmtDate(activeEvent.credit.validUntil) }}</span></p>
+                <p>Status: <span class="value">{{ getCreditStatus(activeEvent.credit) }}</span></p>
+              </div>
+              <ng-template #expiryInfo>
+                <div class="cal-tooltip-body">
+                  <p>Expires On: <span class="value">{{ fmtDate(activeEvent.credit.validUntil) }}</span></p>
+                  <p>Status: <span class="value">{{ statusLabel(getCreditStatus(activeEvent.credit)) }}</span></p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+
+          <div class="calendar-legend">
+            <span class="legend-item" *ngFor="let d of dotTypes">
+              <span class="cal-dot" [ngClass]="dotColorClass(d)"></span> {{ dotLabel(d) }}
+            </span>
+          </div>
+
+          <p class="calendar-hint" *ngIf="!highlightCompOff">
+            Select "Compensatory Off" as leave type to highlight earned dates.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= ADD / APPLY LEAVE MODAL ================= -->
+    <div class="modal-backdrop" *ngIf="showLeaveForm" (click)="onBackdropClick()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Leave Details</h2>
+          <button type="button" class="modal-close" (click)="exitForm()" aria-label="Close">✕</button>
+        </div>
+
+        <form class="modal-form" (ngSubmit)="onSubmit()" novalidate>
+
+          <div class="success-banner" *ngIf="success && lastSubmitted">
+            <span class="success-icon">✓</span>
+            <div>
+              <p>Request submitted. Reference: <span class="mono">{{ success }}</span> — pending manager approval.</p>
+              <p class="success-sub">
+                {{ lastSubmitted.leaveType }} · {{ fmtDate(lastSubmitted.fromDate) }} – {{ fmtDate(lastSubmitted.toDate) }}
+                ({{ lastSubmitted.days }} day{{ lastSubmitted.days !== 1 ? 's' : '' }})
+              </p>
+            </div>
+          </div>
+
+          <!-- Leave Type -->
+          <div class="field-group">
+            <label>Leave Type <span class="required">*</span></label>
+            <select
+              class="form-control"
+              [class.has-error]="errors['leaveType']"
+              [ngModel]="form.leaveType"
+              name="leaveType"
+              (ngModelChange)="setLeaveType($event)">
+              <option value="">-- Select Leave Type --</option>
+              <option *ngFor="let t of eligibleTypes" [value]="t">
+                {{ t }}{{ t === 'Compensatory Off' ? ' (' + activeCredits.length + ' Available)' : '' }}
+              </option>
+            </select>
+            <p class="error-text" *ngIf="errors['leaveType']">{{ errors['leaveType'] }}</p>
+
+            <p class="hint-text" *ngIf="isCompOff && form.fromDate && eligibleForDate.length > 0">
+              {{ eligibleForDate.length }} eligible Comp Off credit{{ eligibleForDate.length !== 1 ? 's' : '' }} available for leave starting {{ fmtDate(form.fromDate) }}.
+            </p>
+            <p class="error-text" *ngIf="isCompOff && form.fromDate && eligibleForDate.length === 0">
+              No eligible Compensatory Off balance for selected dates.
+            </p>
+
+            <!-- Comp Off Details collapsible panel -->
+            <div class="comp-details-panel" *ngIf="isCompOff && activeCredits.length > 0">
+              <button type="button" class="comp-details-toggle" (click)="compOffDetailsOpen = !compOffDetailsOpen">
+                <span>Compensatory Off Details</span>
+                <span class="chev">{{ compOffDetailsOpen ? '▲' : '▼' }}</span>
+              </button>
+
+              <div class="comp-details-body" *ngIf="compOffDetailsOpen">
+                <div class="comp-details-summary">
+                  <span class="i-icon">ℹ</span> Available Credits: <strong>{{ activeCredits.length }}</strong>
+                </div>
+
+                <div class="comp-recommended" *ngIf="activeCredits[0] as rec0">
+                  <div class="comp-recommended-title">Recommended Credit</div>
+                  <div class="comp-recommended-row"><span>Worked On</span><span class="value">{{ fmtDate(rec0.workedDate) }}</span></div>
+                  <div class="comp-recommended-row"><span>Expires On</span><span class="value">{{ fmtDate(rec0.validUntil) }}</span></div>
+                  <div class="comp-recommended-row">
+                    <span>Days Remaining</span>
+                    <span class="value" [class.ok]="daysRemaining(rec0.validUntil) > 14" [class.warn]="daysRemaining(rec0.validUntil) <= 14">{{ daysRemaining(rec0.validUntil) }}</span>
+                  </div>
+                </div>
+
+                <div class="comp-all-title">All Available Credits (sorted by expiry)</div>
+                <div class="comp-all-list">
+                  <div class="comp-all-item" *ngFor="let c of activeCredits; let i = index" [class.first]="i === 0">
+                    <div class="comp-all-row">
+                      <span class="value">Worked On: {{ fmtDate(c.workedDate) }}</span>
+                      <span class="status-badge sm" [ngClass]="statusBadgeClass(getCreditStatus(c))">{{ statusLabel(getCreditStatus(c)) }}</span>
+                    </div>
+                    <div class="comp-all-expiry">Expires On: <span class="value">{{ fmtDate(c.validUntil) }}</span></div>
+                  </div>
+                </div>
+
+                <div class="comp-fifo-note">System will automatically use the credit that expires first (FIFO).</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dates -->
+          <div class="field-row">
+            <div class="field-group">
+              <label>Leave Start Date <span class="required">*</span></label>
+              <input
+                type="date"
+                class="form-control"
+                [class.has-error]="errors['fromDate']"
+                [attr.min]="isCompOff ? compOffMin : null"
+                [ngModel]="form.fromDate"
+                name="fromDate"
+                (ngModelChange)="setFromDate($event)">
+              <p class="error-text" *ngIf="errors['fromDate']">{{ errors['fromDate'] }}</p>
+            </div>
+            <div class="field-group">
+              <label>Leave End Date <span class="required">*</span></label>
+              <input
+                type="date"
+                class="form-control"
+                [class.has-error]="errors['toDate']"
+                [attr.min]="isCompOff ? (form.fromDate || compOffMin) : (form.fromDate || null)"
+                [ngModel]="form.toDate"
+                name="toDate"
+                (ngModelChange)="setToDate($event)">
+              <p class="error-text" *ngIf="errors['toDate']">{{ errors['toDate'] }}</p>
+            </div>
+          </div>
+
+          <!-- Comp Off Allocation Panel -->
+          <div class="allocation-panel" *ngIf="isCompOff && form.fromDate && (eligibleForDate.length > 0 || ineligibleForDate.length > 0)">
+            <div class="allocation-head"><span class="i-icon">ℹ</span><span>Comp Off Allocation</span></div>
+
+            <div class="allocation-body">
+              <div class="allocation-summary">
+                <div class="allocation-stat">
+                  <div class="stat-label">Required Days</div>
+                  <div class="stat-value">{{ allocationLeaveDates.length }}</div>
+                </div>
+                <div class="allocation-stat">
+                  <div class="stat-label">Eligible Comp Offs</div>
+                  <div class="stat-value">{{ eligibleForDate.length }}</div>
+                </div>
+              </div>
+
+              <div class="allocation-days-title">Allocated</div>
+              <div class="allocation-days">
+                <div class="allocation-day" *ngFor="let a of allocations" [class.covered]="a.credit" [class.uncovered]="!a.credit">
+                  <div class="allocation-day-left">
+                    <span class="allocation-icon">{{ a.credit ? '✓' : '!' }}</span>
+                    <span class="value">{{ fmtDate(a.date) }}</span>
+                  </div>
+                  <span class="allocation-chip" *ngIf="a.credit; else noAlloc">{{ a.credit.id }} · Expires {{ fmtDate(a.credit.validUntil) }}</span>
+                  <ng-template #noAlloc><span class="allocation-chip danger">No Comp Off Available</span></ng-template>
+                </div>
+              </div>
+
+              <div class="allocation-ineligible" *ngIf="ineligibleForDate.length > 0">
+                <div class="allocation-ineligible-title">Not Eligible (expire before leave starts)</div>
+                <div class="allocation-ineligible-item" *ngFor="let c of ineligibleForDate">
+                  <div class="allocation-day-left">
+                    <span class="allocation-icon warn">!</span>
+                    <span class="value">{{ c.id }}</span>
+                    <span class="dash">·</span>
+                    <span class="muted">Expires {{ fmtDate(c.validUntil) }}</span>
+                  </div>
+                  <span class="allocation-chip success">Still Available</span>
+                </div>
+              </div>
+
+              <div class="allocation-footer warn" *ngIf="allocationRemaining > 0; else fullCoverage">
+                <span>⚠</span>
+                <span>{{ allocationRemaining }} additional leave day{{ allocationRemaining !== 1 ? 's' : '' }} must be covered using another leave type or reduce the leave duration.</span>
+              </div>
+              <ng-template #fullCoverage>
+                <div class="allocation-footer ok">
+                  All {{ allocationLeaveDates.length }} day{{ allocationLeaveDates.length !== 1 ? 's' : '' }} covered by eligible Comp Off credits.
+                  System allocates earliest-expiring eligible credits first (FIFO).
+                </div>
+              </ng-template>
+            </div>
+          </div>
+
+          <!-- Days requested badge -->
+          <div class="days-badge" *ngIf="days !== null">🕒 {{ days }} day{{ days !== 1 ? 's' : '' }} requested</div>
+
+          <!-- Reason -->
+          <div class="field-group">
+            <label>Description / Reason <span class="required">*</span></label>
+            <textarea
+              class="form-control"
+              [class.has-error]="errors['reason']"
+              [ngModel]="form.reason"
+              name="reason"
+              rows="3"
+              placeholder="Enter reason for leave (minimum 10 characters)..."
+              (ngModelChange)="setReason($event)"></textarea>
+            <div class="field-footer">
+              <p class="error-text" *ngIf="errors['reason']">{{ errors['reason'] }}</p>
+              <span class="char-count">{{ form.reason.length }}/520</span>
+            </div>
+          </div>
+
+          <!-- Attachment -->
+          <div class="field-group">
+            <label>Attachment (Optional)</label>
+            <label class="attachment-input" [class.warn]="errors['attachment']">
+              <span class="paperclip">📎</span>
+              {{ form.attachment ? form.attachment.name : 'Click to attach a supporting document' }}
+              <input type="file" (change)="onFileChange($event)" hidden>
+            </label>
+            <p class="warn-text" *ngIf="errors['attachment']">{{ errors['attachment'] }}</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="modal-form-actions">
+            <button type="submit" class="btn-primary" [disabled]="submitting">
+              {{ submitting ? 'Submitting...' : 'Send' }}
+            </button>
+            <button type="button" class="btn-outline" (click)="resetClicked()">Reset</button>
+            <button type="button" class="btn-outline" (click)="cancelClicked()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

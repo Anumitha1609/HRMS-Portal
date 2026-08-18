@@ -1,0 +1,1204 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+/* ============================================================================
+   LOCAL PALETTE (scoped to this component only — does not touch global
+   design tokens, since this page uses a distinct blue accent)
+============================================================================ */
+
+$gray-50:  #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-800: #1f2937;
+$gray-900: #111827;
+
+$violet-50:  #eff6ff;
+$violet-100: #dbeafe;
+$violet-200: #bfdbfe;
+$violet-300: #93c5fd;
+$violet-400: #60a5fa;
+$violet-500: #3b82f6;
+$violet-600: #2563eb;
+$violet-700: #1d4ed8;
+$violet-800: #1e40af;
+
+$blue-50:  #eff6ff;
+$blue-100: #dbeafe;
+$blue-500: #3b82f6;
+$blue-600: #2563eb;
+$blue-700: #1d4ed8;
+
+$green-50:  #f0fdf4;
+$green-100: #dcfce7;
+$green-500: #22c55e;
+$green-600: #16a34a;
+$green-700: #15803d;
+
+$purple-100: #93c5fd;
+$purple-500: #2563eb;
+$purple-700: #1e3a8a;
+
+$pink-100: #fce7f3;
+$pink-500: #ec4899;
+$pink-700: #be185d;
+
+$orange-100: #ffedd5;
+$orange-500: #f97316;
+$orange-700: #c2410c;
+
+$yellow-100: #fef9c3;
+$yellow-500: #eab308;
+$yellow-600: #ca8a04;
+$yellow-700: #a16207;
+
+$red-50:  #fef2f2;
+$red-100: #fee2e2;
+$red-200: #fecaca;
+$red-500: #ef4444;
+$red-600: #dc2626;
+$red-700: #b91c1c;
+
+$amber-50:  #fffbeb;
+$amber-100: #fef3c7;
+$amber-500: #f59e0b;
+$amber-700: #b45309;
+
+@mixin card-base {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+@mixin scroll-thin {
+  &::-webkit-scrollbar { width: 6px; height: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background-color: $gray-300; border-radius: 999px; }
+  &::-webkit-scrollbar-thumb:hover { background-color: $gray-400; }
+  scrollbar-width: thin;
+  scrollbar-color: $gray-300 transparent;
+}
+
+.leave-request-page {
+  padding: 1.5rem;
+  background: #f8fafc;
+}
+
+/* ============================================================================
+   PROFILE INCOMPLETE ALERT
+============================================================================ */
+
+.profile-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid $red-200;
+  background: $red-50;
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1rem;
+
+  .alert-icon { color: $red-500; font-size: 1rem; margin-top: 0.125rem; }
+  .alert-title { font-size: 0.875rem; font-weight: 700; color: $red-700; margin: 0 0 0.125rem; }
+  .alert-text { font-size: 0.75rem; color: $red-600; margin: 0; }
+}
+
+/* ============================================================================
+   DASHBOARD STRIP
+============================================================================ */
+
+.dashboard-strip {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.dashboard-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1rem;
+  border-right: 1px solid $gray-100;
+  transition: transform 0.2s ease;
+
+  &:first-child { padding-left: 0; }
+  &:last-child { border-right: none; padding-right: 0; }
+  &:hover { transform: translateY(-1px); }
+}
+
+.dashboard-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  span { font-size: 0.75rem; font-weight: 700; }
+
+  &.type-blue   { background: $blue-100;   span { color: $blue-700; } }
+  &.type-green  { background: $green-100;  span { color: $green-700; } }
+  &.type-purple { background: $purple-100; span { color: $purple-700; } }
+  &.type-pink   { background: $pink-100;   span { color: $pink-700; } }
+  &.type-orange { background: $orange-100; span { color: $orange-700; } }
+  &.type-violet { background: $violet-200; span { color: $violet-800; } }
+}
+
+.dashboard-info { min-width: 0; }
+
+.dashboard-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $gray-900;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+}
+
+.dashboard-total {
+  font-size: 0.6875rem;
+  color: $gray-400;
+  font-weight: 400;
+}
+
+.dashboard-label {
+  display: block;
+  font-size: 0.6875rem;
+  color: $gray-500;
+  margin-top: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================================
+   MAIN LAYOUT
+============================================================================ */
+
+.layout-grid {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================================
+   HISTORY CARD
+============================================================================ */
+
+.history-card {
+  @include card-base;
+  display: flex;
+  flex-direction: column;
+  height: 430px;
+  overflow: hidden;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid $gray-100;
+  flex-shrink: 0;
+
+  h2 { font-size: 0.875rem; font-weight: 700; color: $gray-800; margin: 0; }
+}
+
+.history-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: $violet-600;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  &:hover { color: $violet-700; }
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: $violet-600;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+
+  &:hover:not([disabled]) { background: $violet-700; }
+  &:active:not([disabled]) { transform: scale(0.98); }
+  &[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+  &.btn-sm {
+    padding: 0.375rem 0.875rem;
+    font-size: 0.75rem;
+    border-radius: 8px;
+  }
+
+  .btn-icon { font-size: 0.8125rem; line-height: 1; }
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid $gray-300;
+  border-radius: 10px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $gray-600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  &:hover { background: $gray-50; }
+}
+
+.history-tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0.5rem 1.25rem 0.75rem;
+  border-bottom: none;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.history-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 35px;
+  padding: 8px 16px 10px;
+  margin: 0;
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: $gray-500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+
+  .tab-count { color: $gray-400; }
+
+  &:hover { color: $gray-700; border-color: $gray-300; }
+
+  &.active {
+    color: $violet-600;
+    border-color: $violet-600;
+    font-weight: 600;
+
+    .tab-count { color: $violet-400; }
+  }
+}
+
+.history-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  @include scroll-thin;
+
+  // Table look now comes from the shared .master-table styles (see styles.scss)
+  // so this page matches every other master-data table in the app.
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  th,
+  td {
+    white-space: nowrap;
+  }
+
+  .ref-cell { color: $violet-600; font-weight: 600; }
+  .center { text-align: center; font-weight: 600; }
+  .truncate {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.mono { font-family: 'SFMono-Regular', Menlo, Consolas, monospace; }
+
+.empty-row {
+  padding: 2.5rem 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: $gray-400;
+}
+
+.history-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid $gray-100;
+  background: $gray-50;
+  flex-shrink: 0;
+
+  .footer-count { font-size: 0.75rem; color: $gray-500; }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.page-nav, .page-num {
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: $gray-500;
+  transition: background 0.15s ease;
+  &:hover:not([disabled]) { background: $gray-200; }
+  &[disabled] { opacity: 0.4; cursor: not-allowed; }
+}
+
+.page-nav { padding: 0.3rem 0.4rem; }
+
+.page-num {
+  width: 24px;
+  height: 24px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: $gray-600;
+
+  &.active {
+    background: $violet-600;
+    color: #fff;
+  }
+}
+
+/* ============================================================================
+   SIDEBAR
+============================================================================ */
+
+.sidebar-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.sidebar-card {
+  @include card-base;
+  padding: 1rem;
+  transition: box-shadow 0.2s ease;
+  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+}
+
+/* -- Comp Off card -- */
+
+.sidebar-compoff-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.625rem;
+}
+
+.sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: $gray-800;
+}
+
+.sidebar-title-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: $violet-100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.sidebar-count-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.625rem;
+}
+
+.sidebar-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $gray-900;
+  line-height: 1;
+}
+
+.sidebar-count-label {
+  font-size: 0.6875rem;
+  color: $gray-500;
+}
+
+.sidebar-next {
+  background: $gray-50;
+  border-radius: 8px;
+  padding: 0.5rem 0.625rem;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-next-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  padding: 0.125rem 0;
+  color: $gray-500;
+
+  .value { font-weight: 600; color: $gray-800; }
+  .value.warn { color: $yellow-600; }
+}
+
+.sidebar-empty {
+  font-size: 0.6875rem;
+  color: $gray-400;
+  margin-bottom: 0.75rem;
+}
+
+.btn-apply {
+  width: 100%;
+  padding: 0.4375rem 0;
+  border-radius: 8px;
+  background: $violet-600;
+  color: #fff;
+  border: none;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+
+  &:hover:not([disabled]) { background: $violet-700; }
+  &:active:not([disabled]) { transform: scale(0.98); }
+  &[disabled] { background: $gray-200; color: $gray-400; cursor: not-allowed; }
+}
+
+/* -- Comp Off Credits table -- */
+
+.sidebar-credits-card { padding: 0; overflow: hidden; }
+
+.sidebar-credits-head {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid $gray-100;
+  h3 { font-size: 0.75rem; font-weight: 700; color: $gray-800; margin: 0; }
+}
+
+.sidebar-credits-list {
+  max-height: 200px;
+  overflow-y: auto;
+  @include scroll-thin;
+}
+
+.credit-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid $gray-100;
+  transition: background 0.15s ease;
+  &:last-child { border-bottom: none; }
+  &:hover { background: $gray-50; }
+}
+
+.credit-info { min-width: 0; }
+
+.credit-line {
+  font-size: 0.6875rem;
+  color: $gray-600;
+  .value { font-weight: 600; color: $gray-800; }
+}
+
+.credit-remaining {
+  font-size: 0.625rem;
+  color: $gray-500;
+  margin-top: 0.125rem;
+}
+
+/* -- Calendar -- */
+
+.sidebar-calendar-card { position: relative; overflow: visible; }
+
+.calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.625rem;
+  h3 { font-size: 0.75rem; font-weight: 700; color: $gray-800; margin: 0; }
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  button {
+    background: none;
+    border: none;
+    color: $gray-400;
+    padding: 0.2rem 0.35rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    line-height: 1;
+    &:hover { background: $gray-100; }
+  }
+
+  .cal-label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: $gray-600;
+    width: 80px;
+    text-align: center;
+  }
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 0.25rem;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 0.5625rem;
+  font-weight: 500;
+  color: $gray-400;
+  padding: 0.125rem 0;
+}
+
+.calendar-grid-wrap { position: relative; }
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-cell {
+  position: relative;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  color: $gray-500;
+  cursor: default;
+  padding: 0;
+
+  &.empty { visibility: hidden; }
+
+  &.has-event {
+    cursor: pointer;
+    color: $gray-700;
+    font-weight: 500;
+    &:hover { background: $gray-100; }
+  }
+
+  &.today {
+    background: $violet-600;
+    color: #fff;
+    font-weight: 700;
+  }
+}
+
+.cal-dots {
+  position: absolute;
+  bottom: 2px;
+  display: flex;
+  gap: 2px;
+}
+
+.cal-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+
+  &.dot-earned   { background: $green-500; }
+  &.dot-used     { background: $blue-500; }
+  &.dot-expiring { background: $yellow-500; }
+  &.dot-expired  { background: $red-500; }
+}
+
+.cal-tooltip {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 0.25rem;
+  width: 240px;
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  z-index: 20;
+}
+
+.cal-tooltip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+
+  .cal-tooltip-title {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: 600;
+    color: $gray-800;
+
+    .dot { width: 8px; height: 8px; border-radius: 999px; }
+  }
+
+  .cal-tooltip-close {
+    background: none;
+    border: none;
+    color: $gray-400;
+    cursor: pointer;
+    font-size: 0.75rem;
+    &:hover { color: $gray-600; }
+  }
+}
+
+.cal-tooltip-body {
+  color: $gray-500;
+  p { margin: 0.15rem 0; }
+  .value { font-weight: 500; color: $gray-700; }
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.5rem;
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid $gray-100;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.5625rem;
+  color: $gray-500;
+}
+
+.calendar-hint {
+  margin-top: 0.375rem;
+  font-size: 0.5625rem;
+  color: $gray-400;
+  font-style: italic;
+}
+
+/* ============================================================================
+   SHARED CHIP / STATUS BADGES
+============================================================================ */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.sm { padding: 0.1rem 0.375rem; font-size: 0.5625rem; }
+
+  &.chip-green  { background: $green-100;  color: $green-700; }
+  &.chip-blue   { background: $blue-100;   color: $blue-700; }
+  &.chip-yellow { background: $yellow-100; color: $yellow-700; }
+  &.chip-red    { background: $red-100;    color: $red-700; }
+  &.chip-violet { background: $violet-200; color: $violet-800; }
+  &.chip-gray   { background: $gray-100;   color: $gray-600; }
+}
+
+/* ============================================================================
+   MODAL
+============================================================================ */
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes modalScaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+  animation: modalFadeIn 0.18s ease;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  animation: modalScaleIn 0.2s ease;
+  @include scroll-thin;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid $gray-100;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+
+  h2 { font-size: 0.875rem; font-weight: 700; color: $gray-800; margin: 0; }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: $gray-400;
+    cursor: pointer;
+    padding: 0.375rem;
+    border-radius: 999px;
+    line-height: 1;
+    &:hover { color: $gray-600; background: $gray-100; }
+  }
+}
+
+.modal-form { padding: 1.25rem; }
+
+.success-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  background: $green-50;
+  border: 1px solid $green-100;
+  border-radius: 10px;
+  padding: 0.75rem 0.875rem;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  color: $green-700;
+
+  .success-icon { color: $green-600; margin-top: 0.125rem; }
+  p { margin: 0; }
+  .success-sub { margin-top: 0.25rem; color: $green-600; }
+  .mono { font-weight: 600; }
+}
+
+.field-group { margin-bottom: 0.75rem; }
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $gray-500;
+  margin-bottom: 0.25rem;
+}
+
+.required { color: $red-500; text-transform: none; }
+
+.form-control {
+  width: 100%;
+  border: 1px solid $gray-100;
+  border-radius: 10px;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  outline: none;
+  background: $gray-100;
+  color: $gray-800;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  font-family: inherit;
+
+  &::placeholder {
+    color: $gray-500;
+  }
+
+  &:focus {
+    background: #fff;
+    border-color: $violet-400;
+    box-shadow: 0 0 0 3px rgba($violet-400, 0.15);
+  }
+
+  &.has-error {
+    border-color: $red-500;
+    background: #fff;
+    &:focus { box-shadow: 0 0 0 3px rgba($red-500, 0.12); }
+  }
+}
+
+textarea.form-control { resize: vertical; }
+
+.error-text { color: $red-600; font-size: 0.6875rem; margin-top: 0.25rem; }
+.warn-text  { color: $amber-700; font-size: 0.6875rem; margin-top: 0.25rem; }
+.hint-text  { color: $violet-600; font-size: 0.6875rem; margin-top: 0.375rem; }
+
+.field-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+
+  .char-count { font-size: 0.625rem; color: $gray-400; }
+}
+
+.days-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: $gray-50;
+  border: 1px solid $gray-200;
+  border-radius: 10px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  color: $gray-600;
+  margin-bottom: 0.75rem;
+}
+
+.attachment-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px dashed $gray-300;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: $gray-500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover { background: $gray-50; }
+  &.warn { border-color: $amber-500; background: $amber-50; }
+}
+
+.modal-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+/* ============================================================================
+   COMP OFF DETAILS PANEL (inside form, below leave-type select)
+============================================================================ */
+
+.comp-details-panel {
+  margin-top: 0.75rem;
+  border: 1px solid $violet-200;
+  background: $violet-50;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.comp-details-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $violet-800;
+  text-transform: none;
+
+  .chev { color: $violet-500; font-size: 0.625rem; }
+}
+
+.comp-details-body {
+  padding: 0 0.75rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.comp-details-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: $violet-700;
+  .i-icon { font-size: 0.75rem; }
+}
+
+.comp-recommended {
+  background: #fff;
+  border: 1px solid $violet-100;
+  border-radius: 8px;
+  padding: 0.625rem;
+}
+
+.comp-recommended-title {
+  font-size: 0.5625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $violet-400;
+  font-weight: 700;
+  margin-bottom: 0.375rem;
+}
+
+.comp-recommended-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  padding: 0.1rem 0;
+  color: $gray-500;
+
+  .value { font-weight: 600; color: $gray-800; }
+  .value.warn { color: $yellow-600; }
+  .value.ok { color: $green-600; }
+}
+
+.comp-all-title {
+  font-size: 0.5625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $violet-400;
+  font-weight: 700;
+}
+
+.comp-all-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.comp-all-item {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: 6px;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.75rem;
+
+  &.first { border-color: $violet-300; }
+}
+
+.comp-all-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
+  .value { font-weight: 600; color: $gray-700; }
+}
+
+.comp-all-expiry {
+  color: $gray-500;
+  .value { color: $gray-700; }
+}
+
+.comp-fifo-note {
+  font-size: 0.625rem;
+  color: $violet-600;
+  background: $violet-100;
+  border-radius: 6px;
+  padding: 0.375rem 0.5rem;
+}
+
+/* ============================================================================
+   COMP OFF ALLOCATION PANEL (inside form, below dates)
+============================================================================ */
+
+.allocation-panel {
+  margin-bottom: 0.75rem;
+  border: 1px solid $violet-200;
+  background: $violet-50;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.allocation-head {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid $violet-100;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $violet-800;
+  .i-icon { color: $violet-600; font-size: 0.75rem; }
+}
+
+.allocation-body {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.allocation-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.allocation-stat {
+  background: #fff;
+  border: 1px solid $violet-100;
+  border-radius: 6px;
+  padding: 0.4rem 0.625rem;
+
+  .stat-label {
+    font-size: 0.5625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $violet-400;
+    font-weight: 700;
+  }
+  .stat-value { font-size: 0.875rem; font-weight: 700; color: $gray-800; }
+}
+
+.allocation-days-title {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: $violet-500;
+}
+
+.allocation-days {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.allocation-day {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 6px;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.75rem;
+  border: 1px solid;
+
+  &.covered { background: #fff; border-color: $violet-300; }
+  &.uncovered { background: $red-50; border-color: $red-200; }
+}
+
+.allocation-day-left {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  .value { font-weight: 600; color: $gray-700; }
+}
+
+.allocation-icon { font-size: 0.75rem; color: $violet-600; }
+.allocation-icon.warn { color: $red-500; }
+
+.allocation-chip {
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: $violet-100;
+  color: $violet-700;
+
+  &.danger  { background: $red-100; color: $red-700; }
+  &.success { background: $green-100; color: $green-700; }
+}
+
+.allocation-ineligible-title {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: $gray-400;
+  margin-bottom: 0.375rem;
+}
+
+.allocation-ineligible-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px dashed $gray-300;
+  background: #fff;
+  border-radius: 6px;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.375rem;
+  &:last-child { margin-bottom: 0; }
+
+  .dash { color: $gray-400; }
+  .muted { color: $gray-500; }
+}
+
+.allocation-footer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  font-size: 0.625rem;
+  border-radius: 6px;
+  padding: 0.375rem 0.5rem;
+  line-height: 1.4;
+
+  &.warn { color: $amber-700; background: $amber-50; border: 1px solid $amber-100; }
+  &.ok   { color: $violet-600; background: $violet-100; }
+}

@@ -1,0 +1,79 @@
+<div class="login-container">
+  <div class="login-card glass-panel animated-fade-in">
+    <div class="login-header">
+      <span class="material-icons brand-icon">bubble_chart</span>
+      <h1>Work &#64; Eaze HRMS</h1>
+      <p>Enter your credentials to access the Master Management Console</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <label for="email">Official Email</label>
+        <div class="input-wrapper">
+          <span class="material-icons input-icon">email</span>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="input-control"
+            placeholder="name@workeaze.com"
+            [ngClass]="{ 'is-invalid': loginForm.get('email')?.invalid && loginForm.get('email')?.touched }"
+          />
+        </div>
+        @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+          <span class="error-message">
+            <span class="material-icons">error_outline</span>
+            Please enter a valid email address
+          </span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <span class="material-icons input-icon">lock</span>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            class="input-control"
+            placeholder="••••••••"
+            [ngClass]="{ 'is-invalid': loginForm.get('password')?.invalid && loginForm.get('password')?.touched }"
+          />
+        </div>
+        @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+          <span class="error-message">
+            <span class="material-icons">error_outline</span>
+            Password must be at least 6 characters
+          </span>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary login-btn" [disabled]="isLoading">
+        @if (isLoading) {
+          <span class="spinner"></span>
+          <span>Signing In...</span>
+        } @else {
+          <span>Sign In</span>
+          <span class="material-icons">arrow_forward</span>
+        }
+      </button>
+    </form>
+
+    <!-- Quick Seed Logins -->
+    <div class="quick-logins">
+      <span class="quick-title">Quick Logins (For Testing)</span>
+      <div class="quick-buttons">
+        <button class="btn btn-secondary" (click)="quickLogin('admin')">
+          <span class="material-icons">security</span> Admin
+        </button>
+        <button class="btn btn-secondary" (click)="quickLogin('executive')">
+          <span class="material-icons">person_search</span> Executive
+        </button>
+        <button class="btn btn-secondary" (click)="quickLogin('viewer')">
+          <span class="material-icons">visibility</span> Viewer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,344 @@
+<div class="payroll-master animated-fade-in">
+  <!-- Tab Switcher & Sync Indicator -->
+  <div class="tab-row">
+    <div class="tab-switcher">
+      <button type="button" class="tab-item" [class.active]="activeTab() === 'earnings'" (click)="onSwitchTab('earnings')">
+        Earnings Master
+      </button>
+      <button type="button" class="tab-item" [class.active]="activeTab() === 'deductions'" (click)="onSwitchTab('deductions')">
+        Deduction Master
+      </button>
+    </div>
+    <div class="sync-indicator">
+      <span class="material-icons">check_circle</span>
+      <span>Synced: 12m ago</span>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  @if (activeTab() === 'earnings') {
+    <div class="stats-grid">
+      <div class="stat-card card">
+        <div class="stat-top">
+          <p class="stat-label">Total Active Codes</p>
+          <span class="stat-icon-wrapper stat-icon-blue">
+            <span class="material-icons stat-icon">table_chart</span>
+          </span>
+        </div>
+        <p class="stat-value">{{ earningsList().length }} Codes</p>
+      </div>
+
+      <div class="stat-card card">
+        <div class="stat-top">
+          <p class="stat-label">Compliance Rating</p>
+          <span class="stat-icon-wrapper stat-icon-green">
+            <span class="material-icons stat-icon">verified_user</span>
+          </span>
+        </div>
+        <p class="stat-value stat-value-green">99.8%</p>
+      </div>
+
+      <div class="stat-card-highlight">
+        <div class="highlight-content">
+          <h3 class="highlight-title">Automate Tax Rules</h3>
+          <p class="highlight-text">Integrate automated Indian statutory computations for FY 25-26.</p>
+        </div>
+        <button type="button" (click)="triggerUpdateRules()" class="highlight-btn">
+          Update Rules
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="stats-grid">
+      <div class="stat-card card">
+        <div class="stat-top">
+          <p class="stat-label">Total Deductions</p>
+          <span class="stat-icon-wrapper stat-icon-blue">
+            <span class="material-icons stat-icon">table_chart</span>
+          </span>
+        </div>
+        <p class="stat-value">{{ deductionsList().length }} Categories</p>
+      </div>
+
+      <div class="stat-card card">
+        <div class="stat-top">
+          <p class="stat-label">Statutory Compliance</p>
+          <span class="stat-icon-wrapper stat-icon-green">
+            <span class="material-icons stat-icon">verified_user</span>
+          </span>
+        </div>
+        <p class="stat-value stat-value-green">100% Active</p>
+      </div>
+
+      <div class="stat-card card">
+        <div class="stat-top">
+          <p class="stat-label">Monthly Regulatory Impact</p>
+          <span class="stat-icon-wrapper stat-icon-red">
+            <span class="material-icons stat-icon">currency_rupee</span>
+          </span>
+        </div>
+        <p class="stat-value stat-value-red">-&#8377;24,850.00</p>
+      </div>
+    </div>
+  }
+
+  <!-- Toolbar / Search -->
+  <div class="toolbar-row">
+    <div class="search-box">
+      <span class="material-icons search-icon">search</span>
+      <input
+        type="text"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value); currentPage.set(1)"
+        placeholder="Search {{ activeTab() }} components..."
+        class="search-input"
+      />
+    </div>
+    <div class="toolbar-actions">
+      <button type="button" (click)="triggerExportReport()" class="btn btn-secondary">
+        <span class="material-icons">download</span>
+        <span>Export Report</span>
+      </button>
+      <button type="button" (click)="onOpenAddModal()" class="btn btn-primary">
+        <span class="material-icons">add</span>
+        <span>Add {{ activeTab() === 'earnings' ? 'Earning' : 'Deduction' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="table-card">
+    <div class="table-wrapper">
+      @if (activeTab() === 'earnings') {
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Earning Name</th>
+              <th>Type</th>
+              <th>Calculation</th>
+              <th>Taxable</th>
+              <th>Status</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of paginatedPayComponents(); track e.id) {
+              <tr>
+                <td class="code-cell">{{ e.code }}</td>
+                <td class="name-cell">{{ e.name }}</td>
+                <td>
+                  <span class="classification-badge" [ngClass]="e.classification === 'Fixed' ? 'classification-fixed' : 'classification-other'">
+                    {{ e.classification }}
+                  </span>
+                </td>
+                <td class="calc-cell">{{ e.calculation }}</td>
+                <td>
+                  <span class="taxable-flag" [ngClass]="e.taxable_status === 'Yes' ? 'taxable-yes' : 'taxable-no'">
+                    <span class="material-icons">{{ e.taxable_status === 'Yes' ? 'check_circle' : 'cancel' }}</span>
+                    {{ e.taxable_status }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-cell">
+                    <span class="status-dot" [ngClass]="e.status === 'Active' ? 'dot-active' : 'dot-inactive'"></span>
+                    {{ e.status }}
+                  </span>
+                </td>
+                <td class="actions-col">
+                  <div class="action-buttons">
+                    <button (click)="onEdit(e)" class="btn-action btn-edit" title="Edit Earning" aria-label="Edit Earning Component">
+                      <span class="material-icons">edit</span>
+                    </button>
+                    <button (click)="onDelete(e.id!)" class="btn-action btn-delete" title="Delete Earning" aria-label="Delete Earning Component">
+                      <span class="material-icons">delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty-table-msg">No earning components matching your search were found.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Deduction Name</th>
+              <th>Calculation Method</th>
+              <th>Classification</th>
+              <th>Status</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of paginatedPayComponents(); track d.id) {
+              <tr>
+                <td class="code-cell">{{ d.code }}</td>
+                <td class="name-cell">{{ d.name }}</td>
+                <td class="calc-cell">{{ d.calculation }}</td>
+                <td>
+                  <span class="classification-badge" [ngClass]="d.classification === 'Fixed' ? 'classification-fixed' : 'classification-other'">
+                    {{ d.classification }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-cell">
+                    <span class="status-dot" [ngClass]="d.status === 'Active' ? 'dot-active' : 'dot-inactive'"></span>
+                    {{ d.status }}
+                  </span>
+                </td>
+                <td class="actions-col">
+                  <div class="action-buttons">
+                    <button (click)="onEdit(d)" class="btn-action btn-edit" title="Edit Deduction" aria-label="Edit Deduction Component">
+                      <span class="material-icons">edit</span>
+                    </button>
+                    <button (click)="onDelete(d.id!)" class="btn-action btn-delete" title="Delete Deduction" aria-label="Delete Deduction Component">
+                      <span class="material-icons">delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-table-msg">No deduction components matching your search were found.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="table-pagination">
+      <span class="pagination-count">Showing {{ paginatedPayComponents().length }} of {{ filteredPayComponents().length }} components</span>
+      <div class="pagination-controls">
+        <button type="button" (click)="onPrevPage()" [disabled]="currentPage() === 1" class="pagination-btn">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <button type="button" (click)="onNextPage()" [disabled]="currentPage() >= totalPages()" class="pagination-btn">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+@if (showModal()) {
+  <div class="modal-overlay animated-overlay" (click)="onBackdropClick($event)">
+    <div class="modal-container animated-scale-in">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          {{ editingComponentId()
+            ? (activeTab() === 'earnings' ? 'Edit Earning Component Ledger' : 'Edit Deduction Component Ledger')
+            : (activeTab() === 'earnings' ? 'Create Earning Component Ledger' : 'Create Deduction Component Ledger') }}
+        </h3>
+        <button (click)="onCloseModal()" class="modal-close-btn">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+          <div class="form-group">
+            <label class="form-label">Component Code</label>
+            <input type="text" formControlName="code" placeholder="e.g. EARN-005" class="input-control" />
+            @if (form.get('code')?.touched && form.get('code')?.hasError('required')) {
+              <span class="error-message">Code is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Component Name</label>
+            <input type="text" formControlName="name" placeholder="e.g. HRA / Professional Tax" class="input-control" />
+            @if (form.get('name')?.touched && form.get('name')?.hasError('required')) {
+              <span class="error-message">Name is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Classification</label>
+            <div class="select-wrapper">
+              <select formControlName="classification" class="input-control select-control">
+                <option value="Fixed">Fixed</option>
+                <option value="Variable">Variable</option>
+                <option value="Statutory">Statutory</option>
+                <option value="Voluntary">Voluntary</option>
+              </select>
+              <span class="material-icons select-arrow">expand_more</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Calculation Method</label>
+            <input type="text" formControlName="calculation" placeholder="e.g. Monthly Flat / 12% of Basic" class="input-control" />
+            @if (form.get('calculation')?.touched && form.get('calculation')?.hasError('required')) {
+              <span class="error-message">Calculation is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Taxable Status</label>
+            <div class="select-wrapper">
+              <select formControlName="taxable_status" class="input-control select-control">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+              <span class="material-icons select-arrow">expand_more</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <div class="select-wrapper">
+              <select formControlName="status" class="input-control select-control">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+              <span class="material-icons select-arrow">expand_more</span>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="onCloseModal()" class="btn btn-secondary modal-btn">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="form.invalid" class="btn btn-primary modal-btn">
+              {{ editingComponentId() ? 'Update Component' : 'Save Component' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal()) {
+  <div class="modal-overlay animated-overlay" (click)="onDeleteBackdropClick($event)">
+    <div class="modal-container modal-container-sm animated-scale-in">
+      <div class="modal-header">
+        <h3 class="modal-title">Delete Pay Component</h3>
+        <button (click)="onCloseDeleteModal()" class="modal-close-btn">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-text">Are you sure you want to delete this payroll component? This action cannot be undone.</p>
+        <div class="modal-actions">
+          <button type="button" (click)="onCloseDeleteModal()" class="btn btn-secondary modal-btn">
+            Cancel
+          </button>
+          <button type="button" (click)="confirmDelete()" class="btn btn-danger modal-btn">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,344 @@
+.location-split-container {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 12px;
+  height: calc(100vh - 120px);
+  min-height: 650px;
+  width: 100%;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.list-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  height: 100%;
+  overflow: hidden;
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      span {
+        font-size: 24px;
+      }
+
+      h2 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+      }
+    }
+  }
+
+  .search-box-container {
+    position: relative;
+    margin-bottom: 16px;
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 20px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 14px 16px 14px 40px;
+      font-size: 14px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: #f4f6fa;
+      color: #334155;
+      transition: all 0.2s;
+
+      &::placeholder {
+        color: #94a3b8;
+      }
+
+      &:focus {
+        border-color: #2563EB;
+        background: #ffffff;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+    }
+  }
+
+  .cards-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 4px;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+  }
+}
+
+.location-card {
+  display: flex;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  &.active {
+    border-color: #2563EB;
+    background: rgba(37, 99, 235, 0.02);
+  }
+
+  .card-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563EB;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .card-content {
+    flex: 1;
+    min-width: 0;
+
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 4px;
+
+      .location-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .btn-track {
+        background: #2563EB;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+
+        &:hover {
+          background: #1D4ED8;
+        }
+      }
+    }
+
+    .employee-count-sub {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #64748b;
+      margin: 0 0 6px 0;
+
+      span {
+        font-size: 14px;
+      }
+    }
+
+    .address-sub {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      font-size: 11px;
+      color: #64748b;
+      margin: 0 0 12px 0;
+      line-height: 1.4;
+
+      span {
+        font-size: 14px;
+        margin-top: 2px;
+      }
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 10px;
+
+      .btn-action-edit {
+        background: transparent;
+        border: none;
+        color: #2563EB;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0;
+
+        span {
+          font-size: 14px;
+        }
+
+        &:hover {
+          color: #1d4ed8;
+        }
+      }
+
+      .btn-action-delete {
+        background: transparent;
+        border: none;
+        color: #ef4444;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+
+        span {
+          font-size: 16px;
+        }
+
+        &:hover {
+          color: #dc2626;
+        }
+
+        &:disabled {
+          color: #cbd5e1;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+.map-panel {
+  height: 100%;
+  width: 100%;
+
+  @media (max-width: 1024px) {
+    height: 450px;
+  }
+}
+
+/* Edit View Layout */
+.location-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+.location-details-col {
+  width: 100%;
+  
+  .master-form {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+.location-map-col {
+  width: 100%;
+}
+
+/* Custom Map Marker styles (Teal badge with pointer arrow) */
+::ng-deep {
+  .custom-map-marker-wrapper {
+    background: transparent;
+    border: none;
+  }
+
+  .custom-map-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    .marker-badge {
+      background: #ffffff;
+      color: #2563EB; // Theme blue text
+      font-weight: 700;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8f0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      
+      // Small light-green dot in the top right corner
+      &::after {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: #34d399;
+        border-radius: 50%;
+        position: absolute;
+        top: 3px;
+        right: 3px;
+      }
+    }
+
+    .marker-arrow {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid #2563EB; // Theme blue pointer arrow
+      margin-top: -1px;
+    }
+  }
+}

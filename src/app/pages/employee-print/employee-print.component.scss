@@ -1,0 +1,390 @@
+/* --- Dedicated Employee Profile Print Styles --- */
+$print-text: #000000;
+$print-text-secondary: #334155;
+$print-border: #94a3b8; /* Slightly darker grey for crisp table borders on paper */
+$print-bg-header: #f1f5f9;
+$print-font: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;
+
+.print-container {
+  font-family: $print-font;
+  background-color: #ffffff;
+  color: $print-text;
+  padding: 0;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* Print Header Styling */
+.print-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #000000;
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .brand-icon {
+      font-size: 22px;
+      color: #000000;
+      vertical-align: middle;
+    }
+
+    .brand-text {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      color: #000000;
+    }
+  }
+
+  .doc-info {
+    text-align: right;
+    
+    h1 {
+      font-size: 12px;
+      font-weight: 700;
+      margin: 0;
+      text-transform: uppercase;
+      color: #000000;
+    }
+    
+    .print-date {
+      font-size: 8px;
+      color: $print-text-secondary;
+      margin: 2px 0 0 0;
+    }
+  }
+}
+
+/* Print Sections */
+.print-section {
+  margin-bottom: 12px;
+  page-break-inside: avoid;
+  
+  .section-title {
+    font-size: 11px; /* 12px bold equivalent, highly readable */
+    font-weight: 700;
+    text-transform: uppercase;
+    border-bottom: 1px solid #000000;
+    padding-bottom: 2px;
+    margin-bottom: 6px;
+    color: #000000;
+    letter-spacing: 0.01em;
+  }
+}
+
+/* Summary Table Section */
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 4px;
+  border: 1.5px solid #000000;
+
+  td {
+    padding: 4px 6px;
+    font-size: 9.5px;
+    border: 1px solid #cbd5e1;
+    vertical-align: middle;
+
+    &.summary-label {
+      background-color: #f1f5f9;
+      font-weight: 700;
+      width: 18%;
+      text-transform: uppercase;
+      font-size: 8.5px;
+      color: $print-text-secondary;
+    }
+
+    &.summary-value {
+      width: 32%;
+      color: #000000;
+      
+      &.font-mono {
+        font-family: 'Courier New', Courier, monospace;
+      }
+      &.font-bold {
+        font-weight: 700;
+      }
+    }
+  }
+}
+
+/* Info Grid Layouts */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 12px;
+
+  .info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    
+    .info-label {
+      font-size: 8px;
+      font-weight: 700;
+      color: $print-text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .info-value {
+      font-size: 9.5px;
+      color: $print-text;
+      font-weight: 500;
+
+      &.font-mono {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 9px;
+      }
+    }
+  }
+}
+
+.info-full {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  .info-label {
+    font-size: 8px;
+    font-weight: 700;
+    color: $print-text-secondary;
+    text-transform: uppercase;
+  }
+
+  .info-value {
+    font-size: 9.5px;
+    color: $print-text;
+  }
+}
+
+/* Address Info Text Styles */
+.address-text-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  
+  .address-col {
+    .address-type-label {
+      display: block;
+      font-size: 8.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: $print-text-secondary;
+      margin-bottom: 2px;
+      border-bottom: 1px dashed $print-border;
+      padding-bottom: 2px;
+    }
+    
+    .address-text {
+      font-size: 9.5px;
+      margin: 0;
+      line-height: 1.35;
+      color: $print-text;
+    }
+  }
+}
+
+/* Print Tables */
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 4px;
+  font-size: 9.5px;
+  border: 1px solid $print-border;
+
+  thead {
+    display: table-header-group; /* Repeat headers across pages */
+    tr {
+      border-bottom: 1.5px solid #000000;
+      background-color: #f1f5f9;
+    }
+    th {
+      padding: 4px 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 8px;
+      color: #000000;
+      text-align: left;
+      border: 1px solid $print-border;
+      
+      &.numeric {
+        text-align: right;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $print-border;
+      page-break-inside: avoid !important;
+      
+      &:nth-child(even) {
+        background-color: #f8fafc; /* Alternate row shading */
+      }
+      
+      &.total-row {
+        border-top: 1.5px solid #000000;
+        background-color: #f1f5f9;
+        font-weight: 700;
+        
+        .label {
+          font-weight: 700;
+          text-align: right;
+          text-transform: uppercase;
+          font-size: 8px;
+        }
+        
+        .value {
+          font-weight: 700;
+          font-size: 9.5px;
+        }
+      }
+
+      &.ctc-annual {
+        border-top: none;
+        background-color: #e2e8f0;
+        
+        .label {
+          color: #000000;
+        }
+        
+        .value {
+          color: #000000;
+          font-size: 10px;
+        }
+      }
+    }
+
+    td {
+      padding: 4px 6px;
+      color: $print-text;
+      vertical-align: middle;
+      border: 1px solid $print-border;
+
+      &.numeric {
+        text-align: right;
+      }
+      
+      &.empty-row {
+        text-align: center;
+        color: $print-text-secondary;
+        padding: 6px;
+        font-style: italic;
+      }
+    }
+  }
+}
+
+/* Loading Overlay (only shown on screen while loading) */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 12px;
+
+  .spinner {
+    font-size: 40px;
+    color: #2563eb;
+    animation: rotate 1.5s linear infinite;
+  }
+
+  p {
+    font-size: 14px;
+    color: $print-text-secondary;
+    font-weight: 500;
+  }
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Global Print Overrides (enabled by ViewEncapsulation.None) */
+@media print {
+  // Hide all application UI elements
+  .sidebar,
+  .top-nav,
+  header,
+  aside,
+  .breadcrumbs,
+  .menu-toggle,
+  .search-bar,
+  .icon-nav-btn,
+  .toast-container,
+  .loading-container {
+    display: none !important;
+  }
+
+  // Force clean sheet style for container wrappers
+  html, body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .app-layout,
+  .main-wrapper,
+  .content-area {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    transform: none !important;
+    overflow: visible !important;
+  }
+
+  .print-container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  /* Force page settings */
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  /* Prevent page splits inside sections and table rows */
+  .print-section {
+    page-break-inside: avoid !important;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+
+  thead {
+    display: table-header-group; /* Repeat headers on each page */
+  }
+}

@@ -1,0 +1,59 @@
+[
+  {
+    "id": "ctc-1",
+    "ctcName": "Standard Package - L1",
+    "packageCode": "STD-L1",
+    "annualCTC": 480000,
+    "description": "Entry level standard package",
+    "status": "ACTIVE",
+    "isActive": true,
+    "createdBy": "admin",
+    "createdAt": "2024-02-01T09:00:00.000Z",
+    "modifiedBy": "admin",
+    "updatedAt": "2024-02-01T09:00:00.000Z",
+    "employeeCount": 1,
+    "components": [
+      { "salaryHead": "Basic", "calculationType": "Percentage of CTC", "value": 50, "formula": "50% of CTC", "monthlyAmount": 20000, "annualAmount": 240000 },
+      { "salaryHead": "HRA", "calculationType": "Percentage of Basic", "value": 40, "formula": "40% of Basic", "monthlyAmount": 8000, "annualAmount": 96000 },
+      { "salaryHead": "CA", "calculationType": "Fixed Amount", "value": 1600, "formula": "Fixed: \u20b91600", "monthlyAmount": 1600, "annualAmount": 19200 },
+      { "salaryHead": "Others", "calculationType": "Remaining Balance", "value": 0, "formula": "CTC - Sum(Others)", "monthlyAmount": 10400, "annualAmount": 124800 }
+    ]
+  },
+  {
+    "id": "ctc-2",
+    "ctcName": "Standard Package - L2",
+    "packageCode": "STD-L2",
+    "annualCTC": 720000,
+    "description": "Mid level standard package",
+    "status": "ACTIVE",
+    "isActive": true,
+    "createdBy": "admin",
+    "createdAt": "2024-02-05T09:00:00.000Z",
+    "modifiedBy": "admin",
+    "updatedAt": "2024-02-05T09:00:00.000Z",
+    "employeeCount": 1,
+    "components": [
+      { "salaryHead": "Basic", "calculationType": "Percentage of CTC", "value": 50, "formula": "50% of CTC", "monthlyAmount": 30000, "annualAmount": 360000 },
+      { "salaryHead": "HRA", "calculationType": "Percentage of Basic", "value": 40, "formula": "40% of Basic", "monthlyAmount": 12000, "annualAmount": 144000 },
+      { "salaryHead": "CA", "calculationType": "Fixed Amount", "value": 1600, "formula": "Fixed: \u20b91600", "monthlyAmount": 1600, "annualAmount": 19200 },
+      { "salaryHead": "Others", "calculationType": "Remaining Balance", "value": 0, "formula": "CTC - Sum(Others)", "monthlyAmount": 16400, "annualAmount": 196800 }
+    ]
+  },
+  {
+    "id": "ctc-3",
+    "ctcName": "Consultant Retainer",
+    "packageCode": "CONSULT-01",
+    "annualCTC": 900000,
+    "description": "Retainer package for consultants",
+    "status": "INACTIVE",
+    "isActive": false,
+    "createdBy": "admin",
+    "createdAt": "2024-02-10T09:00:00.000Z",
+    "modifiedBy": "admin",
+    "updatedAt": "2024-02-10T09:00:00.000Z",
+    "employeeCount": 0,
+    "components": [
+      { "salaryHead": "Consulting Fee", "calculationType": "Fixed Amount", "value": 75000, "formula": "Fixed: \u20b975000", "monthlyAmount": 75000, "annualAmount": 900000 }
+    ]
+  }
+]

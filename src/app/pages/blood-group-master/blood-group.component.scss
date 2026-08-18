@@ -1,0 +1,605 @@
+/* Blood Group Master Styles */
+@use "sass:color";
+
+$primary: #2563EB;
+$primary-hover: #1D4ED8;
+$success: #10B981;
+$error: #EF4444;
+$text: #111827;
+$text-secondary: #6B7280;
+$border: #E5E7EB;
+$bg-main: #F8FAFC;
+
+.blood-group-master {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+// Page Header
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0047AB; // Brand Blue
+    margin: 0;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: $text-secondary;
+    margin: 4px 0 0 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+}
+
+// Stats Cards (Bento Style)
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  .stat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .stat-icon-wrapper {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .stat-icon {
+      font-size: 14px;
+      
+      &.pulse {
+        animation: pulse-anim 2s infinite;
+      }
+    }
+
+    &.stat-icon-red {
+      background-color: #fde8e8;
+      .stat-icon {
+        color: #e7000b;
+      }
+    }
+
+    &.stat-icon-green {
+      background-color: #e8f5e9;
+      .stat-icon {
+        color: #16a34a;
+      }
+    }
+  }
+
+  .stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+  }
+
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  &.stat-card-wide {
+    grid-column: span 2;
+
+    @media (max-width: 1024px) {
+      grid-column: span 2;
+    }
+    @media (max-width: 640px) {
+      grid-column: span 1;
+    }
+  }
+}
+
+.coverage-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 8px;
+    background-color: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background-color: #0047AB;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0047AB;
+  }
+
+  .coverage-note {
+    font-size: 11px;
+    color: #94a3b8;
+    margin: 6px 0 0 0;
+  }
+}
+
+// Table Toolbar
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid $border;
+  background-color: #fff;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  .search-box {
+    position: relative;
+    width: 320px;
+
+    @media (max-width: 640px) {
+      width: 100%;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 20px;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px 0 40px;
+      font-size: 13px;
+      border: 1px solid #E2E4E9;
+      border-radius: 8px;
+      background-color: #F1F3F5;
+      outline: none;
+      transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      font-family: inherit;
+
+      &:focus {
+        background-color: #fff;
+        border-color: $primary;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      }
+    }
+  }
+
+  .entries-count {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    strong {
+      color: #334155;
+      font-weight: 800;
+    }
+  }
+}
+
+// Blood Group specific cells
+.blood-group-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .blood-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background-color: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fee2e2;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+  }
+
+  .blood-label {
+    font-weight: 700;
+    color: #1e293b;
+  }
+}
+
+.description-cell {
+  color: #475569 !important;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date-cell {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  color: #94a3b8 !important;
+}
+
+// Status Badge
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  &.status-active {
+    background-color: #ecfdf5;
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+
+    .status-dot {
+      background-color: #10b981;
+    }
+  }
+
+  &.status-inactive {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+
+    .status-dot {
+      background-color: #ef4444;
+    }
+  }
+
+  &.status-default {
+    background-color: #fffbeb;
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+
+    .status-dot {
+      background-color: #f59e0b;
+    }
+  }
+}
+
+// Action Buttons
+.actions-col {
+  text-align: right !important;
+  padding-right: 20px !important;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-action {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  .material-icons {
+    font-size: 18px;
+  }
+
+  &.btn-edit {
+    background-color: #eff6ff;
+    color: #2563eb;
+    border-color: #dbeafe;
+
+    &:hover {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+    }
+  }
+
+  &.btn-delete {
+    background-color: #fef2f2;
+    color: #ef4444;
+    border-color: #fecaca;
+
+    &:hover {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+  }
+}
+
+// Info Banner
+.info-banner {
+  background-color: #0047AB !important;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 71, 171, 0.15);
+  margin-top: 10px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .info-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .material-icons {
+      font-size: 24px;
+      color: #fff;
+    }
+  }
+
+  .info-content {
+    flex: 1;
+  }
+
+  .info-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 4px 0;
+  }
+
+  .info-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+// Modal Styles
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  border-bottom: 1px solid #f1f5f9;
+
+  .modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .modal-close-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: #f1f5f9;
+      color: #475569;
+    }
+  }
+}
+
+.modal-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .input-control {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    font-size: 13px;
+    border: 1px solid $border;
+    border-radius: 8px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: #fff;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    &.ng-invalid.ng-touched {
+      border-color: $error;
+    }
+  }
+
+  .error-message {
+    color: $error;
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 8px;
+
+  .modal-btn {
+    flex: 1;
+  }
+}
+
+.btn-success {
+  background-color: #16a34a;
+  color: #7f7979;
+  border: 1px solid transparent;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #15803d;
+  }
+}
+
+// Select wrapper
+.select-wrapper {
+  position: relative;
+
+  .select-control {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 36px !important;
+  }
+
+  .select-arrow {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    font-size: 20px;
+  }
+}
+
+// Animations
+@keyframes pulse-anim {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

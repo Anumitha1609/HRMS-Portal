@@ -1,0 +1,12 @@
+[
+  { "name": "Coimbatore, Tamil Nadu", "latitude": 11.0168, "longitude": 76.9558, "address": "Coimbatore, Tamil Nadu, India", "city": "Coimbatore", "state": "Tamil Nadu", "country": "India", "pinCode": "641001", "timezone": "Asia/Kolkata" },
+  { "name": "Chennai, Tamil Nadu", "latitude": 13.0827, "longitude": 80.2707, "address": "Chennai, Tamil Nadu, India", "city": "Chennai", "state": "Tamil Nadu", "country": "India", "pinCode": "600001", "timezone": "Asia/Kolkata" },
+  { "name": "Bengaluru, Karnataka", "latitude": 12.9716, "longitude": 77.5946, "address": "Bengaluru, Karnataka, India", "city": "Bengaluru", "state": "Karnataka", "country": "India", "pinCode": "560001", "timezone": "Asia/Kolkata" },
+  { "name": "Madurai, Tamil Nadu", "latitude": 9.9252, "longitude": 78.1198, "address": "Madurai, Tamil Nadu, India", "city": "Madurai", "state": "Tamil Nadu", "country": "India", "pinCode": "625001", "timezone": "Asia/Kolkata" },
+  { "name": "Hyderabad, Telangana", "latitude": 17.3850, "longitude": 78.4867, "address": "Hyderabad, Telangana, India", "city": "Hyderabad", "state": "Telangana", "country": "India", "pinCode": "500001", "timezone": "Asia/Kolkata" },
+  { "name": "Mumbai, Maharashtra", "latitude": 19.0760, "longitude": 72.8777, "address": "Mumbai, Maharashtra, India", "city": "Mumbai", "state": "Maharashtra", "country": "India", "pinCode": "400001", "timezone": "Asia/Kolkata" },
+  { "name": "Delhi", "latitude": 28.7041, "longitude": 77.1025, "address": "New Delhi, India", "city": "New Delhi", "state": "Delhi", "country": "India", "pinCode": "110001", "timezone": "Asia/Kolkata" },
+  { "name": "Pune, Maharashtra", "latitude": 18.5204, "longitude": 73.8567, "address": "Pune, Maharashtra, India", "city": "Pune", "state": "Maharashtra", "country": "India", "pinCode": "411001", "timezone": "Asia/Kolkata" },
+  { "name": "Kochi, Kerala", "latitude": 9.9312, "longitude": 76.2673, "address": "Kochi, Kerala, India", "city": "Kochi", "state": "Kerala", "country": "India", "pinCode": "682001", "timezone": "Asia/Kolkata" },
+  { "name": "Salem, Tamil Nadu", "latitude": 11.6643, "longitude": 78.1460, "address": "Salem, Tamil Nadu, India", "city": "Salem", "state": "Tamil Nadu", "country": "India", "pinCode": "636001", "timezone": "Asia/Kolkata" }
+]
